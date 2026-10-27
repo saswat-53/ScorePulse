@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "scorepulse-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // nodejs_compat is required by @sentry/cloudflare
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+
+  // Phase 1: a cron that only logs once a minute, to prove the scheduler works.
+  // The real poller (Phase 4) reads `poll_state` on this same trigger. The free plan allows 5 cron triggers.
+  "triggers": { "crons": ["* * * * *"] },
+
+  // Non-secret config. Secrets (DATABASE_URL, CLERK_SECRET_KEY, ...) are set with `wrangler secret put`.
+  "vars": {
+    "MIN_APP_VERSION": "1.0.0"
+  }
+}

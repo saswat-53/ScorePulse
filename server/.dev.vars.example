@@ -1,0 +1,23 @@
+# Copy to `.dev.vars` for local `wrangler dev`. Never commit `.dev.vars`.
+# In production, set each one with: npx wrangler secret put <NAME>
+
+# Neon: POOLED connection string (host contains "-pooler"), used by the Worker at runtime
+DATABASE_URL=postgresql://USER:PASSWORD@ep-xxxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require
+
+# Clerk: secret key (sk_...) and the instance's publishable key (pk_...) for verifying session tokens
+CLERK_SECRET_KEY=sk_test_xxxxxxxx
+CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxx
+# Clerk webhook signing secret for the user.deleted webhook (Phase 3 onward)
+CLERK_WEBHOOK_SECRET=whsec_xxxxxxxx
+
+# API-Football (free plan, 100 requests/day). Server only: never put this in the app
+API_FOOTBALL_KEY=xxxxxxxx
+# football-data.org (snapshot data only, added in Phase 2)
+FOOTBALL_DATA_KEY=xxxxxxxx
+
+# Sentry (server project DSN)
+SENTRY_DSN=https://xxxx@oXXXX.ingest.sentry.io/XXXX
+
+# Poller config (these are not secrets, but are handy to override locally)
+POLL_INTERVAL_MINUTES=5
+MIN_APP_VERSION=1.0.0
