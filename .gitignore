@@ -51,3 +51,8 @@ Thumbs.db
 
 # Local scratch: saved provider responses can be huge (live=all is ~4 MB)
 /scratch/
+
+# Installed agent skills (reinstall from skills-lock.json)
+.agents/
+.claude/skills/*
+!.claude/skills/vercel-react-native-skills/
