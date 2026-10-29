@@ -1,0 +1,1 @@
+ALTER TABLE "notification_log" ADD CONSTRAINT "notification_log_user_event" UNIQUE("user_id","event_key");

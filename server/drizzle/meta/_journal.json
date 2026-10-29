@@ -8,6 +8,27 @@
       "when": 1793288994400,
       "tag": "0000_chilly_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793298135250,
+      "tag": "0001_core_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793298160582,
+      "tag": "0002_fixture_events_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793298171517,
+      "tag": "0003_notification_log_unique",
+      "breakpoints": true
     }
   ]
 }

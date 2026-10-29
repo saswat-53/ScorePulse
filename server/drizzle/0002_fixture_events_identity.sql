@@ -1,0 +1,1 @@
+ALTER TABLE "fixture_events" ADD CONSTRAINT "fixture_events_identity" UNIQUE NULLS NOT DISTINCT("fixture_id","elapsed","extra","team_id","player_id","type","detail");
