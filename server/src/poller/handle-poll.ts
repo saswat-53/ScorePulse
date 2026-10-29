@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import * as schema from '../db/schema';
 import { fixtureEvents, fixtures } from '../db/schema';
@@ -24,26 +24,34 @@ type ApiEvent = {
   type: string;
   detail: string;
 };
-export type LiveResponse = { response: { fixture: { id: number }; events?: ApiEvent[] }[] };
+export type PollResponse = { response: { fixture: { id: number }; events?: ApiEvent[] }[] };
 
 export async function handlePoll(
   deps: { db: Db; push: PushSender },
-  live: LiveResponse,
+  live: PollResponse,
   liveTrackedIds: ReadonlySet<number>,
 ) {
-  for (const match of live.response) {
-    if (!liveTrackedIds.has(match.fixture.id)) continue;
-    const [fixture] = await deps.db.select().from(fixtures).where(eq(fixtures.apiFootballId, match.fixture.id));
+  const tracked = live.response.filter((m) => liveTrackedIds.has(m.fixture.id));
+  if (tracked.length === 0) return;
+  // One query for every tracked fixture, not one per match: each query is a subrequest and CPU.
+  const rows = await deps.db
+    .select()
+    .from(fixtures)
+    .where(inArray(fixtures.apiFootballId, tracked.map((m) => m.fixture.id)));
+  const fixtureByApiId = new Map(rows.map((f) => [f.apiFootballId, f]));
+
+  for (const match of tracked) {
+    const fixture = fixtureByApiId.get(match.fixture.id);
     if (!fixture) continue;
 
     const events = match.events ?? [];
 
     // The first poll of a fixture backfills the timeline (ADR 0002); goals already in it are history, not news.
     const isFirstPoll = fixture.firstPolledAt === null;
-    if (isFirstPoll) {
-      await deps.db.update(fixtures).set({ firstPolledAt: new Date() }).where(eq(fixtures.id, fixture.id));
+    if (events.length === 0) {
+      if (isFirstPoll) await markPolled(deps.db, fixture.id);
+      continue;
     }
-    if (events.length === 0) continue;
 
     const inserted = await deps.db
       .insert(fixtureEvents)
@@ -60,6 +68,8 @@ export async function handlePoll(
       )
       .onConflictDoNothing()
       .returning();
+    // Marked after the insert: if the insert fails, the retry is still a first poll and pushes nothing stale.
+    if (isFirstPoll) await markPolled(deps.db, fixture.id);
 
     // Walk the events in order so each new goal carries the score as it stood right after it.
     const score = { home: 0, away: 0 };
@@ -81,6 +91,9 @@ export async function handlePoll(
     }
   }
 }
+
+const markPolled = (db: Db, fixtureId: number) =>
+  db.update(fixtures).set({ firstPolledAt: new Date() }).where(eq(fixtures.id, fixtureId));
 
 // `team` on an event is the side credited with the goal, own goals included (checked against the recorded response).
 const COUNTS_AS_GOAL = new Set(['Normal Goal', 'Penalty', 'Own Goal']);

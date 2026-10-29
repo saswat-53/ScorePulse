@@ -1,5 +1,6 @@
 import recorded from '../fixtures/api-football/live-all-2026-10-29.json';
 import { fixtures } from '../src/db/schema';
+import type { GoalPush } from '../src/poller/handle-poll';
 import type { createTestDb } from './db';
 
 export type LiveResponse = typeof recorded;
@@ -50,6 +51,6 @@ export async function insertFixture(db: Awaited<ReturnType<typeof createTestDb>>
 }
 
 export function fakePush() {
-  const sent: import('../src/poller/handle-poll').GoalPush[] = [];
-  return { sent, send: async (push: import('../src/poller/handle-poll').GoalPush) => void sent.push(push) };
+  const sent: GoalPush[] = [];
+  return { sent, send: async (push: GoalPush) => void sent.push(push) };
 }
