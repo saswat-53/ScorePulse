@@ -1,18 +1,35 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import '../global.css';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
-SplashScreen.preventAutoHideAsync();
+import { UpdateRequiredView } from '@/components/update-required-view';
+import { useVersionGate } from '@/lib/app-version';
+import { SessionProvider } from '@/state/session';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
+});
+
+function Routes() {
+  const gate = useVersionGate();
+
+  // Below min_app_version the app is blocked (ADR 0007). A failed version check never blocks.
+  if (gate.blocked && gate.config) {
+    return <UpdateRequiredView current={gate.current} required={gate.config.minAppVersion} url={gate.config.downloadPageUrl} />;
+  }
+
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#050B18' } }} />;
+}
+
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>
+        <StatusBar style="light" />
+        <Routes />
+      </SessionProvider>
+    </QueryClientProvider>
   );
 }

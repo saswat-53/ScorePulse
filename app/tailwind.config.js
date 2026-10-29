@@ -1,5 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // 'class' avoids a NativeWind web error ("Cannot manually set color scheme") that 'media' triggers.
+  darkMode: 'class',
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
@@ -15,6 +17,9 @@ module.exports = {
         live: '#2BE38A',
         danger: '#FF3B47',
         muted: '#8FA3C0',
+        soft: '#B9C6E0',
+        warn: '#FFB020',
+        card: '#F5C518',
       },
     },
   },
