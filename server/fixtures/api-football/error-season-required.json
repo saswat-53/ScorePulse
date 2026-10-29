@@ -1,0 +1,1 @@
+{"get":"fixtures","parameters":{"date":"2026-10-29","league":"39"},"errors":{"season":"The Season field is required."},"results":0,"paging":{"current":1,"total":1},"response":[]}
