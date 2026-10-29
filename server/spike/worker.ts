@@ -28,9 +28,7 @@ export function parseAndDiff(body: { response: ApiFixture[] }, stored: Set<strin
   return fresh;
 }
 
-export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
-    const url = new URL(req.url);
+async function run(url: URL, env: Env) {
     const sql = neon(env.DATABASE_URL);
     await sql`create table if not exists spike_events (key text primary key, fixture_id int, type text, detail text)`;
     if (url.searchParams.get('reset')) await sql`truncate spike_events`;
@@ -63,6 +61,13 @@ export default {
       wallMs: { fetch: t1 - t0, parse: t2 - t1, selectStored: t3 - t2, diff: t4 - t3, insert: t5 - t4 },
     };
     console.log(JSON.stringify(out));
-    return Response.json(out);
+    return out;
+}
+
+export default {
+  fetch: async (req: Request, env: Env) => Response.json(await run(new URL(req.url), env)),
+  // cron-driven so the spike needs no workers.dev URL
+  scheduled: async (_c: ScheduledController, env: Env) => {
+    await run(new URL('http://x/?source=recorded'), env);
   },
 };
