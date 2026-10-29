@@ -9,7 +9,7 @@ Date: 2026-10-29. Code: `server/spike/` (throwaway). Recorded responses: `server
 | Parse + diff CPU, 46 KB `live=all` (28 fixtures, 71 events) | ~0.5 to 2 ms in Node (proxy) | Pass |
 | Parse + diff CPU, synthetic 4.1 MB (90x the fixtures, 6,390 events) | ~12 to 17 ms in Node (proxy) | **Fail against 10 ms, unconfirmed** |
 | Neon round trips, one poll (select stored + insert) | ~100 ms wall each, HTTP driver, works end to end | Pass |
-| Neon compute for a matchday window | Console metrics (last hour): 0.25 vCPU allocated, ~0.02 vCPU used, suspends after ~5 min idle. One wake is about 0.02 CU-hours. A cron that never idles costs 0.25 CU x window hours: ~45 CU-hours at 6 h/day, ~75 at 10 h/day, against a free limit believed to be ~100 CU-hours/month (verify on the Neon billing page) | Pass if windows total under ~8 h/day |
+| Neon compute for a matchday window | Console metrics (last hour): 0.25 vCPU allocated, ~0.02 vCPU used, suspends after ~5 min idle. One wake is about 0.02 CU-hours. A cron that never idles costs 0.25 CU x window hours: ~45 CU-hours at 6 h/day, ~75 at 10 h/day, against the Free plan limit of 100 CU-hours per project per month (confirmed: 400 h/month of 0.25 CU; scale to zero is always on, 5 min idle) | Pass if windows total under ~8 h/day |
 | `fixtures?date=&league=` without `season` | `errors: {season: "The Season field is required."}` | **Fail** |
 | `fixtures?date=&league=&season=2026` | `errors: {plan: "Free plans do not have access to this season, try from 2022 to 2024."}` | **Fail** |
 | `fixtures?date=` only | 200, 208 fixtures, ~200 KB | Pass |
@@ -31,6 +31,6 @@ Date: 2026-10-29. Code: `server/spike/` (throwaway). Recorded responses: `server
 ## Open items
 
 - Deploy the spike and read real CPU time (needs a Cloudflare deploy, user to approve).
-- Re-check Neon CU-hours over a real matchday window, and confirm the free limit on the billing page.
+- Re-check Neon CU-hours on the project Overview page after a real matchday (metrics lag ~1 h). Running out suspends compute until the next period.
 - Record a VAR match when one is live.
 - Human step: confirm the API-Football key was regenerated.
