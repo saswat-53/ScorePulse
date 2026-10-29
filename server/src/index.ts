@@ -14,12 +14,14 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   const token = c.req.header('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token) return c.json({ error: 'Missing token' }, 401);
 
-  // Clerk v3 returns `{ data, errors }` instead of throwing, so narrow on the result before using it.
-  const result = await verifyToken(token, { secretKey: c.env.CLERK_SECRET_KEY });
-  if (result.errors) return c.json({ error: 'Invalid token' }, 401);
-
-  // The payload type resolves to `unknown` under this TS setup, so read `sub` (the Clerk user id) explicitly.
-  const userId = (result.data as { sub?: string }).sub;
+  // The public verifyToken returns the token payload and throws when the token is invalid or expired.
+  let userId: string | undefined;
+  try {
+    const payload = await verifyToken(token, { secretKey: c.env.CLERK_SECRET_KEY });
+    userId = payload.sub;
+  } catch {
+    return c.json({ error: 'Invalid token' }, 401);
+  }
   if (!userId) return c.json({ error: 'Invalid token' }, 401);
 
   c.set('userId', userId);
