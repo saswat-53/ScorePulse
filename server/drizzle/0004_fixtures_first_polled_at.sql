@@ -1,0 +1,1 @@
+ALTER TABLE "fixtures" ADD COLUMN "first_polled_at" timestamp with time zone;

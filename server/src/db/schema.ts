@@ -25,6 +25,8 @@ export const fixtures = pgTable('fixtures', {
   homeGoals: integer('home_goals'),
   awayGoals: integer('away_goals'),
   source: text('source').notNull(),
+  // Set by the poller on a fixture's first poll; events seen before this are backfill, not news (ADR 0002).
+  firstPolledAt: timestamp('first_polled_at', { withTimezone: true }),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

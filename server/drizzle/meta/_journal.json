@@ -29,6 +29,13 @@
       "when": 1793298171517,
       "tag": "0003_notification_log_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793298910691,
+      "tag": "0004_fixtures_first_polled_at",
+      "breakpoints": true
     }
   ]
 }
