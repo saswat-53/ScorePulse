@@ -1,9 +1,12 @@
 /**
- * Signed-in state, favorites, follows and alert settings. Held in memory for now: sign-in is a
- * stub and nothing is saved. Clerk and the server replace the internals later; the hook's shape
- * stays the same.
+ * Signed-in state, favorites, follows and alert settings. Sign-in is real (Clerk); favorites,
+ * follows and alerts are still held in memory and nothing is saved. The server replaces those
+ * internals later; the hook's shape stays the same.
  */
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { useAuth } from '@clerk/expo';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+
+import { api } from '@/api';
 
 import { PROFILE } from '@/domain/mock';
 import { MAX_FAVORITES, type AlertSettings, type Profile } from '@/domain/types';
@@ -12,7 +15,6 @@ interface Session {
   signedIn: boolean;
   profile: Profile;
   followedIds: number[];
-  signIn: () => void;
   signOut: () => void;
   /** Returns false when the team would exceed the favorites limit. */
   toggleFavorite: (teamId: number) => boolean;
@@ -23,18 +25,26 @@ interface Session {
 const SessionContext = createContext<Session | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [signedIn, setSignedIn] = useState(false);
+  const { isSignedIn, signOut: clerkSignOut, getToken } = useAuth();
+  const signedIn = !!isSignedIn;
   const [profile, setProfile] = useState<Profile>(PROFILE);
   const [followedIds, setFollowedIds] = useState<number[]>([]);
+
+  // First sign-in creates the users row on the server. Failure is non-fatal: the app still works.
+  useEffect(() => {
+    if (!signedIn) return;
+    getToken()
+      .then((token) => (token ? api.me(token) : undefined))
+      .catch((e) => console.warn('/me after sign-in failed', e));
+  }, [signedIn, getToken]);
 
   const value = useMemo<Session>(
     () => ({
       signedIn,
       profile,
       followedIds,
-      signIn: () => setSignedIn(true),
       signOut: () => {
-        setSignedIn(false);
+        void clerkSignOut();
         setProfile(PROFILE);
         setFollowedIds([]);
       },
@@ -55,7 +65,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         ),
       setAlert: (key, v) => setProfile((p) => ({ ...p, alerts: { ...p.alerts, [key]: v } })),
     }),
-    [signedIn, profile, followedIds],
+    [signedIn, profile, followedIds, clerkSignOut],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

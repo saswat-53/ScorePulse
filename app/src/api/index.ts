@@ -17,7 +17,16 @@ import { dateKey } from '@/lib/dates';
 const delay = <T,>(value: T, ms = 120): Promise<T> =>
   new Promise((resolve) => setTimeout(() => resolve(value), ms));
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787';
+
 export const api = {
+  /** Real call: creates the user's row on first sign-in and returns it. Proves app -> Clerk -> Worker -> Neon. */
+  me: async (token: string): Promise<{ user: { id: string } }> => {
+    const res = await fetch(`${API_URL}/me`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`/me failed: ${res.status}`);
+    return res.json();
+  },
+
   leagues: (): Promise<League[]> => delay(LEAGUES),
 
   /** Fixtures and results for one local date, optionally for one league. */
