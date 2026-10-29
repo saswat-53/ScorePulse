@@ -9,10 +9,10 @@ afterEach(async () => {
 });
 
 async function withUsers() {
-  const test = await createTestDb();
-  close = test.close;
-  await test.db.insert(users).values([{ id: 'user_a' }, { id: 'user_b' }]);
-  return test.db;
+  const testDb = await createTestDb();
+  close = testDb.close;
+  await testDb.db.insert(users).values([{ id: 'user_a' }, { id: 'user_b' }]);
+  return testDb.db;
 }
 
 test('the same user and event key logged twice is stored once', async () => {

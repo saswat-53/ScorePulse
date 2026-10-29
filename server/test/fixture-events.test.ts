@@ -9,9 +9,9 @@ afterEach(async () => {
 });
 
 async function withFixture() {
-  const test = await createTestDb();
-  close = test.close;
-  const [fixture] = await test.db
+  const testDb = await createTestDb();
+  close = testDb.close;
+  const [fixture] = await testDb.db
     .insert(fixtures)
     .values({
       leagueId: 39,
@@ -22,7 +22,7 @@ async function withFixture() {
       source: 'api-football',
     })
     .returning();
-  return { db: test.db, fixtureId: fixture.id };
+  return { db: testDb.db, fixtureId: fixture.id };
 }
 
 test('the same event inserted twice, with NULL extra minute and NULL player, is stored once', async () => {

@@ -9,10 +9,10 @@ afterEach(async () => {
 });
 
 test('migrations apply cleanly to an empty database and leave every core table empty and queryable', async () => {
-  const test = await createTestDb();
-  close = test.close;
+  const testDb = await createTestDb();
+  close = testDb.close;
 
   for (const table of [users, fixtures, fixtureEvents, notificationLog, pollState]) {
-    expect(await test.db.select().from(table)).toEqual([]);
+    expect(await testDb.db.select().from(table)).toEqual([]);
   }
 });
