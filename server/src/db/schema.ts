@@ -46,6 +46,10 @@ export const fixtureEvents = pgTable(
     type: text('type').notNull(),
     detail: text('detail').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    // Goals only (ADR 0009): polls in a row where the fixture was in the response but this goal was not.
+    missingPolls: integer('missing_polls').notNull().default(0),
+    // Set when the goal is cancelled (VAR event or 2 missing polls). The row stays so the timeline can show it.
+    removedAt: timestamp('removed_at', { withTimezone: true }),
   },
   (t) => [
     // NULLS NOT DISTINCT: a plain unique treats two NULLs as different and would store the event twice.

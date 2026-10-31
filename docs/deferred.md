@@ -24,7 +24,7 @@ Added 2026-10-29.
 | --- | --- | --- |
 | H2H tab | Not in the spec, and needs extra data requests against the free quota | Quota is measured and has room |
 | Play buttons on goal rows | API-Football has no video or clips | A video source is found |
-| VAR rows (VAR Check, Goal Disallowed) | VAR events did not appear in the free-plan sample. See [ADR 0009](adr/0009-var-correction.md) | A recorded VAR match confirms the events |
+| VAR rows (VAR Check, Goal Disallowed) | Only `Goal cancelled` and `Penalty cancelled` are confirmed from a 2024-25 recording. See [ADR 0009](adr/0009-var-correction.md) | Other wordings are seen on real 2026 matches |
 
 ## Notification settings
 

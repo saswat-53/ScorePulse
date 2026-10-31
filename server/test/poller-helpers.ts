@@ -54,3 +54,38 @@ export function fakePush() {
   const sent: GoalPush[] = [];
   return { sent, send: async (push: GoalPush) => void sent.push(push) };
 }
+
+// Real 2024-25 Everton 0-3 Brighton (fixture 1208024): the only VAR recording we have, used as a test file only.
+// Real VAR events in it: "Penalty cancelled" (48') and "Goal cancelled" (90+3', Brighton, Yasin Ayari).
+// The cancelled goal itself is absent from the final list, so tests rebuild it from the VAR event (synthetic).
+import varMatchJson from '../fixtures/api-football/var-everton-brighton-2024-25.json';
+import type { PollResponse } from '../src/poller/handle-poll';
+
+export const VAR_MATCH = 1208024;
+const varMatch = varMatchJson.response[0];
+type VarEvent = NonNullable<PollResponse['response'][number]['events']>[number];
+const recordedEvents = varMatch.events as VarEvent[];
+export const GOAL_CANCELLED = recordedEvents.find((e) => e.detail === 'Goal cancelled') as VarEvent;
+export const PENALTY_CANCELLED = recordedEvents.find((e) => e.detail === 'Penalty cancelled') as VarEvent;
+// The goal that VAR later cancelled, as an earlier poll would have shown it.
+export const AYARI_GOAL: VarEvent = { ...GOAL_CANCELLED, type: 'Goal', detail: 'Normal Goal' };
+// Everything in the recording except the Goal cancelled event: the match as it stood before the goal.
+export const VAR_BASE_EVENTS: VarEvent[] = recordedEvents.filter((e) => e !== GOAL_CANCELLED);
+
+export const varPoll = (events: VarEvent[]): PollResponse => ({ response: [{ fixture: { id: VAR_MATCH }, events }] });
+
+export async function insertVarFixture(db: Awaited<ReturnType<typeof createTestDb>>['db']) {
+  const [row] = await db
+    .insert(fixtures)
+    .values({
+      apiFootballId: VAR_MATCH,
+      leagueId: varMatch.league.id,
+      homeTeamId: varMatch.teams.home.id,
+      awayTeamId: varMatch.teams.away.id,
+      kickoff: new Date(varMatch.fixture.date),
+      status: '2H',
+      source: 'api-football',
+    })
+    .returning();
+  return row;
+}
