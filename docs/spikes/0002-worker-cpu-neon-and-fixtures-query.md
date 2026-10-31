@@ -53,3 +53,19 @@ Date: 2026-10-31. Code: `server/spike/handler-cpu.ts` (throwaway). The real `han
 - Not measured: the push path with a real Expo sender (the fake sender is free) and the grace-period and VAR work (#5).
 
 **Fallbacks, cheapest first:** (1) send the select, insert and update as one Neon HTTP request (`db.batch`, with the fixture lookup folded into the insert), which attacks the per-request cost directly; (2) split the poll across invocations, as ADR 0004 suggests (e.g. one league per run); (3) poll less often when few matches are live. None changes the design in ADR 0001 or 0013 yet; write an ADR if (2) or (3) is adopted.
+
+## Follow-up: runner CPU after batching (ticket #6)
+
+Date: 2026-10-31. Code: `server/spike/runner-cpu.ts` (throwaway). The real `runPoller` ran once a minute on Cloudflare against Neon, with 3 followed in-play matches (9 events, 6 goals) and a provider that served the recorded response. Neon requests per run: idle 1, normal poll 2 (state and fixtures in one batch, then events and writes in one batch). CPU is the tail `cpuTime` (1 ms resolution, noisy). The Worker was deleted and the seeded rows removed afterwards.
+
+| Run | CPU samples |
+| --- | --- |
+| Idle (nothing due) | 7 ms |
+| 3 matches, steady replay | 12 ms |
+| 3 matches, new goals (6 pushes) | 21, 31 ms |
+
+- Only 4 usable samples (the tail dropped some invocations), so the numbers are indicative, not exact.
+- Steady replay (12 ms) is no better than before batching (10 to 15 ms). The new-goals run is worse (21 to 31 ms against 10 to 14 ms in #4): it now also writes fixture status and score, the poll counter and the first-poll marker, and the poll carries the grace-period read. The requests fell from about 7 to 2, so the cost is not the number of HTTPS requests; it is what each carries (building and parsing the statements, and the push loop).
+- The idle run, the most common one, is 7 ms: inside the cap.
+- No invocation failed, as in #4. The cap is still not a basis to rely on.
+- The ADR 0004 fallbacks are next: poll less often when few matches are live, or split the work across invocations.
