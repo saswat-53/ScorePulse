@@ -13,7 +13,7 @@ API-Football's free tier allows about 100 requests a day. About 80 go to live po
 - Poll only when at least one live-tracked fixture is in play. If none is, make no request.
 - A poll returns all live matches, but the poller stores events and sends alerts only for live-tracked fixtures.
 - A fixture that is not live-tracked shows football-data.org snapshot data, always, whatever the quota.
-- When quota runs low, the polling interval widens for everyone and the app shows "updates paused". There is no ranking between fixtures.
+- When quota runs low, the polling interval widens for everyone and the app shows "updates paused". There is no ranking between fixtures. _(Superseded by [ADR 0013](0013-favorites-keep-polling-when-quota-is-low.md): favorite-team fixtures keep polling when quota is low, follow-only fixtures pause first.)_
 
 ## Consequences
 
