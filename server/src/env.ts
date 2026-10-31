@@ -5,7 +5,8 @@ export type Bindings = {
   CLERK_PUBLISHABLE_KEY: string;
   SENTRY_DSN: string;
   MIN_APP_VERSION: string;
-  // Added in later phases: API_FOOTBALL_KEY, FOOTBALL_DATA_KEY, CLERK_WEBHOOK_SECRET
+  API_FOOTBALL_KEY: string;
+  // Added in later phases: FOOTBALL_DATA_KEY, CLERK_WEBHOOK_SECRET
 };
 
 export type Variables = {

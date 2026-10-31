@@ -5,6 +5,9 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { getDb } from './db/client';
 import { users } from './db/schema';
+import { apiFootball } from './poller/api-football';
+import { getPollStatus } from './poller/quota';
+import { runPoller } from './poller/run-poller';
 import type { Bindings, Variables } from './env';
 
 type AppEnv = { Bindings: Bindings; Variables: Variables };
@@ -31,6 +34,9 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
 const app = new Hono<AppEnv>()
   // Public: uptime check and the app's launch-time version gate.
   .get('/health', (c) => c.json({ ok: true, minAppVersion: c.env.MIN_APP_VERSION }))
+
+  // Public: whether polling has slowed or stopped because the day's API-Football quota is running low (#15 shows it).
+  .get('/status', async (c) => c.json(await getPollStatus(getDb(c.env.DATABASE_URL), new Date())))
 
   // Protected: creates the users row on first sign-in, then reads it back from Neon.
   // This one call proves the chain: app -> Clerk token -> Worker -> Neon.
@@ -59,10 +65,17 @@ export default Sentry.withSentry(
   {
     fetch: app.fetch,
 
-    // Phase 1: proves the cron trigger fires. Phase 4 replaces this with the poller,
-    // which reads `poll_state` and exits at once unless a poll is due.
-    async scheduled(controller) {
-      console.log(`cron fired at ${new Date(controller.scheduledTime).toISOString()}`);
+    // Cron only fires in the matchday windows (wrangler.jsonc); the poller itself decides whether a run is due.
+    async scheduled(controller, env) {
+      await runPoller(
+        {
+          db: getDb(env.DATABASE_URL),
+          // Placeholder until push delivery lands (#13): the alert is logged, not sent.
+          push: { send: async (push) => console.log(JSON.stringify(push)) },
+          provider: apiFootball(env.API_FOOTBALL_KEY),
+        },
+        new Date(controller.scheduledTime),
+      );
     },
   } satisfies ExportedHandler<Bindings>,
 );

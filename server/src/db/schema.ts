@@ -80,3 +80,33 @@ export const pollState = pgTable('poll_state', {
   requestsToday: integer('requests_today').notNull().default(0),
   quotaDay: date('quota_day'),
 });
+
+// A user's favorite teams (ADR 0014: at most 3, enforced by the API). A favorite makes every fixture of the team live-tracked.
+export const favoriteTeams = pgTable(
+  'favorite_teams',
+  {
+    id: serial('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    teamId: integer('team_id').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('favorite_teams_user_team').on(t.userId, t.teamId)],
+);
+
+// A one-off follow of a single fixture (ADR 0014: at most 2 active). A follow makes that fixture live-tracked.
+export const follows = pgTable(
+  'follows',
+  {
+    id: serial('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    fixtureId: integer('fixture_id')
+      .notNull()
+      .references(() => fixtures.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('follows_user_fixture').on(t.userId, t.fixtureId)],
+);

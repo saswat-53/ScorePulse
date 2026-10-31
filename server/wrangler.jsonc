@@ -7,9 +7,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
 
-  // Phase 1: a cron that only logs once a minute, to prove the scheduler works.
-  // The real poller (Phase 4) reads `poll_state` on this same trigger. The free plan allows 5 cron triggers.
-  "triggers": { "crons": ["* * * * *"] },
+  // Static matchday windows in UTC (ADR 0010): Friday to Monday 11:00-22:59, Tuesday to Thursday 17:00-22:59.
+  // Day names, because Cloudflare numbers weekdays differently from standard cron.
+  // The poller runs on a 5-minute beat and decides itself whether anything is due (ADR 0016).
+  "triggers": { "crons": ["*/5 11-22 * * FRI,SAT,SUN,MON", "*/5 17-22 * * TUE,WED,THU"] },
 
   // Non-secret config. Secrets (DATABASE_URL, CLERK_SECRET_KEY, ...) are set with `wrangler secret put`.
   "vars": {

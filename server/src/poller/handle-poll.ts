@@ -1,10 +1,7 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
-import * as schema from '../db/schema';
 import { fixtureEvents, fixtures } from '../db/schema';
-
-// Works with the Neon HTTP driver in the Worker and PGlite in tests.
-type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
+import { runBatch, type PollDb, type Statement } from './db';
+import { FULL_TIME, IN_PLAY, PRESUMED_OVER_MINUTES } from './status';
 
 export type GoalPush = {
   kind: 'goal' | 'goal_removed';
@@ -28,7 +25,19 @@ type ApiEvent = {
   type: string;
   detail: string;
 };
-export type PollResponse = { response: { fixture: { id: number }; events?: ApiEvent[] }[] };
+export type PollResponse = {
+  response: {
+    fixture: { id: number; status?: { short: string } };
+    goals?: { home: number | null; away: number | null };
+    events?: ApiEvent[];
+  }[];
+};
+
+// A live-tracked fixture as the poller read it before the provider call: its row, so the poll needs no lookup of its own.
+export type TrackedFixture = Pick<
+  typeof fixtures.$inferSelect,
+  'id' | 'homeTeamId' | 'kickoff' | 'firstPolledAt' | 'status' | 'homeGoals' | 'awayGoals'
+> & { apiFootballId: number };
 
 type EventRow = typeof fixtureEvents.$inferSelect;
 
@@ -36,23 +45,33 @@ type EventRow = typeof fixtureEvents.$inferSelect;
 const MISSING_POLLS_TO_REMOVE = 2;
 
 export async function handlePoll(
-  deps: { db: Db; push: PushSender },
+  deps: { db: PollDb; push: PushSender; now?: Date },
   live: PollResponse,
-  liveTrackedIds: ReadonlySet<number>,
+  tracked: readonly TrackedFixture[],
+  // Writes of the caller that ride in the poll's batch, so they cost no request of their own.
+  sameBatchWrites: Statement[] = [],
 ) {
-  const tracked = live.response.filter((m) => liveTrackedIds.has(m.fixture.id));
-  if (tracked.length === 0) return;
-  // One query for every tracked fixture, not one per match: each query is a subrequest and CPU.
-  const rows = await deps.db
-    .select()
-    .from(fixtures)
-    .where(inArray(fixtures.apiFootballId, tracked.map((m) => m.fixture.id)));
-  const fixtureByApiId = new Map(rows.map((f) => [f.apiFootballId, f]));
-
-  const known = tracked.flatMap((match) => {
+  const fixtureByApiId = new Map(tracked.map((f) => [f.apiFootballId, f]));
+  const known = live.response.flatMap((match) => {
     const fixture = fixtureByApiId.get(match.fixture.id);
     return fixture ? [{ match, fixture, events: match.events ?? [] }] : [];
   });
+
+  // `live=` stops listing a match at full time. One that was seen live and is gone 100 minutes after kickoff is over.
+  const listed = new Set(live.response.map((m) => m.fixture.id));
+  const now = deps.now ?? new Date();
+  const over = tracked.filter(
+    (f) =>
+      !listed.has(f.apiFootballId) &&
+      f.firstPolledAt !== null &&
+      IN_PLAY.includes(f.status) &&
+      now.getTime() - f.kickoff.getTime() >= PRESUMED_OVER_MINUTES * 60_000,
+  );
+  const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
+  if (known.length === 0) {
+    await runBatch(deps.db, [...markOver, ...sameBatchWrites]);
+    return;
+  }
 
   // Every tracked fixture's events go in with one INSERT, however many matches are on: queries are what cost CPU.
   const values = known.flatMap(({ fixture, events }) =>
@@ -66,20 +85,15 @@ export async function handlePoll(
       detail: e.detail,
     })),
   );
-  const inserted = values.length
-    ? await deps.db.insert(fixtureEvents).values(values).onConflictDoNothing().returning()
-    : [];
 
-  // The first poll of a fixture backfills the timeline (ADR 0002); goals already in it are history, not news.
-  // Marked after the insert: if the insert fails, the retry is still a first poll and pushes nothing stale.
-  const firstPolled = known.filter(({ fixture }) => fixture.firstPolledAt === null).map(({ fixture }) => fixture.id);
-  if (firstPolled.length) {
-    await deps.db.update(fixtures).set({ firstPolledAt: new Date() }).where(inArray(fixtures.id, firstPolled));
-  }
-
+  // One Neon request for all the reads and writes below. It is one transaction, so if the insert fails nothing is
+  // marked: the retry is still a first poll and pushes nothing stale (ADR 0002).
+  const statements: Statement[] = [];
+  const insertAt = values.length ? statements.push(deps.db.insert(fixtureEvents).values(values).onConflictDoNothing().returning()) - 1 : -1;
   // Every stored goal of the tracked fixtures, new ones included, removed ones too (they must not count in a score).
-  const goalRows = known.length
-    ? await deps.db
+  const goalsAt =
+    statements.push(
+      deps.db
         .select()
         .from(fixtureEvents)
         .where(
@@ -88,8 +102,27 @@ export async function handlePoll(
             eq(fixtureEvents.type, 'Goal'),
             inArray(fixtureEvents.detail, [...GOAL_DETAILS]),
           ),
-        )
-    : [];
+        ),
+    ) - 1;
+
+  // The first poll of a fixture backfills the timeline (ADR 0002); goals already in it are history, not news.
+  const firstPolled = known.filter(({ fixture }) => fixture.firstPolledAt === null).map(({ fixture }) => fixture.id);
+  if (firstPolled.length) {
+    statements.push(deps.db.update(fixtures).set({ firstPolledAt: new Date() }).where(inArray(fixtures.id, firstPolled)));
+  }
+  // Status and score follow the provider, so a match at halftime or full time drops out of the next run (ADR 0016).
+  for (const { match, fixture } of known) {
+    const status = match.fixture.status?.short ?? fixture.status;
+    const homeGoals = match.goals?.home ?? fixture.homeGoals;
+    const awayGoals = match.goals?.away ?? fixture.awayGoals;
+    if (status === fixture.status && homeGoals === fixture.homeGoals && awayGoals === fixture.awayGoals) continue;
+    statements.push(deps.db.update(fixtures).set({ status, homeGoals, awayGoals, updatedAt: new Date() }).where(eq(fixtures.id, fixture.id)));
+  }
+  statements.push(...markOver, ...sameBatchWrites);
+
+  const results = await runBatch(deps.db, statements);
+  const inserted = insertAt >= 0 ? (results[insertAt] as EventRow[]) : [];
+  const goalRows = results[goalsAt] as EventRow[];
 
   const recoveredIds: number[] = [];
   const stillMissingIds: number[] = [];
@@ -162,19 +195,23 @@ export async function handlePoll(
     }
   }
 
-  // State changes are written only when something changed, so a quiet poll adds no writes.
+  // State changes are written only when something changed, so a quiet poll adds no request.
+  const stateWrites: Statement[] = [];
   if (recoveredIds.length) {
-    await deps.db.update(fixtureEvents).set({ missingPolls: 0 }).where(inArray(fixtureEvents.id, recoveredIds));
+    stateWrites.push(deps.db.update(fixtureEvents).set({ missingPolls: 0 }).where(inArray(fixtureEvents.id, recoveredIds)));
   }
   if (stillMissingIds.length) {
-    await deps.db
-      .update(fixtureEvents)
-      .set({ missingPolls: sql`${fixtureEvents.missingPolls} + 1` })
-      .where(inArray(fixtureEvents.id, stillMissingIds));
+    stateWrites.push(
+      deps.db
+        .update(fixtureEvents)
+        .set({ missingPolls: sql`${fixtureEvents.missingPolls} + 1` })
+        .where(inArray(fixtureEvents.id, stillMissingIds)),
+    );
   }
   if (removeIds.length) {
-    await deps.db.update(fixtureEvents).set({ removedAt: new Date() }).where(inArray(fixtureEvents.id, removeIds));
+    stateWrites.push(deps.db.update(fixtureEvents).set({ removedAt: new Date() }).where(inArray(fixtureEvents.id, removeIds)));
   }
+  await runBatch(deps.db, stateWrites);
 }
 
 // `team` on an event is the side credited with the goal, own goals included (checked against the recorded response).

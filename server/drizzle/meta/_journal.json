@@ -43,6 +43,13 @@
       "when": 1793434427819,
       "tag": "0005_fixture_events_removal",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793450568692,
+      "tag": "0006_favorites_and_follows",
+      "breakpoints": true
     }
   ]
 }

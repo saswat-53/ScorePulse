@@ -1,7 +1,8 @@
 import recorded from '../fixtures/api-football/live-all-2026-10-29.json';
 import varMatchJson from '../fixtures/api-football/var-everton-brighton-2024-25.json';
+import { inArray } from 'drizzle-orm';
 import { fixtures } from '../src/db/schema';
-import type { GoalPush, PollResponse } from '../src/poller/handle-poll';
+import { type GoalPush, handlePoll, type PollResponse, type PushSender } from '../src/poller/handle-poll';
 import type { createTestDb } from './db';
 
 export type LiveResponse = typeof recorded;
@@ -35,7 +36,11 @@ export function ownGoalIndex(match: LiveFixture) {
   return match.events.findIndex((e) => e.detail === 'Own Goal');
 }
 
-export async function insertFixture(db: Awaited<ReturnType<typeof createTestDb>>['db'], match: LiveFixture) {
+export async function insertFixture(
+  db: Awaited<ReturnType<typeof createTestDb>>['db'],
+  match: LiveFixture,
+  overrides: Partial<typeof fixtures.$inferInsert> = {},
+) {
   const [row] = await db
     .insert(fixtures)
     .values({
@@ -46,6 +51,7 @@ export async function insertFixture(db: Awaited<ReturnType<typeof createTestDb>>
       kickoff: new Date(match.fixture.date),
       status: match.fixture.status.short,
       source: 'api-football',
+      ...overrides,
     })
     .returning();
   return row;
@@ -87,4 +93,15 @@ export async function insertVarFixture(db: Awaited<ReturnType<typeof createTestD
     })
     .returning();
   return row;
+}
+
+// One poll as the Worker makes it: the tracked fixtures are read from the database, then handed to the handler.
+// `trackedApiIds` narrows which matches of the response count as live-tracked (default: all of them).
+export async function pollOnce(
+  deps: { db: Awaited<ReturnType<typeof createTestDb>>['db']; push: PushSender },
+  response: PollResponse,
+  trackedApiIds: number[] = response.response.map((m) => m.fixture.id),
+) {
+  const rows = await deps.db.select().from(fixtures).where(inArray(fixtures.apiFootballId, trackedApiIds));
+  await handlePoll(deps, response, rows.flatMap((r) => (r.apiFootballId === null ? [] : [{ ...r, apiFootballId: r.apiFootballId }])));
 }
