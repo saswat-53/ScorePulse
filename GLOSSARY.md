@@ -7,10 +7,10 @@ A fixture the poller reads from API-Football during matchday windows. A fixture 
 Stored fixture, result and standings data from football-data.org, refreshed by the morning and night jobs. It is the only data a fixture has when it is not live-tracked. The match screen labels it "not live-tracked, tap Follow."
 
 **Follow (a match)**
-A user action that makes a fixture live-tracked until full time. There is no cap on follows in v1. The first poll after a follow backfills the full event list, so the timeline is complete from kickoff.
+A user action that makes a fixture live-tracked until full time. A user can have at most 2 active follows at once; a follow ends at full time, so another can be added afterwards. The first poll after a follow backfills the full event list, so the timeline is complete from kickoff.
 
 **Favorite team**
-One of up to 3 teams a user picks. Matches involving a favorite team are live-tracked.
+One of up to 3 teams a user picks. The server enforces the cap. Matches involving a favorite team are live-tracked.
 
 **Authoritative source**
 The provider whose data wins when API-Football and football-data.org disagree. API-Football is authoritative for a live-tracked fixture until full time. After full time, football-data.org is authoritative for the final result. A fixture that was never live-tracked only has football-data.org data.

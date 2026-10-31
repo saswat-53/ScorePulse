@@ -9,7 +9,7 @@ A follow can start mid-match, so earlier events were never polled. A follow make
 ## Decision
 
 - The first poll after a follow stores the full event list from the live response, so the timeline is complete from kickoff.
-- There is no cap on follows in v1.
+- There is no cap on follows in v1. _(Superseded by [ADR 0014](0014-cap-favorites-at-three-and-active-follows-at-two.md): at most 2 active follows per user.)_
 - If quota is exhausted, the app shows "updates paused" on the match. It does not fail silently.
 
 ## Consequences
