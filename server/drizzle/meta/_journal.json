@@ -50,6 +50,13 @@
       "when": 1793450568692,
       "tag": "0006_favorites_and_follows",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793454521356,
+      "tag": "0007_team_map_standings_overwrites",
+      "breakpoints": true
     }
   ]
 }

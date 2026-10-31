@@ -110,3 +110,49 @@ export const follows = pgTable(
   },
   (t) => [unique('follows_user_fixture').on(t.userId, t.fixtureId)],
 );
+
+// Links a team's id at football-data.org to its id at API-Football (#7). Fixtures store API-Football team ids,
+// because live events carry those; the snapshot job translates through this table.
+export const teamMap = pgTable('team_map', {
+  id: serial('id').primaryKey(),
+  footballDataId: integer('football_data_id').notNull().unique(),
+  apiFootballId: integer('api_football_id').notNull().unique(),
+  name: text('name').notNull(),
+});
+
+// One league-table row per team, mirrored from football-data.org (ADR 0003). `teamId` is a football-data.org id.
+export const standings = pgTable(
+  'standings',
+  {
+    id: serial('id').primaryKey(),
+    competition: text('competition').notNull(), // football-data.org code: PL, PD, FL1, BL1, CL
+    season: integer('season').notNull(), // the year the season starts in
+    teamId: integer('team_id').notNull(),
+    teamName: text('team_name').notNull(),
+    position: integer('position').notNull(),
+    played: integer('played').notNull(),
+    won: integer('won').notNull(),
+    drawn: integer('drawn').notNull(),
+    lost: integer('lost').notNull(),
+    goalsFor: integer('goals_for').notNull(),
+    goalsAgainst: integer('goals_against').notNull(),
+    points: integer('points').notNull(),
+    source: text('source').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('standings_competition_season_team').on(t.competition, t.season, t.teamId)],
+);
+
+// Every time the night job replaced a live-tracked fixture's stored result with football-data.org's (ADR 0003),
+// so provider disagreement can be measured.
+export const fixtureOverwrites = pgTable('fixture_overwrites', {
+  id: serial('id').primaryKey(),
+  fixtureId: integer('fixture_id')
+    .notNull()
+    .references(() => fixtures.id, { onDelete: 'cascade' }),
+  oldHomeGoals: integer('old_home_goals'),
+  oldAwayGoals: integer('old_away_goals'),
+  newHomeGoals: integer('new_home_goals'),
+  newAwayGoals: integer('new_away_goals'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

@@ -1,0 +1,1572 @@
+{
+ "response": [
+  {
+   "team": {
+    "id": 33,
+    "name": "Manchester United",
+    "code": "MUN"
+   }
+  },
+  {
+   "team": {
+    "id": 34,
+    "name": "Newcastle",
+    "code": "NEW"
+   }
+  },
+  {
+   "team": {
+    "id": 35,
+    "name": "Bournemouth",
+    "code": "BOU"
+   }
+  },
+  {
+   "team": {
+    "id": 36,
+    "name": "Fulham",
+    "code": "FUL"
+   }
+  },
+  {
+   "team": {
+    "id": 38,
+    "name": "Watford",
+    "code": "WAT"
+   }
+  },
+  {
+   "team": {
+    "id": 39,
+    "name": "Wolves",
+    "code": "WOL"
+   }
+  },
+  {
+   "team": {
+    "id": 40,
+    "name": "Liverpool",
+    "code": "LIV"
+   }
+  },
+  {
+   "team": {
+    "id": 41,
+    "name": "Southampton",
+    "code": "SOU"
+   }
+  },
+  {
+   "team": {
+    "id": 42,
+    "name": "Arsenal",
+    "code": "ARS"
+   }
+  },
+  {
+   "team": {
+    "id": 43,
+    "name": "Cardiff",
+    "code": "CAR"
+   }
+  },
+  {
+   "team": {
+    "id": 44,
+    "name": "Burnley",
+    "code": "BUR"
+   }
+  },
+  {
+   "team": {
+    "id": 45,
+    "name": "Everton",
+    "code": "EVE"
+   }
+  },
+  {
+   "team": {
+    "id": 46,
+    "name": "Leicester",
+    "code": "LEI"
+   }
+  },
+  {
+   "team": {
+    "id": 47,
+    "name": "Tottenham",
+    "code": "TOT"
+   }
+  },
+  {
+   "team": {
+    "id": 48,
+    "name": "West Ham",
+    "code": "WES"
+   }
+  },
+  {
+   "team": {
+    "id": 49,
+    "name": "Chelsea",
+    "code": "CHE"
+   }
+  },
+  {
+   "team": {
+    "id": 50,
+    "name": "Manchester City",
+    "code": "MCI"
+   }
+  },
+  {
+   "team": {
+    "id": 51,
+    "name": "Brighton",
+    "code": "BRI"
+   }
+  },
+  {
+   "team": {
+    "id": 52,
+    "name": "Crystal Palace",
+    "code": "CRY"
+   }
+  },
+  {
+   "team": {
+    "id": 55,
+    "name": "Brentford",
+    "code": "BRE"
+   }
+  },
+  {
+   "team": {
+    "id": 56,
+    "name": "Bristol City",
+    "code": "BRI"
+   }
+  },
+  {
+   "team": {
+    "id": 57,
+    "name": "Ipswich",
+    "code": "IPS"
+   }
+  },
+  {
+   "team": {
+    "id": 58,
+    "name": "Millwall",
+    "code": "MIL"
+   }
+  },
+  {
+   "team": {
+    "id": 59,
+    "name": "Preston",
+    "code": "PRE"
+   }
+  },
+  {
+   "team": {
+    "id": 60,
+    "name": "West Brom",
+    "code": "WES"
+   }
+  },
+  {
+   "team": {
+    "id": 62,
+    "name": "Sheffield Utd",
+    "code": "SHE"
+   }
+  },
+  {
+   "team": {
+    "id": 63,
+    "name": "Leeds",
+    "code": "LEE"
+   }
+  },
+  {
+   "team": {
+    "id": 64,
+    "name": "Hull City",
+    "code": "HUL"
+   }
+  },
+  {
+   "team": {
+    "id": 65,
+    "name": "Nottingham Forest",
+    "code": "NOT"
+   }
+  },
+  {
+   "team": {
+    "id": 66,
+    "name": "Aston Villa",
+    "code": "AST"
+   }
+  },
+  {
+   "team": {
+    "id": 67,
+    "name": "Blackburn",
+    "code": "BLA"
+   }
+  },
+  {
+   "team": {
+    "id": 69,
+    "name": "Derby",
+    "code": "DER"
+   }
+  },
+  {
+   "team": {
+    "id": 70,
+    "name": "Middlesbrough",
+    "code": "MID"
+   }
+  },
+  {
+   "team": {
+    "id": 71,
+    "name": "Norwich",
+    "code": "NOR"
+   }
+  },
+  {
+   "team": {
+    "id": 72,
+    "name": "QPR",
+    "code": "QPR"
+   }
+  },
+  {
+   "team": {
+    "id": 74,
+    "name": "Sheffield Wednesday",
+    "code": "SHE"
+   }
+  },
+  {
+   "team": {
+    "id": 75,
+    "name": "Stoke City",
+    "code": "STO"
+   }
+  },
+  {
+   "team": {
+    "id": 76,
+    "name": "Swansea",
+    "code": "SWA"
+   }
+  },
+  {
+   "team": {
+    "id": 77,
+    "name": "Angers",
+    "code": "ANG"
+   }
+  },
+  {
+   "team": {
+    "id": 79,
+    "name": "Lille",
+    "code": "LIL"
+   }
+  },
+  {
+   "team": {
+    "id": 80,
+    "name": "Lyon",
+    "code": "LYO"
+   }
+  },
+  {
+   "team": {
+    "id": 81,
+    "name": "Marseille",
+    "code": "MAR"
+   }
+  },
+  {
+   "team": {
+    "id": 82,
+    "name": "Montpellier",
+    "code": "MON"
+   }
+  },
+  {
+   "team": {
+    "id": 83,
+    "name": "Nantes",
+    "code": "NAN"
+   }
+  },
+  {
+   "team": {
+    "id": 84,
+    "name": "Nice",
+    "code": "NIC"
+   }
+  },
+  {
+   "team": {
+    "id": 85,
+    "name": "Paris Saint Germain",
+    "code": "PSG"
+   }
+  },
+  {
+   "team": {
+    "id": 87,
+    "name": "Amiens",
+    "code": "AMI"
+   }
+  },
+  {
+   "team": {
+    "id": 88,
+    "name": "Caen",
+    "code": "CAE"
+   }
+  },
+  {
+   "team": {
+    "id": 90,
+    "name": "Guingamp",
+    "code": "GUI"
+   }
+  },
+  {
+   "team": {
+    "id": 91,
+    "name": "Monaco",
+    "code": "MON"
+   }
+  },
+  {
+   "team": {
+    "id": 93,
+    "name": "Reims",
+    "code": "REI"
+   }
+  },
+  {
+   "team": {
+    "id": 94,
+    "name": "Rennes",
+    "code": "REN"
+   }
+  },
+  {
+   "team": {
+    "id": 95,
+    "name": "Strasbourg",
+    "code": "STR"
+   }
+  },
+  {
+   "team": {
+    "id": 96,
+    "name": "Toulouse",
+    "code": "TOU"
+   }
+  },
+  {
+   "team": {
+    "id": 97,
+    "name": "Lorient",
+    "code": "LOR"
+   }
+  },
+  {
+   "team": {
+    "id": 98,
+    "name": "Ajaccio",
+    "code": "AJA"
+   }
+  },
+  {
+   "team": {
+    "id": 99,
+    "name": "Clermont Foot",
+    "code": "CLE"
+   }
+  },
+  {
+   "team": {
+    "id": 101,
+    "name": "Grenoble",
+    "code": "GRE"
+   }
+  },
+  {
+   "team": {
+    "id": 104,
+    "name": "RED Star FC 93",
+    "code": "STA"
+   }
+  },
+  {
+   "team": {
+    "id": 106,
+    "name": "Stade Brestois 29",
+    "code": "BRE"
+   }
+  },
+  {
+   "team": {
+    "id": 108,
+    "name": "Auxerre",
+    "code": "AUX"
+   }
+  },
+  {
+   "team": {
+    "id": 110,
+    "name": "Estac Troyes",
+    "code": "TRO"
+   }
+  },
+  {
+   "team": {
+    "id": 111,
+    "name": "Le Havre",
+    "code": "HAV"
+   }
+  },
+  {
+   "team": {
+    "id": 112,
+    "name": "Metz",
+    "code": "MET"
+   }
+  },
+  {
+   "team": {
+    "id": 114,
+    "name": "Paris FC",
+    "code": "PAR"
+   }
+  },
+  {
+   "team": {
+    "id": 116,
+    "name": "Lens",
+    "code": "LEN"
+   }
+  },
+  {
+   "team": {
+    "id": 157,
+    "name": "Bayern M\u00fcnchen",
+    "code": "BAY"
+   }
+  },
+  {
+   "team": {
+    "id": 158,
+    "name": "Fortuna D\u00fcsseldorf",
+    "code": "DUS"
+   }
+  },
+  {
+   "team": {
+    "id": 159,
+    "name": "Hertha BSC",
+    "code": "HER"
+   }
+  },
+  {
+   "team": {
+    "id": 160,
+    "name": "SC Freiburg",
+    "code": "FRE"
+   }
+  },
+  {
+   "team": {
+    "id": 161,
+    "name": "VfL Wolfsburg",
+    "code": "WOL"
+   }
+  },
+  {
+   "team": {
+    "id": 162,
+    "name": "Werder Bremen",
+    "code": "WER"
+   }
+  },
+  {
+   "team": {
+    "id": 163,
+    "name": "Borussia M\u00f6nchengladbach",
+    "code": "MOE"
+   }
+  },
+  {
+   "team": {
+    "id": 164,
+    "name": "FSV Mainz 05",
+    "code": "MAI"
+   }
+  },
+  {
+   "team": {
+    "id": 165,
+    "name": "Borussia Dortmund",
+    "code": "DOR"
+   }
+  },
+  {
+   "team": {
+    "id": 166,
+    "name": "Hannover 96",
+    "code": "HAN"
+   }
+  },
+  {
+   "team": {
+    "id": 167,
+    "name": "1899 Hoffenheim",
+    "code": "HOF"
+   }
+  },
+  {
+   "team": {
+    "id": 168,
+    "name": "Bayer Leverkusen",
+    "code": "BAY"
+   }
+  },
+  {
+   "team": {
+    "id": 169,
+    "name": "Eintracht Frankfurt",
+    "code": "EIN"
+   }
+  },
+  {
+   "team": {
+    "id": 170,
+    "name": "FC Augsburg",
+    "code": "AUG"
+   }
+  },
+  {
+   "team": {
+    "id": 171,
+    "name": "1. FC N\u00fcrnberg",
+    "code": "NUR"
+   }
+  },
+  {
+   "team": {
+    "id": 172,
+    "name": "VfB Stuttgart",
+    "code": "STU"
+   }
+  },
+  {
+   "team": {
+    "id": 173,
+    "name": "RB Leipzig",
+    "code": "LEI"
+   }
+  },
+  {
+   "team": {
+    "id": 174,
+    "name": "FC Schalke 04",
+    "code": "SCH"
+   }
+  },
+  {
+   "team": {
+    "id": 175,
+    "name": "Hamburger SV",
+    "code": "HAM"
+   }
+  },
+  {
+   "team": {
+    "id": 176,
+    "name": "VfL Bochum",
+    "code": "BOC"
+   }
+  },
+  {
+   "team": {
+    "id": 177,
+    "name": "SSV Jahn Regensburg",
+    "code": "REG"
+   }
+  },
+  {
+   "team": {
+    "id": 178,
+    "name": "SpVgg Greuther F\u00fcrth",
+    "code": "GRE"
+   }
+  },
+  {
+   "team": {
+    "id": 179,
+    "name": "1. FC Magdeburg",
+    "code": "MAG"
+   }
+  },
+  {
+   "team": {
+    "id": 180,
+    "name": "1. FC Heidenheim",
+    "code": "HEI"
+   }
+  },
+  {
+   "team": {
+    "id": 181,
+    "name": "SV Darmstadt 98",
+    "code": "DAR"
+   }
+  },
+  {
+   "team": {
+    "id": 182,
+    "name": "Union Berlin",
+    "code": "UNI"
+   }
+  },
+  {
+   "team": {
+    "id": 185,
+    "name": "SC Paderborn 07",
+    "code": "PAD"
+   }
+  },
+  {
+   "team": {
+    "id": 186,
+    "name": "FC St. Pauli",
+    "code": "PAU"
+   }
+  },
+  {
+   "team": {
+    "id": 191,
+    "name": "Holstein Kiel",
+    "code": "HOL"
+   }
+  },
+  {
+   "team": {
+    "id": 192,
+    "name": "1. FC K\u00f6ln",
+    "code": "KOL"
+   }
+  },
+  {
+   "team": {
+    "id": 197,
+    "name": "PSV Eindhoven",
+    "code": "PSV"
+   }
+  },
+  {
+   "team": {
+    "id": 209,
+    "name": "Feyenoord",
+    "code": "FEY"
+   }
+  },
+  {
+   "team": {
+    "id": 211,
+    "name": "Benfica",
+    "code": "BEN"
+   }
+  },
+  {
+   "team": {
+    "id": 228,
+    "name": "Sporting CP",
+    "code": "SPO"
+   }
+  },
+  {
+   "team": {
+    "id": 247,
+    "name": "Celtic",
+    "code": "CEL"
+   }
+  },
+  {
+   "team": {
+    "id": 257,
+    "name": "Rangers",
+    "code": "RAN"
+   }
+  },
+  {
+   "team": {
+    "id": 278,
+    "name": "Vikingur Reykjavik",
+    "code": "VIK"
+   }
+  },
+  {
+   "team": {
+    "id": 327,
+    "name": "Bodo/Glimt",
+    "code": "BOD"
+   }
+  },
+  {
+   "team": {
+    "id": 336,
+    "name": "Jagiellonia",
+    "code": "JAG"
+   }
+  },
+  {
+   "team": {
+    "id": 354,
+    "name": "The New Saints",
+    "code": "TNS"
+   }
+  },
+  {
+   "team": {
+    "id": 375,
+    "name": "Malmo FF",
+    "code": "MAL"
+   }
+  },
+  {
+   "team": {
+    "id": 394,
+    "name": "Dinamo Minsk",
+    "code": "MIN"
+   }
+  },
+  {
+   "team": {
+    "id": 397,
+    "name": "FC Midtjylland",
+    "code": "MID"
+   }
+  },
+  {
+   "team": {
+    "id": 415,
+    "name": "Twente",
+    "code": "TWE"
+   }
+  },
+  {
+   "team": {
+    "id": 433,
+    "name": "Laval",
+    "code": "LAV"
+   }
+  },
+  {
+   "team": {
+    "id": 489,
+    "name": "AC Milan",
+    "code": "MIL"
+   }
+  },
+  {
+   "team": {
+    "id": 496,
+    "name": "Juventus",
+    "code": "JUV"
+   }
+  },
+  {
+   "team": {
+    "id": 499,
+    "name": "Atalanta",
+    "code": "ATA"
+   }
+  },
+  {
+   "team": {
+    "id": 500,
+    "name": "Bologna",
+    "code": "BOL"
+   }
+  },
+  {
+   "team": {
+    "id": 505,
+    "name": "Inter",
+    "code": "INT"
+   }
+  },
+  {
+   "team": {
+    "id": 529,
+    "name": "Barcelona",
+    "code": "BAR"
+   }
+  },
+  {
+   "team": {
+    "id": 530,
+    "name": "Atletico Madrid",
+    "code": "ATM"
+   }
+  },
+  {
+   "team": {
+    "id": 531,
+    "name": "Athletic Club",
+    "code": "BIL"
+   }
+  },
+  {
+   "team": {
+    "id": 532,
+    "name": "Valencia",
+    "code": "VAL"
+   }
+  },
+  {
+   "team": {
+    "id": 533,
+    "name": "Villarreal",
+    "code": "VIL"
+   }
+  },
+  {
+   "team": {
+    "id": 534,
+    "name": "Las Palmas",
+    "code": "PAL"
+   }
+  },
+  {
+   "team": {
+    "id": 535,
+    "name": "Malaga",
+    "code": "MAL"
+   }
+  },
+  {
+   "team": {
+    "id": 536,
+    "name": "Sevilla",
+    "code": "SEV"
+   }
+  },
+  {
+   "team": {
+    "id": 537,
+    "name": "Leganes",
+    "code": "LEG"
+   }
+  },
+  {
+   "team": {
+    "id": 538,
+    "name": "Celta Vigo",
+    "code": "CEL"
+   }
+  },
+  {
+   "team": {
+    "id": 539,
+    "name": "Levante",
+    "code": "LEV"
+   }
+  },
+  {
+   "team": {
+    "id": 540,
+    "name": "Espanyol",
+    "code": "ESP"
+   }
+  },
+  {
+   "team": {
+    "id": 541,
+    "name": "Real Madrid",
+    "code": "REA"
+   }
+  },
+  {
+   "team": {
+    "id": 542,
+    "name": "Alaves",
+    "code": "ALA"
+   }
+  },
+  {
+   "team": {
+    "id": 543,
+    "name": "Real Betis",
+    "code": "BET"
+   }
+  },
+  {
+   "team": {
+    "id": 544,
+    "name": "Deportivo La Coruna",
+    "code": "COR"
+   }
+  },
+  {
+   "team": {
+    "id": 545,
+    "name": "Eibar",
+    "code": "EIB"
+   }
+  },
+  {
+   "team": {
+    "id": 546,
+    "name": "Getafe",
+    "code": "GET"
+   }
+  },
+  {
+   "team": {
+    "id": 547,
+    "name": "Girona",
+    "code": "GIR"
+   }
+  },
+  {
+   "team": {
+    "id": 548,
+    "name": "Real Sociedad",
+    "code": "RSO"
+   }
+  },
+  {
+   "team": {
+    "id": 550,
+    "name": "Shakhtar Donetsk",
+    "code": "SHA"
+   }
+  },
+  {
+   "team": {
+    "id": 556,
+    "name": "Qarabag",
+    "code": "KAR"
+   }
+  },
+  {
+   "team": {
+    "id": 559,
+    "name": "FCSB",
+    "code": "STE"
+   }
+  },
+  {
+   "team": {
+    "id": 560,
+    "name": "Slavia Praha",
+    "code": "SLA"
+   }
+  },
+  {
+   "team": {
+    "id": 565,
+    "name": "BSC Young Boys",
+    "code": "YOU"
+   }
+  },
+  {
+   "team": {
+    "id": 566,
+    "name": "Ludogorets",
+    "code": "LUD"
+   }
+  },
+  {
+   "team": {
+    "id": 569,
+    "name": "Club Brugge KV",
+    "code": "CLU"
+   }
+  },
+  {
+   "team": {
+    "id": 571,
+    "name": "Red Bull Salzburg",
+    "code": "SAL"
+   }
+  },
+  {
+   "team": {
+    "id": 572,
+    "name": "Dynamo Kyiv",
+    "code": "DIN"
+   }
+  },
+  {
+   "team": {
+    "id": 573,
+    "name": "FK Partizan",
+    "code": "PAR"
+   }
+  },
+  {
+   "team": {
+    "id": 598,
+    "name": "FK Crvena Zvezda",
+    "code": "CRV"
+   }
+  },
+  {
+   "team": {
+    "id": 604,
+    "name": "Maccabi Tel Aviv",
+    "code": "MAC"
+   }
+  },
+  {
+   "team": {
+    "id": 606,
+    "name": "FC Lugano",
+    "code": "LUG"
+   }
+  },
+  {
+   "team": {
+    "id": 611,
+    "name": "Fenerbah\u00e7e",
+    "code": "FEN"
+   }
+  },
+  {
+   "team": {
+    "id": 619,
+    "name": "PAOK",
+    "code": "PAO"
+   }
+  },
+  {
+   "team": {
+    "id": 620,
+    "name": "Dinamo Zagreb",
+    "code": "ZAG"
+   }
+  },
+  {
+   "team": {
+    "id": 628,
+    "name": "Sparta Praha",
+    "code": "SPA"
+   }
+  },
+  {
+   "team": {
+    "id": 637,
+    "name": "Sturm Graz",
+    "code": "STU"
+   }
+  },
+  {
+   "team": {
+    "id": 645,
+    "name": "Galatasaray",
+    "code": "GAL"
+   }
+  },
+  {
+   "team": {
+    "id": 649,
+    "name": "HJK Helsinki",
+    "code": "HJK"
+   }
+  },
+  {
+   "team": {
+    "id": 651,
+    "name": "Ferencvarosi TC",
+    "code": "FER"
+   }
+  },
+  {
+   "team": {
+    "id": 652,
+    "name": "Shamrock Rovers",
+    "code": "SHA"
+   }
+  },
+  {
+   "team": {
+    "id": 656,
+    "name": "Slovan Bratislava",
+    "code": "SLO"
+   }
+  },
+  {
+   "team": {
+    "id": 667,
+    "name": "Lincoln Red Imps FC",
+    "code": "LIN"
+   }
+  },
+  {
+   "team": {
+    "id": 684,
+    "name": "FC Differdange 03",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 687,
+    "name": "Flora Tallinn",
+    "code": "FLO"
+   }
+  },
+  {
+   "team": {
+    "id": 692,
+    "name": "Ordabasy",
+    "code": "ORD"
+   }
+  },
+  {
+   "team": {
+    "id": 701,
+    "name": "KI Klaksvik",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 703,
+    "name": "UE Santa Coloma",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 705,
+    "name": "Dinamo Batumi",
+    "code": "DIN"
+   }
+  },
+  {
+   "team": {
+    "id": 709,
+    "name": "Pyunik Yerevan",
+    "code": "PYU"
+   }
+  },
+  {
+   "team": {
+    "id": 713,
+    "name": "Cordoba",
+    "code": "COR"
+   }
+  },
+  {
+   "team": {
+    "id": 715,
+    "name": "Granada CF",
+    "code": "GRA"
+   }
+  },
+  {
+   "team": {
+    "id": 718,
+    "name": "Oviedo",
+    "code": "OVI"
+   }
+  },
+  {
+   "team": {
+    "id": 719,
+    "name": "Tenerife",
+    "code": "TEN"
+   }
+  },
+  {
+   "team": {
+    "id": 720,
+    "name": "Valladolid",
+    "code": "VAL"
+   }
+  },
+  {
+   "team": {
+    "id": 722,
+    "name": "Albacete",
+    "code": "ALB"
+   }
+  },
+  {
+   "team": {
+    "id": 723,
+    "name": "Almeria",
+    "code": "ALM"
+   }
+  },
+  {
+   "team": {
+    "id": 724,
+    "name": "Cadiz",
+    "code": "CAD"
+   }
+  },
+  {
+   "team": {
+    "id": 726,
+    "name": "Huesca",
+    "code": "HUE"
+   }
+  },
+  {
+   "team": {
+    "id": 727,
+    "name": "Osasuna",
+    "code": "OSA"
+   }
+  },
+  {
+   "team": {
+    "id": 728,
+    "name": "Rayo Vallecano",
+    "code": "RAY"
+   }
+  },
+  {
+   "team": {
+    "id": 731,
+    "name": "Sporting Gijon",
+    "code": "GIJ"
+   }
+  },
+  {
+   "team": {
+    "id": 732,
+    "name": "Zaragoza",
+    "code": "ZAR"
+   }
+  },
+  {
+   "team": {
+    "id": 744,
+    "name": "Eintracht Braunschweig",
+    "code": "BRA"
+   }
+  },
+  {
+   "team": {
+    "id": 745,
+    "name": "1. FC Kaiserslautern",
+    "code": "KAI"
+   }
+  },
+  {
+   "team": {
+    "id": 746,
+    "name": "Sunderland",
+    "code": "SUN"
+   }
+  },
+  {
+   "team": {
+    "id": 785,
+    "name": "Karlsruher SC",
+    "code": "KAR"
+   }
+  },
+  {
+   "team": {
+    "id": 797,
+    "name": "Elche",
+    "code": "ELC"
+   }
+  },
+  {
+   "team": {
+    "id": 798,
+    "name": "Mallorca",
+    "code": "MAL"
+   }
+  },
+  {
+   "team": {
+    "id": 799,
+    "name": "Mirandes",
+    "code": "MIR"
+   }
+  },
+  {
+   "team": {
+    "id": 1063,
+    "name": "Saint Etienne",
+    "code": "ETI"
+   }
+  },
+  {
+   "team": {
+    "id": 1297,
+    "name": "PAU",
+    "code": "PAU"
+   }
+  },
+  {
+   "team": {
+    "id": 1299,
+    "name": "Boulogne",
+    "code": "BOU"
+   }
+  },
+  {
+   "team": {
+    "id": 1301,
+    "name": "Rodez",
+    "code": "ROD"
+   }
+  },
+  {
+   "team": {
+    "id": 1304,
+    "name": "Dunkerque",
+    "code": "DUN"
+   }
+  },
+  {
+   "team": {
+    "id": 1305,
+    "name": "Bastia",
+    "code": "BAS"
+   }
+  },
+  {
+   "team": {
+    "id": 1313,
+    "name": "Preu\u00dfen M\u00fcnster",
+    "code": "PRE"
+   }
+  },
+  {
+   "team": {
+    "id": 1338,
+    "name": "Oxford United",
+    "code": "OXF"
+   }
+  },
+  {
+   "team": {
+    "id": 1346,
+    "name": "Coventry",
+    "code": "COV"
+   }
+  },
+  {
+   "team": {
+    "id": 1355,
+    "name": "Portsmouth",
+    "code": "POR"
+   }
+  },
+  {
+   "team": {
+    "id": 1357,
+    "name": "Plymouth",
+    "code": "PLY"
+   }
+  },
+  {
+   "team": {
+    "id": 1359,
+    "name": "Luton",
+    "code": "LUT"
+   }
+  },
+  {
+   "team": {
+    "id": 1393,
+    "name": "Union St. Gilloise",
+    "code": "GIL"
+   }
+  },
+  {
+   "team": {
+    "id": 1639,
+    "name": "FC Saarbr\u00fccken",
+    "code": "SAA"
+   }
+  },
+  {
+   "team": {
+    "id": 1652,
+    "name": "SSV Ulm 1846",
+    "code": "ULM"
+   }
+  },
+  {
+   "team": {
+    "id": 1660,
+    "name": "SV Elversberg",
+    "code": "ELV"
+   }
+  },
+  {
+   "team": {
+    "id": 2247,
+    "name": "Apoel Nicosia",
+    "code": "APO"
+   }
+  },
+  {
+   "team": {
+    "id": 2271,
+    "name": "Petrocub",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 3012,
+    "name": "Annecy",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 3200,
+    "name": "Martigues",
+    "code": "MAR"
+   }
+  },
+  {
+   "team": {
+    "id": 3327,
+    "name": "Egnatia Rrogozhin\u00eb",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 3364,
+    "name": "Borac Banja Luka",
+    "code": "BOR"
+   }
+  },
+  {
+   "team": {
+    "id": 3745,
+    "name": "De\u010di\u0107",
+    "code": "DEC"
+   }
+  },
+  {
+   "team": {
+    "id": 3874,
+    "name": "Panev\u0117\u017eys",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 4160,
+    "name": "R\u012bgas FS",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 4346,
+    "name": "Struga",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 4360,
+    "name": "Celje",
+    "code": "CEL"
+   }
+  },
+  {
+   "team": {
+    "id": 4626,
+    "name": "Hamrun Spartans",
+    "code": "HAM"
+   }
+  },
+  {
+   "team": {
+    "id": 4665,
+    "name": "Racing Santander",
+    "code": "SAN"
+   }
+  },
+  {
+   "team": {
+    "id": 5254,
+    "name": "Castell\u00f3n",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 5262,
+    "name": "FC Cartagena",
+    "code": "CAR"
+   }
+  },
+  {
+   "team": {
+    "id": 5308,
+    "name": "Virtus",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 5354,
+    "name": "Larne",
+    "code": "LAR"
+   }
+  },
+  {
+   "team": {
+    "id": 9409,
+    "name": "Racing Ferrol",
+    "code": "FER"
+   }
+  },
+  {
+   "team": {
+    "id": 9580,
+    "name": "Burgos",
+    "code": "BUR"
+   }
+  },
+  {
+   "team": {
+    "id": 9692,
+    "name": "Eldense",
+    "code": null
+   }
+  },
+  {
+   "team": {
+    "id": 12733,
+    "name": "Ballkani",
+    "code": null
+   }
+  }
+ ]
+}

@@ -3,6 +3,11 @@ export const IN_PLAY = ['1H', '2H', 'ET', 'BT', 'P', 'LIVE'];
 export const NOT_STARTED = 'NS';
 export const HALFTIME = 'HT';
 export const FULL_TIME = 'FT';
+export const LIVE = 'LIVE';
+export const POSTPONED = 'PST';
+export const SUSPENDED = 'SUSP';
+export const CANCELLED = 'CANC';
+export const AWARDED = 'AWD';
 
 // A match not started this long after kickoff is postponed or delayed, so it is not polled.
 export const MAX_LATE_START_MINUTES = 30;

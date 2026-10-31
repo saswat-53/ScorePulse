@@ -13,6 +13,13 @@ The two providers can disagree on a score, or one can lag the other. Each mirror
 - Fixture never live-tracked: football-data.org is the only source.
 - Each overwrite is logged so provider disagreement can be measured.
 
+## How it is implemented (#7)
+
+- "Live-tracked" is read from the fixture row: a fixture the poller has ever polled (`first_polled_at` set) belongs to API-Football until full time.
+- Full time is football-data.org's `FINISHED`. Then the stored status becomes `FT` and the score becomes football-data.org's. The overwrite is logged in `fixture_overwrites` (old and new score) only when the score differs; a status change alone is not a disagreement.
+- Fixtures never polled follow football-data.org on every run, with no log.
+- A match with a team that is not in `team_map` is skipped and reported, not stored with a guess.
+
 ## Consequences
 
 - A goal alert can later contradict the final score, for example after a late VAR correction. The night job does not send a correction alert in v1.
