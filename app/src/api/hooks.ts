@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/expo';
 import { useQuery } from '@tanstack/react-query';
 
 import type { LeagueId } from '@/domain/types';
@@ -18,8 +19,13 @@ export const useMatch = (id: number) =>
 export const useStandings = (leagueId: LeagueId) =>
   useQuery({ queryKey: ['standings', leagueId], queryFn: () => api.standings(leagueId) });
 
-export const useTeams = (query: string) =>
-  useQuery({ queryKey: ['teams', query], queryFn: () => api.teams(query) });
+export const useTeams = (query: string) => {
+  const { getToken } = useAuth();
+  return useQuery({
+    queryKey: ['teams', query],
+    queryFn: async () => api.teams((await getToken()) ?? '', query),
+  });
+};
 
 export const useVersionConfig = () =>
   useQuery({ queryKey: ['version-config'], queryFn: api.versionConfig });

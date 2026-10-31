@@ -4,7 +4,6 @@ import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { Crest } from '@/components/ui/crest';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
-import { TEAMS } from '@/domain/mock';
 import type { AlertSettings } from '@/domain/types';
 import { useSession } from '@/state/session';
 
@@ -18,8 +17,7 @@ const ALERTS: { key: keyof AlertSettings; icon: IconName; title: string; subtitl
 ];
 
 export default function More() {
-  const { profile, setAlert, signOut } = useSession();
-  const favorites = profile.favoriteTeamIds.map((id) => TEAMS.find((t) => t.id === id)!).filter(Boolean);
+  const { profile, favoriteTeams: favorites, setAlert, signOut } = useSession();
 
   const confirmDelete = () =>
     Alert.alert(

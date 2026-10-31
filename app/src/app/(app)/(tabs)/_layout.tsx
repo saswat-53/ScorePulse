@@ -1,4 +1,5 @@
 import { Redirect, Tabs, type Href } from 'expo-router';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,11 +12,29 @@ const tab = (title: string, icon: IconName) => ({
 });
 
 export default function TabsLayout() {
-  const { profile } = useSession();
+  const { favoriteTeams, favoritesStatus, retryFavorites } = useSession();
   // Lift the bar above the system navigation bar when there is one. With none, the inset is 0.
   const bottom = Math.max(useSafeAreaInsets().bottom, 8);
-  // Onboarding: at least one favorite team before the app opens.
-  if (profile.favoriteTeamIds.length === 0) return <Redirect href={'/choose-clubs' as Href} />;
+  // Onboarding: at least one favorite team before the app opens. There is no skip, so the app waits for the
+  // server's answer, and if it cannot get one it says so instead of opening with no clubs.
+  if (favoritesStatus === 'loading') {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg">
+        <ActivityIndicator color="#19E3FF" />
+      </View>
+    );
+  }
+  if (favoritesStatus === 'error') {
+    return (
+      <View className="flex-1 items-center justify-center gap-4 bg-bg px-8">
+        <Text className="text-center text-base text-white">Could not load your clubs.</Text>
+        <Pressable onPress={retryFavorites} accessibilityRole="button" className="h-12 items-center justify-center rounded-xl bg-neon px-8">
+          <Text className="text-sm font-extrabold text-bg">Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+  if (favoriteTeams.length === 0) return <Redirect href={'/choose-clubs' as Href} />;
   return (
     <Tabs
       screenOptions={{

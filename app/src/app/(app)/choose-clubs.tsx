@@ -9,14 +9,13 @@ import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Screen } from '@/components/ui/screen';
-import { TEAMS } from '@/domain/mock';
 import { MAX_FAVORITES, type Team } from '@/domain/types';
 import { useSession } from '@/state/session';
 
 interface ClubRowProps {
   team: Team;
   selected: boolean;
-  onToggle: (teamId: number) => void;
+  onToggle: (team: Team) => void;
 }
 
 /** One club. Selected clubs get the glowing neon card from the mockup, with a remove button. */
@@ -32,7 +31,7 @@ const ClubRow = memo(function ClubRow({ team, selected, onToggle }: ClubRowProps
         {team.name}
       </Text>
       <Pressable
-        onPress={() => onToggle(team.id)}
+        onPress={() => onToggle(team)}
         accessibilityRole="button"
         accessibilityLabel={`${selected ? 'Remove' : 'Add'} ${team.name}`}
         className="h-11 w-11 items-center justify-center">
@@ -79,17 +78,16 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
 }
 
 export default function ChooseClubs() {
-  const { profile, toggleFavorite } = useSession();
+  const { favoriteTeams: chosen, toggleFavorite } = useSession();
   const [query, setQuery] = useState('');
   const [promptDismissed, setPromptDismissed] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
   const { data: results = [] } = useTeams(query);
 
-  const picked = profile.favoriteTeamIds;
-  const chosen = picked.map((id) => TEAMS.find((t) => t.id === id)).filter((t): t is Team => !!t);
+  const picked = chosen.map((t) => t.id);
   const available = results.filter((t) => !picked.includes(t.id));
 
-  const onToggle = (teamId: number) => setLimitHit(!toggleFavorite(teamId));
+  const onToggle = async (team: Team) => setLimitHit(!(await toggleFavorite(team)));
 
   const header = (
     <View>

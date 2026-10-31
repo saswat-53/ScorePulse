@@ -3,10 +3,11 @@
 // unmatched for a human to link with an override. A wrong link is worse than a missing one: it would put one club's
 // alerts on another's fixtures. So no match is made from a three-letter code, which collides across clubs.
 
+import { sql } from 'drizzle-orm';
 import { teamMap } from '../db/schema';
 import type { PollDb } from '../poller/db';
 
-export type FdTeam = { id: number; name: string; shortName: string; tla: string };
+export type FdTeam = { id: number; name: string; shortName: string; tla: string; crest?: string | null };
 export type AfTeam = { id: number; name: string };
 export type TeamPair = { footballDataId: number; apiFootballId: number };
 
@@ -59,12 +60,25 @@ export function matchTeams(fdTeams: FdTeam[], afTeams: AfTeam[], overrides: Reco
   return { pairs, unmatched };
 }
 
-// Stores the links. Safe to run again: teams already linked are left alone.
+// Stores the links and refreshes what the picker shows. Safe to run again.
 export async function saveTeamMap(db: PollDb, pairs: TeamPair[], fdTeams: FdTeam[]) {
   if (pairs.length === 0) return;
-  const nameOf = new Map(fdTeams.map((t) => [t.id, t.name]));
+  const byId = new Map(fdTeams.map((t) => [t.id, t]));
   await db
     .insert(teamMap)
-    .values(pairs.map((p) => ({ ...p, name: nameOf.get(p.footballDataId) ?? '' })))
-    .onConflictDoNothing();
+    .values(
+      pairs.map((p) => {
+        const team = byId.get(p.footballDataId);
+        return { ...p, name: team?.name ?? '', shortName: team?.shortName ?? '', code: team?.tla ?? '', crestUrl: team?.crest ?? null };
+      }),
+    )
+    .onConflictDoUpdate({
+      target: teamMap.footballDataId,
+      set: {
+        name: sql`excluded.name`,
+        shortName: sql`excluded.short_name`,
+        code: sql`excluded.code`,
+        crestUrl: sql`excluded.crest_url`,
+      },
+    });
 }

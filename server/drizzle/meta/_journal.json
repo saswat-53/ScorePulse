@@ -57,6 +57,20 @@
       "when": 1793454521356,
       "tag": "0007_team_map_standings_overwrites",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793459271726,
+      "tag": "0008_team_map_picker_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793459488020,
+      "tag": "0009_favorites_cap_trigger",
+      "breakpoints": true
     }
   ]
 }

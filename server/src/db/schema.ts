@@ -118,6 +118,10 @@ export const teamMap = pgTable('team_map', {
   footballDataId: integer('football_data_id').notNull().unique(),
   apiFootballId: integer('api_football_id').notNull().unique(),
   name: text('name').notNull(),
+  // What the team picker shows (football-data.org's short name, three-letter code and crest).
+  shortName: text('short_name').notNull().default(''),
+  code: text('code').notNull().default(''),
+  crestUrl: text('crest_url'),
 });
 
 // One league-table row per team, mirrored from football-data.org (ADR 0003). `teamId` is a football-data.org id.

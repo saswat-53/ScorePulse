@@ -9,6 +9,7 @@ Added 2026-10-29.
 | Feature | Why deferred | Returns when |
 | --- | --- | --- |
 | "Continue with Apple" | Only needed on iOS, and v1 is Android-only | iOS release |
+| "Continue with Google" | Needs a Google OAuth app (Google Cloud console and a consent screen) set up by the owner, then its ids pasted into Clerk. Email code works now | The owner sets up the OAuth app |
 | "Continue with Clerk" button | Clerk is the provider, not a sign-in method. Google and Email go through it | Not planned |
 
 ## Home and navigation
@@ -42,7 +43,7 @@ Added 2026-10-29.
 | --- | --- | --- |
 | Deploy `scorepulse-api` with the poller and snapshot crons | Testing on 2026-10-31 spent API-Football and football-data.org requests; the owner chose not to deploy until another day. Nothing is lost by waiting: no favorites or follows exist yet (#8, #12), and snapshot fixtures cannot be polled until #22 | The owner picks a day |
 
-Already done (2026-10-31): migrations 0001 to 0007 applied to the Neon dev database, `team_map` seeded (86 of 95 teams), secrets `API_FOOTBALL_KEY` and `FOOTBALL_DATA_KEY` set on the Worker. Before deploying, run `npx wrangler secret list` in `server/` and check `DATABASE_URL`, the Clerk keys and `SENTRY_DSN` are also set. Then `npx wrangler deploy` from `server/`; it registers 4 cron triggers (poller windows twice, snapshot morning and night). On the first matchday check, in the Cloudflare logs: the CPU time of poll runs (#6), the snapshot runs at 06:00 and 23:30 UTC, and the football-data.org live-score delay.
+Already done (2026-10-31): migrations 0001 to 0007 applied to the Neon dev database, `team_map` seeded (86 of 95 teams; after #8 run `npm run db:migrate` for 0008 and `npm run seed:team-map` again to fill the picker columns), secrets `API_FOOTBALL_KEY` and `FOOTBALL_DATA_KEY` set on the Worker. Before deploying, run `npx wrangler secret list` in `server/` and check `DATABASE_URL`, the Clerk keys and `SENTRY_DSN` are also set. Then `npx wrangler deploy` from `server/`; it registers 4 cron triggers (poller windows twice, snapshot morning and night). On the first matchday check, in the Cloudflare logs: the CPU time of poll runs (#6), the snapshot runs at 06:00 and 23:30 UTC, and the football-data.org live-score delay.
 
 ## Added to v1 instead
 

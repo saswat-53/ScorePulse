@@ -1,0 +1,9 @@
+# Clerk free plan and development-instance limits
+
+Date: 2026-10-31. From a web search, **not confirmed in the Clerk dashboard**. Check the dashboard before relying on any number.
+
+- **Free plan:** Clerk's pricing page lists 10,000 monthly active users and 100 monthly active organizations on the free plan ([Clerk pricing](https://clerk.com/pricing)). One Clerk article instead says 50,000 "monthly retained users" ([Clerk Pricing Explained](https://clerk.com/articles/clerk-pricing-explained.md)); the two disagree and the pricing page is the one to trust. The group is 3 to 4 people ([ADR 0005](../adr/0005-target-five-to-ten-users.md)), far under either.
+- **Development instance:** every Clerk app has a development and a production instance, and development is "not suitable for production workloads because of relaxed security" ([managing environments](https://clerk.com/docs/guides/development/managing-environments)). A 2024 changelog said development instances were capped at 100 users and 20 SMS messages ([dev notice](https://clerk.com/changelog/2024-08-02-dev-notice)); whether that still holds is **unverified**. Email codes are what the app uses, not SMS.
+- **Branding:** in development the sign-in pages and OAuth consent screens show a Clerk development domain ending in `accounts.dev`. Removing the "Secured by Clerk" branding from components is a paid feature ([pricing](https://clerk.com/pricing)). The app uses its own screens (email code through the Clerk SDK), so the branding appears only on any Clerk-hosted page.
+- **Cost risk:** the app stays on the development instance for v1 and does not need production-only features, so there is no step that asks for a paid plan. If a later step does (a custom domain, Google sign-in on production), check the price before doing it (ADR 0011).
+- **Google sign-in** is deferred; email code only for v1 (see `docs/deferred.md`).
