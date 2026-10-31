@@ -69,3 +69,7 @@ Date: 2026-10-31. Code: `server/spike/runner-cpu.ts` (throwaway). The real `runP
 - The idle run, the most common one, is 7 ms: inside the cap.
 - No invocation failed, as in #4. The cap is still not a basis to rely on.
 - The ADR 0004 fallbacks are next: poll less often when few matches are live, or split the work across invocations.
+
+### Where the poll's CPU goes (option 3: trim our own code)
+
+`server/spike/profile.ts` (throwaway) ran 300 steady polls on PGlite under `node --cpu-prof`. Excluding idle time, our code and drizzle together took about 0.13 ms per poll on a fast laptop (about 0.5 ms on Cloudflare at the 4x ratio seen before). PGlite, the stand-in for the database, took the rest. So the poller's own work is not what puts a poll at 10 to 12 ms. The cost is the fixed ~5 ms of an invocation plus the HTTPS round trip to Neon (about 2 ms for the one request of an idle run). Trimming statements cannot close that gap; only fewer requests or fewer invocations can.
