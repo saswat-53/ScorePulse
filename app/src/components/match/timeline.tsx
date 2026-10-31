@@ -27,7 +27,14 @@ function EventText({ e, m }: { e: MatchEvent; m: MatchDetail }) {
     const after = e.scoreAfter
       ? `${m.home.shortName} ${e.scoreAfter.home} - ${e.scoreAfter.away} ${m.away.shortName}`
       : null;
-    const title = e.detail === 'penalty' ? 'GOAL! (pen)' : e.detail === 'own-goal' ? 'OWN GOAL' : 'GOAL!';
+    const title =
+      e.detail === 'penalty'
+        ? 'GOAL! (pen)'
+        : e.detail === 'own-goal'
+          ? 'OWN GOAL'
+          : e.detail === 'missed-penalty'
+            ? 'PENALTY MISSED'
+            : 'GOAL!';
     return (
       <>
         <Text className="text-sm font-extrabold text-neon">{title}</Text>
@@ -59,12 +66,18 @@ function EventText({ e, m }: { e: MatchEvent; m: MatchDetail }) {
 
 /** Events newest first, in one card as in the mockup. Goals cancelled by VAR are hidden (ADR 0009). */
 export function Timeline({ match }: { match: MatchDetail }) {
-  const events = match.events
+  // The server sends events oldest first. Reversing first keeps events of the same minute in the order they happened.
+  const events = [...match.events]
+    .reverse()
     .filter((e) => !e.removed && e.type !== 'var')
     .sort((a, b) => b.minute - a.minute || (b.extra ?? 0) - (a.extra ?? 0));
 
   if (events.length === 0) {
-    return <Text className="mx-4 mt-6 text-center text-[13px] text-muted">Nothing has happened yet.</Text>;
+    return (
+      <Text className="mx-4 mt-6 text-center text-[13px] text-muted">
+        {match.status === 'finished' ? 'No timeline was saved for this match.' : 'Nothing has happened yet.'}
+      </Text>
+    );
   }
 
   return (

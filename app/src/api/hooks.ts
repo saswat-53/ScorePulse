@@ -32,8 +32,11 @@ export const useLive = (leagueId?: LeagueId) => {
   });
 };
 
-export const useMatch = (id: number) =>
-  useQuery({ queryKey: ['match', id], queryFn: () => api.match(id) });
+// A live match's timeline changes with each poll, so an open match screen refreshes once a minute.
+export const useMatch = (id: number) => {
+  const token = useToken();
+  return useQuery({ queryKey: ['match', id], queryFn: async () => api.match(await token(), id), refetchInterval: 60_000 });
+};
 
 export const useStandings = (leagueId: LeagueId) => {
   const token = useToken();

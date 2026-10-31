@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { favoriteTeams, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
-import { getStandings, listFixtures } from './browse';
+import { getMatch, getStandings, listFixtures } from './browse';
 import { isLeagueCode } from './leagues';
 import { MAX_FAVORITES } from './limits';
 import { MAX_MATCH_HOURS } from './poller/status';
@@ -90,6 +90,16 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         // A stored status older than a match can last is stale, as the poller treats it.
         const from = new Date(at.getTime() - MAX_MATCH_HOURS * 3_600_000);
         return c.json({ fixtures: await listFixtures(db, { from, to: at, league, inPlayOnly: true }, paused) });
+      })
+
+      // One match: saved info, plus the timeline when it is live-tracked.
+      .get('/matches/:id', requireAuth, async (c) => {
+        const id = Number(c.req.param('id'));
+        if (!Number.isInteger(id)) return c.json({ error: 'invalid_match' }, 400);
+        const db = getDb(c.env);
+        const { paused } = await getPollStatus(db, now());
+        const match = await getMatch(db, id, c.get('userId'), paused);
+        return match ? c.json({ match }) : c.json({ error: 'unknown_match' }, 404);
       })
 
       // The stored league table. Empty until the snapshot job has synced the league.

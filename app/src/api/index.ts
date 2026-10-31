@@ -2,7 +2,7 @@
  * The app's only view of the backend. Sign-in (`me`), the club picker and favorites are real calls to the
  * Hono API; the rest still answers from mock data and becomes a real call as each ticket lands.
  */
-import { LEAGUES, matchDetail, VERSION_CONFIG } from '@/domain/mock';
+import { LEAGUES, VERSION_CONFIG } from '@/domain/mock';
 import type {
   Fixture,
   League,
@@ -60,7 +60,13 @@ export const api = {
     return body.fixtures;
   },
 
-  match: (id: number): Promise<MatchDetail | null> => delay(matchDetail(id)),
+  /** Real call: one match with its timeline (empty and locked when it is not live-tracked). Null when unknown. */
+  match: async (token: string, id: number): Promise<MatchDetail | null> => {
+    const res = await fetch(`${API_URL}/matches/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`/matches/${id} failed: ${res.status}`);
+    return ((await res.json()) as { match: MatchDetail }).match;
+  },
 
   /** Real call: the stored table of a league. Empty until the snapshot job has synced it. */
   standings: async (token: string, leagueId: LeagueId): Promise<Standings> => {

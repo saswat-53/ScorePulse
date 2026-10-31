@@ -43,6 +43,9 @@ export const fixtureEvents = pgTable(
     extra: integer('extra'),
     teamId: integer('team_id').notNull(),
     playerId: integer('player_id'),
+    // For the timeline: the player, and the assist (a goal) or the player coming on (a substitution).
+    playerName: text('player_name'),
+    assistName: text('assist_name'),
     type: text('type').notNull(),
     detail: text('detail').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -22,6 +22,7 @@ type ApiEvent = {
   time: { elapsed: number; extra: number | null };
   team: { id: number };
   player: { id: number | null; name: string | null };
+  assist?: { id: number | null; name: string | null };
   type: string;
   detail: string;
 };
@@ -81,6 +82,8 @@ export async function handlePoll(
       extra: e.time.extra,
       teamId: e.team.id,
       playerId: e.player.id,
+      playerName: e.player.name,
+      assistName: e.assist?.name ?? null,
       type: e.type,
       detail: e.detail,
     })),

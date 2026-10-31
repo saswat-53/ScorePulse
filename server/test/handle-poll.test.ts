@@ -128,3 +128,17 @@ test('an own goal counts for the side credited with it, and a missed penalty is 
   expect(push.sent).toHaveLength(1);
   expect(push.sent[0]).toMatchObject({ scorer: 'D. Agyakwa', minute: "22'", homeGoals: 1, awayGoals: 3 });
 });
+
+test('each stored event keeps the player and the assist the API named, for the timeline', async () => {
+  const { db, push } = await setup();
+  const match = recordedMatch(MATCH_WITH_3_GOALS);
+  await insertFixture(db, match);
+
+  await pollOnce({ db, push }, pollOf(match));
+
+  const stored = await db.select().from(fixtureEvents);
+  const at = (elapsed: number) => stored.find((e) => e.elapsed === elapsed);
+  expect(at(7)).toMatchObject({ playerName: 'Danila Kozlov', assistName: 'Ivan Oblyakov' }); // goal with an assist
+  expect(at(38)).toMatchObject({ playerName: 'Aleksandr Kovalenko', assistName: null }); // goal without one
+  expect(at(4)).toMatchObject({ playerName: 'Aleksandr Kovalenko', assistName: null }); // yellow card
+});
