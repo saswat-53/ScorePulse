@@ -48,4 +48,3 @@ Added 2026-10-31.
 | Feature | Why deferred | Returns when |
 | --- | --- | --- |
 | Event-triggered detail fetches (watch scores on football-data.org, call API-Football only when a score changes) | football-data.org's free live-score delay is unmeasured, and cards and substitutions would arrive late. See [ADR 0016](adr/0016-poll-schedule-and-request-budget.md) | A matchday shows the delay is under about 2 minutes |
-| Favorite-style alert types for one-off follows (kickoff, full time) | A follow gets the same alerts as a favorite for now; split them only if users ask | Alert settings (#14) show a need |

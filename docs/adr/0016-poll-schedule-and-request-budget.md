@@ -10,8 +10,7 @@ API-Football's free plan allows 100 requests a day, and neither provider offers 
 
 ## Decision
 
-- The base interval stays 5 minutes for favorite-team fixtures.
-- A fixture tracked only by a one-off follow is polled when a favorite fixture is not already making the poll run; it adds no extra requests of its own, because a poll returns every tracked match. It is never polled more often than 5 minutes.
+- At normal quota the interval is 5 minutes for every live-tracked fixture, favorite or follow. A poll is shared by all of them.
 - The poller stops spending requests where nothing happens:
   - It does not poll during halftime (status `HT`).
   - A fixture's polling starts at kickoff and ends at full time. The 30-minute lookahead in ADR 0010 only decides whether a run is due.
