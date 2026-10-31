@@ -7,24 +7,42 @@ import { api } from './index';
 
 export const useLeagues = () => useQuery({ queryKey: ['leagues'], queryFn: api.leagues });
 
-export const useFixtures = (date: string, leagueId?: LeagueId) =>
-  useQuery({ queryKey: ['fixtures', date, leagueId ?? 'all'], queryFn: () => api.fixtures(date, leagueId) });
+/** The Clerk session token for a request. The screens using these hooks sit behind sign-in. */
+function useToken() {
+  const { getToken } = useAuth();
+  return async () => (await getToken()) ?? '';
+}
 
-export const useLive = (leagueId?: LeagueId) =>
-  useQuery({ queryKey: ['live', leagueId ?? 'all'], queryFn: () => api.live(leagueId) });
+export const useFixtures = (date: string, leagueId?: LeagueId) => {
+  const token = useToken();
+  return useQuery({
+    queryKey: ['fixtures', date, leagueId ?? 'all'],
+    queryFn: async () => api.fixtures(await token(), date, leagueId),
+    refetchInterval: 60_000, // scores and statuses change while the screen is open
+  });
+};
+
+// The live list refreshes once a minute: the server's data changes at most every poll (5 minutes).
+export const useLive = (leagueId?: LeagueId) => {
+  const token = useToken();
+  return useQuery({
+    queryKey: ['live', leagueId ?? 'all'],
+    queryFn: async () => api.live(await token(), leagueId),
+    refetchInterval: 60_000,
+  });
+};
 
 export const useMatch = (id: number) =>
   useQuery({ queryKey: ['match', id], queryFn: () => api.match(id) });
 
-export const useStandings = (leagueId: LeagueId) =>
-  useQuery({ queryKey: ['standings', leagueId], queryFn: () => api.standings(leagueId) });
+export const useStandings = (leagueId: LeagueId) => {
+  const token = useToken();
+  return useQuery({ queryKey: ['standings', leagueId], queryFn: async () => api.standings(await token(), leagueId) });
+};
 
 export const useTeams = (query: string) => {
-  const { getToken } = useAuth();
-  return useQuery({
-    queryKey: ['teams', query],
-    queryFn: async () => api.teams((await getToken()) ?? '', query),
-  });
+  const token = useToken();
+  return useQuery({ queryKey: ['teams', query], queryFn: async () => api.teams(await token(), query) });
 };
 
 export const useVersionConfig = () =>

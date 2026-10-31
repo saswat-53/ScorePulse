@@ -6,6 +6,12 @@ export const dateKey = (iso: string | Date): string => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
+/** The UTC instants that bound a local calendar day (`from` inclusive, `to` exclusive). The server filters by these. */
+export const dayBoundsUtc = (date: string): { from: string; to: string } => {
+  const [y, m, d] = date.split('-').map(Number);
+  return { from: new Date(y, m - 1, d).toISOString(), to: new Date(y, m - 1, d + 1).toISOString() };
+};
+
 export const addDays = (days: number): Date => {
   const d = new Date();
   d.setDate(d.getDate() + days);

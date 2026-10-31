@@ -16,8 +16,8 @@ const minutesBefore = (now: Date, minutes: number) => new Date(now.getTime() - m
 
 export type LiveProvider = { fetchLive(leagueIds: number[]): Promise<PollResponse> };
 
-const hasFavorite = sql<boolean>`exists (select 1 from ${favoriteTeams} where ${favoriteTeams.teamId} in (${fixtures.homeTeamId}, ${fixtures.awayTeamId}))`;
-const hasFollow = sql<boolean>`exists (select 1 from ${follows} where ${follows.fixtureId} = ${fixtures.id})`;
+export const hasFavorite = sql<boolean>`exists (select 1 from ${favoriteTeams} where ${favoriteTeams.teamId} in (${fixtures.homeTeamId}, ${fixtures.awayTeamId}))`;
+export const hasFollow = sql<boolean>`exists (select 1 from ${follows} where ${follows.fixtureId} = ${fixtures.id})`;
 
 // Live-tracked fixtures that have kicked off and are not over: a favorite team plays or a user follows the match.
 // Each comes with its reason (ADR 0013).

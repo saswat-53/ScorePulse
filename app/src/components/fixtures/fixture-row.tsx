@@ -20,7 +20,7 @@ function Centre({ f }: { f: Fixture }) {
       <>
         <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
         <Text className={`text-[11px] font-bold ${f.paused ? 'text-warn' : 'text-live'}`}>
-          {f.status === 'halftime' ? 'HT' : `${f.minute}'`}
+          {f.status === 'halftime' ? 'HT' : f.minute === null ? 'LIVE' : `${f.minute}'`}
         </Text>
       </>
     );

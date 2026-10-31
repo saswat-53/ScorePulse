@@ -60,7 +60,7 @@ export function MatchHeader({ match, followed, onToggleFollow }: Props) {
                   ? 'Full time'
                   : match.status === 'halftime'
                     ? 'Half time'
-                    : `${match.minute}'${match.paused ? ' · last seen' : ''}`}
+                    : `${match.minute === null ? 'LIVE' : `${match.minute}'`}${match.paused ? ' · last seen' : ''}`}
               </Text>
             </>
           ) : (

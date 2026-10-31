@@ -1,5 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm';
 import { fixtureOverwrites, fixtures, standings, teamMap } from '../db/schema';
+import { API_FOOTBALL_LEAGUE } from '../leagues';
 import { runBatch, type PollDb, type Statement } from '../poller/db';
 import { AWARDED, CANCELLED, FULL_TIME, HALFTIME, LIVE, NOT_STARTED, POSTPONED, SUSPENDED } from '../poller/status';
 
@@ -15,9 +16,6 @@ export type FdMatch = {
   score: { fullTime: { home: number | null; away: number | null } };
 };
 export type FdMatchesResponse = { matches: FdMatch[] };
-
-// football-data.org competition code -> API-Football league id (fixtures.leagueId holds API-Football ids).
-const API_FOOTBALL_LEAGUE: Record<string, number> = { PL: 39, PD: 140, FL1: 61, BL1: 78, CL: 2 };
 
 // football-data.org match status -> the API-Football short code the rest of the server uses.
 const STATUS: Record<string, string> = {
@@ -50,7 +48,7 @@ export async function syncFixtures(deps: { db: PollDb }, response: FdMatchesResp
   for (const match of response.matches) {
     const homeTeamId = apiTeamId.get(match.homeTeam.id);
     const awayTeamId = apiTeamId.get(match.awayTeam.id);
-    const leagueId = API_FOOTBALL_LEAGUE[match.competition.code];
+    const leagueId = (API_FOOTBALL_LEAGUE as Record<string, number | undefined>)[match.competition.code];
     if (homeTeamId === undefined || awayTeamId === undefined || leagueId === undefined) {
       summary.skipped.push(match.id);
       continue;

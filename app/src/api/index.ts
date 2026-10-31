@@ -2,7 +2,7 @@
  * The app's only view of the backend. Sign-in (`me`), the club picker and favorites are real calls to the
  * Hono API; the rest still answers from mock data and becomes a real call as each ticket lands.
  */
-import { FIXTURES, LEAGUES, matchDetail, standings, VERSION_CONFIG } from '@/domain/mock';
+import { LEAGUES, matchDetail, VERSION_CONFIG } from '@/domain/mock';
 import type {
   Fixture,
   League,
@@ -12,7 +12,7 @@ import type {
   Team,
   VersionConfig,
 } from '@/domain/types';
-import { dateKey } from '@/lib/dates';
+import { dayBoundsUtc } from '@/lib/dates';
 import { teamColor } from '@/lib/team-color';
 
 const delay = <T,>(value: T, ms = 120): Promise<T> =>
@@ -46,24 +46,27 @@ export const api = {
 
   leagues: (): Promise<League[]> => delay(LEAGUES),
 
-  /** Fixtures and results for one local date, optionally for one league. */
-  fixtures: (date: string, leagueId?: LeagueId): Promise<Fixture[]> =>
-    delay(
-      FIXTURES.filter(
-        (f) => dateKey(f.kickoffUtc) === date && (!leagueId || f.leagueId === leagueId),
-      ).sort((a, b) => a.kickoffUtc.localeCompare(b.kickoffUtc)),
-    ),
+  /** Real call: fixtures and results for one local date, optionally for one league. Past dates are the results. */
+  fixtures: async (token: string, date: string, leagueId?: LeagueId): Promise<Fixture[]> => {
+    const { from, to } = dayBoundsUtc(date);
+    const league = leagueId ? `&league=${leagueId}` : '';
+    const body = await call<{ fixtures: Fixture[] }>(token, `/fixtures?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}${league}`);
+    return body.fixtures;
+  },
 
-  live: (leagueId?: LeagueId): Promise<Fixture[]> =>
-    delay(
-      FIXTURES.filter(
-        (f) => (f.status === 'live' || f.status === 'halftime') && (!leagueId || f.leagueId === leagueId),
-      ),
-    ),
+  /** Real call: matches in play or at halftime now. */
+  live: async (token: string, leagueId?: LeagueId): Promise<Fixture[]> => {
+    const body = await call<{ fixtures: Fixture[] }>(token, `/live${leagueId ? `?league=${leagueId}` : ''}`);
+    return body.fixtures;
+  },
 
   match: (id: number): Promise<MatchDetail | null> => delay(matchDetail(id)),
 
-  standings: (leagueId: LeagueId): Promise<Standings> => delay(standings(leagueId)),
+  /** Real call: the stored table of a league. Empty until the snapshot job has synced it. */
+  standings: async (token: string, leagueId: LeagueId): Promise<Standings> => {
+    const { standings } = await call<{ standings: Omit<Standings, 'updatedAt'> & { updatedAt: string | null } }>(token, `/standings/${leagueId}`);
+    return { ...standings, updatedAt: standings.updatedAt ?? '' };
+  },
 
   /** Real call: clubs for the picker. A team's id is its API-Football id (what the server stores favorites by). */
   teams: async (token: string, query: string): Promise<Team[]> => {

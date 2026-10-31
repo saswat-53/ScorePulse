@@ -70,6 +70,10 @@ export default function Standings() {
           })}
         </View>
 
+        {data && data.rows.length === 0 ? (
+          <Text className="mt-4 px-1 text-center text-[13px] text-muted">No table yet. It appears once the daily update has run.</Text>
+        ) : null}
+
         <View className="mt-3 flex-row gap-4 px-1">
           <View className="flex-row items-center gap-1.5">
             <View className="h-[3px] w-2.5 rounded-sm bg-neon" />

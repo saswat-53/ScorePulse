@@ -34,7 +34,7 @@ export const LiveCard = memo(function LiveCard({ fixture, highlight }: { fixture
       <View className={`h-[46px] w-9 items-center justify-center rounded-lg border ${toneBg}`}>
         <Text className={`text-[9px] font-extrabold ${tone}`}>LIVE</Text>
         <Text className={`text-xs font-bold ${tone}`}>
-          {fixture.status === 'halftime' ? 'HT' : `${fixture.minute}'`}
+          {fixture.status === 'halftime' ? 'HT' : fixture.minute === null ? 'LIVE' : `${fixture.minute}'`}
         </Text>
       </View>
       <Side team={fixture.home} />

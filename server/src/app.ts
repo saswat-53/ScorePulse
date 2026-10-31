@@ -4,7 +4,10 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { favoriteTeams, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
+import { getStandings, listFixtures } from './browse';
+import { isLeagueCode } from './leagues';
 import { MAX_FAVORITES } from './limits';
+import { MAX_MATCH_HOURS } from './poller/status';
 import type { PollDb } from './poller/db';
 import { getPollStatus } from './poller/quota';
 
@@ -44,8 +47,8 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   await next();
 });
 
-// `getDb` is how a request gets its database: Neon in the Worker, PGlite in tests.
-export function createApp(getDb: (env: Bindings) => PollDb) {
+// `getDb` is how a request gets its database: Neon in the Worker, PGlite in tests. `now` is the clock, so tests can fix it.
+export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date()) {
   return (
     new Hono<AppEnv>()
       // Public: uptime check and the app's launch-time version gate.
@@ -62,6 +65,38 @@ export function createApp(getDb: (env: Bindings) => PollDb) {
         await db.insert(users).values({ id: userId }).onConflictDoNothing();
         const [user] = await db.select().from(users).where(eq(users.id, userId));
         return c.json({ user });
+      })
+
+      // Fixtures and results from stored data. The window is UTC instants (`from` inclusive, `to` exclusive): the
+      // app turns the user's local day into them, so the server holds no timezone logic.
+      .get('/fixtures', requireAuth, async (c) => {
+        const from = new Date(c.req.query('from') ?? '');
+        const to = new Date(c.req.query('to') ?? '');
+        const league = c.req.query('league');
+        if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return c.json({ error: 'invalid_window' }, 400);
+        if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
+        const db = getDb(c.env);
+        const { paused } = await getPollStatus(db, now());
+        return c.json({ fixtures: await listFixtures(db, { from, to, league }, paused) });
+      })
+
+      // Matches in play or at halftime right now.
+      .get('/live', requireAuth, async (c) => {
+        const league = c.req.query('league');
+        if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
+        const db = getDb(c.env);
+        const at = now();
+        const { paused } = await getPollStatus(db, at);
+        // A stored status older than a match can last is stale, as the poller treats it.
+        const from = new Date(at.getTime() - MAX_MATCH_HOURS * 3_600_000);
+        return c.json({ fixtures: await listFixtures(db, { from, to: at, league, inPlayOnly: true }, paused) });
+      })
+
+      // The stored league table. Empty until the snapshot job has synced the league.
+      .get('/standings/:league', requireAuth, async (c) => {
+        const league = c.req.param('league');
+        if (!isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
+        return c.json({ standings: await getStandings(getDb(c.env), league) });
       })
 
       // Clubs for the picker, from team_map. `q` matches the name, short name or three-letter code.
