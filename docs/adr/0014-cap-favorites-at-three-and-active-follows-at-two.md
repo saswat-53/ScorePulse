@@ -14,10 +14,12 @@ ADR 0002 dropped a follow cap because v1 has 5 to 10 users. Favorites were alrea
 - An active follow is a followed match that has not reached full time. A follow ends at full time, so the user can follow another match afterwards.
 - The server enforces both caps and rejects a request over the cap with a clear error. The app also hides or disables the control, but the server is the lock.
 - Favorites are counted per user, not per team: many users can share a team.
+- A follow always counts against the user's 2 slots, even when the match is already live-tracked because someone else's favorite or follow covers it. Following it costs no extra request or storage, but it adds that user as a recipient. A rule that depended on other users would change a user's limit whenever a friend unfollowed, and would let the cap be bypassed.
 - The numbers are two constants in one place, so changing them is a one-line change.
 
 ## Consequences
 
+- Fixtures and events are shared in one database. A match any user tracks is stored once and every user can read its timeline; the cap and the alerts are per user.
 - Worst case is bounded: 5 matches per user, and far fewer distinct matches because favorites overlap.
 - The cap does not reduce API-Football requests. Quota is saved by poll scheduling: the early exit in [ADR 0010](0010-poller-early-exit.md) and the low-quota rule in [ADR 0013](0013-favorites-keep-polling-when-quota-is-low.md).
 - A user who wants a third match at once must unfollow one. The app says so when the cap is reached.
