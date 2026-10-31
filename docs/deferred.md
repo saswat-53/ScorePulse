@@ -36,6 +36,14 @@ Added 2026-10-29.
 | Push Notification Frequency (All / Important / Custom) | Per-event toggles already cover this | Users ask for it |
 | VAR Decisions toggle | Same as VAR rows above | VAR events are confirmed |
 
+## Server deployment
+
+| Feature | Why deferred | Returns when |
+| --- | --- | --- |
+| Deploy `scorepulse-api` with the poller and snapshot crons | Testing on 2026-10-31 spent API-Football and football-data.org requests; the owner chose not to deploy until another day. Nothing is lost by waiting: no favorites or follows exist yet (#8, #12), and snapshot fixtures cannot be polled until #22 | The owner picks a day |
+
+Already done (2026-10-31): migrations 0001 to 0007 applied to the Neon dev database, `team_map` seeded (86 of 95 teams), secrets `API_FOOTBALL_KEY` and `FOOTBALL_DATA_KEY` set on the Worker. Before deploying, run `npx wrangler secret list` in `server/` and check `DATABASE_URL`, the Clerk keys and `SENTRY_DSN` are also set. Then `npx wrangler deploy` from `server/`; it registers 4 cron triggers (poller windows twice, snapshot morning and night). On the first matchday check, in the Cloudflare logs: the CPU time of poll runs (#6), the snapshot runs at 06:00 and 23:30 UTC, and the football-data.org live-score delay.
+
 ## Added to v1 instead
 
 - A Substitutions toggle, which the spec has and the mockup lacks.
