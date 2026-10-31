@@ -36,3 +36,20 @@ Date: 2026-10-29. Code: `server/spike/` (throwaway). Recorded responses: `server
 - Re-measure CPU with the real poller (grace period, writes, push) once built; this spike covers fetch, parse and diff only.
 - Re-check Neon CU-hours on the project Overview page after a real matchday (metrics lag ~1 h). Running out suspends compute until the next period.
 - Record a VAR match when one is live.
+
+## Follow-up: handler CPU (ticket #4)
+
+Date: 2026-10-31. Code: `server/spike/handler-cpu.ts` (throwaway). The real `handlePoll` ran on a once-a-minute cron against Neon, with the 28 recorded matches seeded as fixtures. CPU is the tail `cpuTime` (1 ms resolution; about +/-4 ms noise between runs). The Worker was deleted and the seeded rows removed afterwards. The migrations stay applied to the dev database.
+
+| Run | One INSERT per match | One INSERT for all matches |
+| --- | --- | --- |
+| 3 tracked, steady replay | 12 ms | 15 ms |
+| 3 tracked, new goals (8 pushes) | 14 ms | 11, 10 ms |
+| 28 tracked, steady replay | 43 ms | 16 ms |
+| 28 tracked, first-poll backfill | 82 ms | not re-run |
+
+- Batching removed the growth with the number of tracked matches, but the realistic 3-match poll is still **10-15 ms: at or over the 10 ms cap**. About 5 ms is fixed overhead (an empty run); the rest is two or three separate HTTPS requests to Neon plus drizzle.
+- No invocation failed, even at 82 ms. The cap is not hard-enforced at these levels on cron runs, but nothing here is a basis to rely on that.
+- Not measured: the push path with a real Expo sender (the fake sender is free) and the grace-period and VAR work (#5).
+
+**Fallbacks, cheapest first:** (1) send the select, insert and update as one Neon HTTP request (`db.batch`, with the fixture lookup folded into the insert), which attacks the per-request cost directly; (2) split the poll across invocations, as ADR 0004 suggests (e.g. one league per run); (3) poll less often when few matches are live. None changes the design in ADR 0001 or 0013 yet; write an ADR if (2) or (3) is adopted.
