@@ -15,7 +15,7 @@ A poll costs one request however many matches it returns, so quota cannot be rat
 - Each live-tracked fixture has a reason: favorite team, follow, or both. A fixture with both counts as a favorite.
 - Normal quota: nothing changes. Every live-tracked fixture is polled and alerts as before.
 - Quota low: the poller runs only when a favorite-team fixture is in play or due to kick off. Fixtures tracked only by a follow are not polled and the match screen shows "updates paused".
-- When quota is exhausted, polling stops for everyone, as in ADR 0001.
+- When quota is exhausted, the poller falls back to football-data.org scores every 10 minutes ([ADR 0015](0015-fall-back-to-football-data-scores-when-quota-is-exhausted.md)). _(This replaces "polling stops for everyone".)_
 - The "quota low" threshold is a constant set in #6 and revisited with real usage.
 
 ## Consequences
