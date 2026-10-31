@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { fixtureEvents } from '../src/db/schema';
-import { handlePoll } from '../src/poller/handle-poll';
+import { handlePoll, type PollResponse } from '../src/poller/handle-poll';
 import { createTestDb } from './db';
 import {
   AYARI_GOAL,
@@ -165,4 +165,18 @@ test('a removed goal that the API still lists next to its VAR event does not cou
 
   expect(push.sent).toHaveLength(1);
   expect(push.sent[0]).toMatchObject({ kind: 'goal', homeGoals: 0, awayGoals: 4 });
+});
+
+test('a poll whose events list is empty or missing says nothing about goals, so no goal counts as missing', async () => {
+  const { db, push } = await setupAfterAyariGoalAlert();
+  const noEventsKey: PollResponse = { response: [{ fixture: { id: VAR_MATCH } }] };
+
+  for (let i = 0; i < 3; i++) {
+    await handlePoll({ db, push }, varPoll([]), live); // events: []
+    await handlePoll({ db, push }, noEventsKey, live); // no events key at all
+  }
+
+  expect(push.sent).toEqual([]);
+  const rows = await db.select().from(fixtureEvents);
+  expect(rows.filter((r) => r.type === 'Goal').every((r) => r.removedAt === null && r.missingPolls === 0)).toBe(true);
 });

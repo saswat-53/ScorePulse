@@ -1,6 +1,7 @@
 import recorded from '../fixtures/api-football/live-all-2026-10-29.json';
+import varMatchJson from '../fixtures/api-football/var-everton-brighton-2024-25.json';
 import { fixtures } from '../src/db/schema';
-import type { GoalPush } from '../src/poller/handle-poll';
+import type { GoalPush, PollResponse } from '../src/poller/handle-poll';
 import type { createTestDb } from './db';
 
 export type LiveResponse = typeof recorded;
@@ -58,8 +59,6 @@ export function fakePush() {
 // Real 2024-25 Everton 0-3 Brighton (fixture 1208024): the only VAR recording we have, used as a test file only.
 // Real VAR events in it: "Penalty cancelled" (48') and "Goal cancelled" (90+3', Brighton, Yasin Ayari).
 // The cancelled goal itself is absent from the final list, so tests rebuild it from the VAR event (synthetic).
-import varMatchJson from '../fixtures/api-football/var-everton-brighton-2024-25.json';
-import type { PollResponse } from '../src/poller/handle-poll';
 
 export const VAR_MATCH = 1208024;
 const varMatch = varMatchJson.response[0];

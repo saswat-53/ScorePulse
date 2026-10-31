@@ -91,8 +91,8 @@ export async function handlePoll(
         )
     : [];
 
-  const reset: number[] = [];
-  const missed: number[] = [];
+  const recoveredIds: number[] = [];
+  const stillMissingIds: number[] = [];
   const removeIds: number[] = [];
   const insertedIds = new Set(inserted.map((r) => r.id));
 
@@ -109,11 +109,14 @@ export async function handlePoll(
       if (cancelledByVar) {
         removedNow.push(row);
       } else if (stillListed) {
-        if (row.missingPolls > 0) reset.push(row.id);
+        if (row.missingPolls > 0) recoveredIds.push(row.id);
+      } else if (events.length === 0) {
+        // An empty or absent events list is the API returning nothing, not every goal vanishing: count nothing.
+        continue;
       } else if (row.missingPolls + 1 >= MISSING_POLLS_TO_REMOVE) {
         removedNow.push(row);
       } else {
-        missed.push(row.id);
+        stillMissingIds.push(row.id);
       }
     }
     removeIds.push(...removedNow.map((r) => r.id));
@@ -159,13 +162,15 @@ export async function handlePoll(
     }
   }
 
-  // State changes are written only when something changed, so a quiet poll adds no queries.
-  if (reset.length) await deps.db.update(fixtureEvents).set({ missingPolls: 0 }).where(inArray(fixtureEvents.id, reset));
-  if (missed.length) {
+  // State changes are written only when something changed, so a quiet poll adds no writes.
+  if (recoveredIds.length) {
+    await deps.db.update(fixtureEvents).set({ missingPolls: 0 }).where(inArray(fixtureEvents.id, recoveredIds));
+  }
+  if (stillMissingIds.length) {
     await deps.db
       .update(fixtureEvents)
       .set({ missingPolls: sql`${fixtureEvents.missingPolls} + 1` })
-      .where(inArray(fixtureEvents.id, missed));
+      .where(inArray(fixtureEvents.id, stillMissingIds));
   }
   if (removeIds.length) {
     await deps.db.update(fixtureEvents).set({ removedAt: new Date() }).where(inArray(fixtureEvents.id, removeIds));
