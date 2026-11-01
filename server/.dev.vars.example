@@ -20,3 +20,7 @@ SENTRY_DSN=https://xxxx@oXXXX.ingest.sentry.io/XXXX
 
 # Poller config (these are not secrets, but are handy to override locally)
 POLL_INTERVAL_MINUTES=5
+
+# LOCAL ONLY: lets the app sign in as a made-up user, with no email code (see src/dev-auth.ts). It only answers
+# requests addressed to localhost or a home-network address. Never set this in wrangler.jsonc or as a deployed secret.
+DEV_AUTH_BYPASS=false

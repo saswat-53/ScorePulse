@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/expo';
+import { useAppAuth } from '@/lib/use-app-auth';
 import { useQuery } from '@tanstack/react-query';
 
 import type { LeagueId } from '@/domain/types';
@@ -9,7 +9,7 @@ export const useLeagues = () => useQuery({ queryKey: ['leagues'], queryFn: api.l
 
 /** The Clerk session token for a request. The screens using these hooks sit behind sign-in. */
 function useToken() {
-  const { getToken } = useAuth();
+  const { getToken } = useAppAuth();
   return async () => (await getToken()) ?? '';
 }
 

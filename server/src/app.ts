@@ -12,6 +12,7 @@ import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
 import { MAX_MATCH_HOURS } from './poller/status';
 import type { PollDb } from './poller/db';
 import { getPollStatus } from './poller/quota';
+import { devBypassUser } from './dev-auth';
 import { verifySvix } from './webhook';
 
 const TEAMS_PAGE = 30;
@@ -54,6 +55,15 @@ type AppEnv = { Bindings: Bindings; Variables: Variables };
 const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   const token = c.req.header('Authorization')?.replace(/^Bearer\s+/i, '');
   if (!token) return c.json({ error: 'Missing token' }, 401);
+
+  // Local development only: a made-up user, never on a deployed server (src/dev-auth.ts).
+  const devUser = devBypassUser(c.env, c.req.url, token);
+  if (devUser) {
+    c.set('userId', devUser);
+    c.set('devUser', true);
+    await next();
+    return;
+  }
 
   // The public verifyToken returns the token payload and throws when the token is invalid or expired.
   let userId: string | undefined;
@@ -127,6 +137,8 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
       .delete('/me', requireAuth, async (c) => {
         const userId = c.get('userId');
         await getDb(c.env).delete(users).where(eq(users.id, userId));
+        // A dev user lives only in this database: Clerk has never heard of it.
+        if (c.get('devUser')) return c.body(null, 204);
         try {
           await clerk(c.env).deleteUser(userId);
         } catch (e) {

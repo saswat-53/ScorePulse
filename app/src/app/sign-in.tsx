@@ -1,11 +1,12 @@
 import { useSignIn, useSignUp } from '@clerk/expo';
 import { Redirect, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
+import { DEV_LOGIN_ENABLED, setDevUser } from '@/lib/dev-login';
 import { useSession } from '@/state/session';
 
 type Step = 'choose' | 'email' | 'code';
@@ -103,84 +104,105 @@ export default function SignIn() {
   const { signedIn } = useSession();
   const auth = useEmailCodeAuth();
   if (signedIn) return <Redirect href={'/' as Href} />;
+  const typing = auth.step !== 'choose';
   return (
-    <View className="flex-1 bg-bg px-6 pb-8 pt-24">
-      <View className="items-center">
-        <Wordmark size={42} />
-        <Text className="mt-2.5 text-[11px] font-semibold tracking-[3px] text-neon">
-          FOOTBALL. LIVE. ALWAYS ON.
-        </Text>
-      </View>
+    // The form sits at the bottom of the screen, where the on-screen keyboard used to cover it. The screen now moves
+    // up with the keyboard and scrolls, and the big picture goes while the user types so the field has room.
+    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-bg">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 32, paddingTop: typing ? 56 : 96 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={false}>
+        <View className="items-center">
+          <Wordmark size={42} />
+          <Text className="mt-2.5 text-[11px] font-semibold tracking-[3px] text-neon">
+            FOOTBALL. LIVE. ALWAYS ON.
+          </Text>
+        </View>
 
-      <View className="flex-1 items-center justify-center">
-        <View className="h-[220px] w-[220px] items-center justify-center rounded-full border border-neon/30 bg-neon/5">
-          <View className="h-[160px] w-[160px] items-center justify-center rounded-full border border-neon/50 bg-neon/10">
-            <View className="h-[100px] w-[100px] items-center justify-center rounded-full border-2 border-neon/80 bg-neon/15">
-              <Icon name="whistle" size={44} color="#19E3FF" />
+        {typing ? (
+          <View className="min-h-6 flex-1" />
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            <View className="h-[220px] w-[220px] items-center justify-center rounded-full border border-neon/30 bg-neon/5">
+              <View className="h-[160px] w-[160px] items-center justify-center rounded-full border border-neon/50 bg-neon/10">
+                <View className="h-[100px] w-[100px] items-center justify-center rounded-full border-2 border-neon/80 bg-neon/15">
+                  <Icon name="whistle" size={44} color="#19E3FF" />
+                </View>
+              </View>
             </View>
           </View>
-        </View>
-      </View>
+        )}
 
-      <Text className="text-[30px] font-extrabold italic leading-[33px] text-neon">YOUR{'\n'}FOOTBALL{'\n'}TERMINAL</Text>
-      <Text className="mb-6 mt-3 text-[15px] leading-[22px] text-muted">
-        Live scores. Real-time alerts.{'\n'}Personalised for you.
-      </Text>
+        <Text className="text-[30px] font-extrabold italic leading-[33px] text-neon">YOUR{'\n'}FOOTBALL{'\n'}TERMINAL</Text>
+        <Text className="mb-6 mt-3 text-[15px] leading-[22px] text-muted">
+          Live scores. Real-time alerts.{'\n'}Personalised for you.
+        </Text>
 
-      {auth.step === 'choose' ? (
-        <>
-          <View className="h-[52px] items-center justify-center rounded-2xl bg-white/40">
-            <Text className="text-[15px] font-bold text-bg">Google sign-in coming soon</Text>
-          </View>
-          <Pressable
-            onPress={() => auth.setStep('email')}
-            accessibilityRole="button"
-            className="mt-3 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface">
-            <Text className="text-[15px] font-semibold text-white">Continue with Email</Text>
-          </Pressable>
-        </>
-      ) : (
-        <View className="gap-3">
-          {auth.step === 'email' ? (
-            <TextInput
-              value={auth.email}
-              onChangeText={auth.setEmail}
-              placeholder="you@example.com"
-              placeholderTextColor="#8FA3C0"
-              autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              className="h-[52px] rounded-2xl border border-border bg-surface px-4 text-[15px] text-white"
-            />
-          ) : (
-            <>
-              <Text className="text-[13px] text-muted">We sent a code to {auth.email}</Text>
+        {auth.step === 'choose' ? (
+          <>
+            <View className="h-[52px] items-center justify-center rounded-2xl bg-white/40">
+              <Text className="text-[15px] font-bold text-bg">Google sign-in coming soon</Text>
+            </View>
+            <Pressable
+              onPress={() => auth.setStep('email')}
+              accessibilityRole="button"
+              className="mt-3 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface">
+              <Text className="text-[15px] font-semibold text-white">Continue with Email</Text>
+            </Pressable>
+            {DEV_LOGIN_ENABLED ? (
+              <Pressable
+                onPress={() => setDevUser('tester')}
+                accessibilityRole="button"
+                className="mt-3 h-[44px] items-center justify-center rounded-2xl border border-dashed border-warn/70">
+                <Text className="text-[13px] font-semibold text-warn">Dev sign-in (local only, no email code)</Text>
+              </Pressable>
+            ) : null}
+          </>
+        ) : (
+          <View className="gap-3">
+            {auth.step === 'email' ? (
               <TextInput
-                value={auth.code}
-                onChangeText={auth.setCode}
-                placeholder="6-digit code"
+                value={auth.email}
+                onChangeText={auth.setEmail}
+                placeholder="you@example.com"
                 placeholderTextColor="#8FA3C0"
-                keyboardType="number-pad"
-                autoComplete="one-time-code"
-                className="h-[52px] rounded-2xl border border-border bg-surface px-4 text-[15px] tracking-[4px] text-white"
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                className="h-[52px] rounded-2xl border border-border bg-surface px-4 text-[15px] text-white"
               />
-            </>
-          )}
-          {auth.error ? <Text className="text-[13px] text-red-400">{auth.error}</Text> : null}
-          <PrimaryButton
-            label={auth.busy ? 'Please wait…' : auth.step === 'email' ? 'Send code' : 'Verify'}
-            disabled={auth.busy || (auth.step === 'email' ? !auth.email.includes('@') : auth.code.length < 6)}
-            onPress={() => void (auth.step === 'email' ? auth.sendCode() : auth.verify())}
-          />
-          <Pressable onPress={auth.reset} accessibilityRole="button" className="items-center py-2">
-            <Text className="text-[13px] font-semibold text-neon">Back</Text>
-          </Pressable>
-        </View>
-      )}
+            ) : (
+              <>
+                <Text className="text-[13px] text-muted">We sent a code to {auth.email}</Text>
+                <TextInput
+                  value={auth.code}
+                  onChangeText={auth.setCode}
+                  placeholder="6-digit code"
+                  placeholderTextColor="#8FA3C0"
+                  keyboardType="number-pad"
+                  autoComplete="one-time-code"
+                  className="h-[52px] rounded-2xl border border-border bg-surface px-4 text-[15px] tracking-[4px] text-white"
+                />
+              </>
+            )}
+            {auth.error ? <Text className="text-[13px] text-red-400">{auth.error}</Text> : null}
+            <PrimaryButton
+              label={auth.busy ? 'Please wait…' : auth.step === 'email' ? 'Send code' : 'Verify'}
+              disabled={auth.busy || (auth.step === 'email' ? !auth.email.includes('@') : auth.code.length < 6)}
+              onPress={() => void (auth.step === 'email' ? auth.sendCode() : auth.verify())}
+            />
+            <Pressable onPress={auth.reset} accessibilityRole="button" className="items-center py-2">
+              <Text className="text-[13px] font-semibold text-neon">Back</Text>
+            </Pressable>
+          </View>
+        )}
 
-      <Text className="mt-5 text-center text-[11px] leading-4 text-muted">
-        By continuing, you agree to our Terms of Service and Privacy Policy
-      </Text>
-    </View>
+        <Text className="mt-5 text-center text-[11px] leading-4 text-muted">
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

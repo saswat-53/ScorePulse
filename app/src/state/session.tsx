@@ -3,13 +3,14 @@
  * server, which holds the 3-favorite and 2-active-follow caps); alert toggles and the push token are saved on the server too.
  * The server replaces those internals later; the hook's shape stays the same.
  */
-import { useAuth, useUser } from '@clerk/expo';
+import { useUser } from '@clerk/expo';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { api } from '@/api';
 
 import { PROFILE } from '@/domain/mock';
 import { askForPushPermission, getPushToken } from '@/lib/push';
+import { useAppAuth } from '@/lib/use-app-auth';
 import { MAX_ACTIVE_FOLLOWS, type AlertSettings, type Profile, type Team } from '@/domain/types';
 
 interface Session {
@@ -42,7 +43,7 @@ const NO_TEAMS: Team[] = [];
 const NO_IDS: number[] = [];
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn, userId, signOut: clerkSignOut, getToken: clerkGetToken } = useAuth();
+  const { isSignedIn, userId, signOut: clerkSignOut, getToken: clerkGetToken, isDev } = useAppAuth();
   // Clerk can hand back a new `getToken` on every render. The loads below depend on it, so each one that saved its
   // result would re-render, get a new function and load again, without end. This one never changes: it always calls
   // the latest.
@@ -149,8 +150,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // The name, email and picture are the Clerk account's, not placeholders.
       profile: {
         ...profile,
-        name: user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? 'Your account',
-        email: user?.primaryEmailAddress?.emailAddress ?? '',
+        name: isDev ? 'Dev tester' : (user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? 'Your account'),
+        email: isDev ? 'local development sign-in' : (user?.primaryEmailAddress?.emailAddress ?? ''),
         avatarUrl: user?.imageUrl ?? null,
         favoriteTeamIds: favoriteTeams.map((t) => t.id),
         alerts,
@@ -272,7 +273,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [signedIn, userId, user, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
+    [signedIn, userId, user, isDev, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
