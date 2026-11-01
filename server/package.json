@@ -13,7 +13,8 @@
     "seed:team-map": "tsx scripts/seed-team-map.ts",
     "sync:once": "tsx scripts/sync-once.ts",
     "demo:seed": "tsx scripts/demo-match.ts seed",
-    "demo:clean": "tsx scripts/demo-match.ts clean"
+    "demo:clean": "tsx scripts/demo-match.ts clean",
+    "sync:season": "tsx scripts/season-once.ts"
   },
   "dependencies": {
     "@clerk/backend": "3.23.0",

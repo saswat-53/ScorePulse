@@ -18,6 +18,8 @@ export function footballData(apiKey: string) {
     // Every match of the five leagues that is in play, at halftime or finished today: one request for the fallback
     // poll (#21). Score and status only on the free tier.
     liveScores: () => get<FdMatchesResponse>(`matches?competitions=${COMPETITIONS.join(',')}&status=IN_PLAY,PAUSED,FINISHED`),
+    // Every match of a league's season, played and to come: one request, a few hundred matches (#23).
+    season: (code: Competition, year: number) => get<FdMatchesResponse>(`competitions/${code}/matches?season=${year}`),
     standings: (code: Competition) => get<FdStandingsResponse>(`competitions/${code}/standings`),
   };
 }
