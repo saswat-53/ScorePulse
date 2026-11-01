@@ -4,7 +4,7 @@ import { runBatch, type PollDb, type Statement } from './db';
 import { FULL_TIME, HALFTIME, IN_PLAY, NOT_STARTED, PRESUMED_OVER_MINUTES } from './status';
 
 // The parts of an API-Football `fixtures?live=` response the poller reads.
-type ApiEvent = {
+export type ApiEvent = {
   time: { elapsed: number; extra: number | null };
   team: { id: number };
   player: { id: number | null; name: string | null };
@@ -79,19 +79,8 @@ export async function handlePoll(
 
   // Every tracked fixture's events go in with one INSERT, however many matches are on: queries are what cost CPU.
   const values = known.flatMap(({ fixture, events }) =>
-    events.map((e) => ({
-      fixtureId: fixture.id,
-      elapsed: e.time.elapsed,
-      extra: e.time.extra,
-      teamId: e.team.id,
-      playerId: e.player.id,
-      playerName: e.player.name,
-      assistName: e.assist?.name ?? null,
-      type: e.type,
-      detail: e.detail,
-      // A goal, card or substitution after the first poll is news: the alert is owed from this insert on. Earlier ones are history.
-      alertState: isAlertable(e) && fixture.firstPolledAt !== null ? ('due' as const) : ('none' as const),
-    })),
+    // A goal, card or substitution after the first poll is news: the alert is owed from this insert on. Earlier ones are history.
+    events.map((e) => eventRow(fixture.id, e, isAlertable(e) && fixture.firstPolledAt !== null)),
   );
 
   // One Neon request for all the reads and writes below. It is one transaction, so if the insert fails nothing is
@@ -212,7 +201,21 @@ const FINISHED = ['FT', 'AET', 'PEN'];
 
 const isCard = (e: ApiEvent) => e.type === 'Card';
 const isSubstitution = (e: ApiEvent) => e.type === 'subst';
-const isAlertable = (e: ApiEvent) => isGoal(e) || isCard(e) || isSubstitution(e);
+// One API-Football event as the fixture_events row stored for it. `owed`: the alert for it is owed from this insert on.
+export const eventRow = (fixtureId: number, e: ApiEvent, owed: boolean) => ({
+  fixtureId,
+  elapsed: e.time.elapsed,
+  extra: e.time.extra,
+  teamId: e.team.id,
+  playerId: e.player.id,
+  playerName: e.player.name,
+  assistName: e.assist?.name ?? null,
+  type: e.type,
+  detail: e.detail,
+  alertState: owed ? ('due' as const) : ('none' as const),
+});
+
+export const isAlertable = (e: ApiEvent) => isGoal(e) || isCard(e) || isSubstitution(e);
 
 const isGoal = (e: ApiEvent) => e.type === 'Goal' && GOAL_DETAILS.has(e.detail);
 

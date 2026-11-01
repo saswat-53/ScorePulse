@@ -1,4 +1,5 @@
 import type { LineupsResponse, StatisticsResponse } from '../lineups-stats';
+import type { FixtureResponse } from './extras';
 import type { PollResponse } from './handle-poll';
 import type { LiveProvider } from './run-poller';
 
@@ -13,6 +14,8 @@ export function apiFootball(apiKey: string): LiveProvider {
   return {
     // One request for all live matches of the given leagues: `live=39-140` (ids joined by a dash).
     fetchLive: (leagueIds) => get(`fixtures?live=${leagueIds.join('-')}`) as Promise<PollResponse>,
+    // One match by id, with its events and, when the plan has them, lineups and statistics (#24).
+    fetchFixture: (fixtureId) => get(`fixtures?id=${fixtureId}`) as Promise<FixtureResponse>,
     // One request each, for one match (both teams come back together).
     fetchLineups: (fixtureId) => get(`fixtures/lineups?fixture=${fixtureId}`) as Promise<LineupsResponse>,
     fetchStatistics: (fixtureId) => get(`fixtures/statistics?fixture=${fixtureId}`) as Promise<StatisticsResponse>,

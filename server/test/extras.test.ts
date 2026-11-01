@@ -27,6 +27,8 @@ function fakeProvider(opts: { lineups?: object; statistics?: object; fail?: bool
   return {
     calls,
     fetchLive: async () => (calls.live++, pollOf(recordedMatch(MATCH_WITH_3_GOALS))),
+    // The match is found by id but brings no statistics, so the separate final-statistics request follows.
+    fetchFixture: async (id: number) => ({ response: [{ fixture: { id }, events: [] }] }),
     fetchLineups: async (id: number) => {
       calls.lineups.push(id);
       if (opts.fail) throw new Error('API-Football answered 500');

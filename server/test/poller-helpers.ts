@@ -132,6 +132,7 @@ export async function pollOnce(
 
 // The lineups and statistics half of a provider, for tests that only exercise the live poll: nothing announced.
 export const noExtras = {
+  fetchFixture: async () => ({ response: [] }),
   fetchLineups: async () => ({ response: [] }),
   fetchStatistics: async () => ({ response: [] }),
 };

@@ -129,7 +129,7 @@ export async function runPoller(
 
   // Lineups and statistics come after the live poll, from what is left of the day's quota.
   const jobs = pickJobs(extraRows, now, { low: plan.low, remaining: plan.remaining - (due.length > 0 ? 1 : 0) });
-  await fetchExtras(deps, jobs, now);
+  alertsOwed ||= await fetchExtras(deps, jobs, now);
 
   // Goals and corrections the poll owes, or an earlier run left unsent: write them as pending rows, then send (#13).
   if (alertsOwed) await deliverAlerts(deps);

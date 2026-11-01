@@ -47,3 +47,10 @@ Built from ADR 0015, not yet run against the live service. Two things are unveri
 - **The request.** The poller asks `matches?competitions=PL,PD,FL1,BL1,CL&status=IN_PLAY,PAUSED,FINISHED` (one request for all five leagues). That the free tier allows this unfiltered-by-date endpoint, and what window it returns, has not been tried.
 - **The delay.** How far football-data.org's live score lags API-Football is unmeasured. While a match is in play, call both and note the minute each shows a goal. Record the lag here. If it is large (several minutes), the "Goal: Arsenal 2-1 Chelsea" fallback alert is late and the match screen should say so.
 - **The score field.** The fallback reads `score.fullTime` as the running score during a match. Confirm that is what football-data.org puts there while a match is live.
+
+## Archive lookups, measured 2026-11-01 (3 API-Football requests, for #23 and #24)
+
+- `fixtures?ids=a-b-c`: **refused on the free plan** ("Free plans do not have access to the Ids parameter"). No batching: details cost one request per match.
+- `fixtures?date=YYYY-MM-DD`: **works for the current season.** One request returns every fixture in the world that day: 1,569 fixtures, 1.5 MB, 22 of them in our five leagues. Ids, teams, scores and status only, no events, lineups or statistics. Parsing 1.5 MB may not fit the Worker's 10 ms CPU cap (ADR 0004): measure it there.
+- `fixtures?date=...&league=39`: refused ("The Season field is required"), and season 2026 is blocked on the free plan, so the lookup cannot be narrowed to one league.
+- **Not measured:** that `fixtures?id=<one match>` carries events, lineups and statistics together for a 2026 top-league match. #24 is built to work either way: if the response has statistics they replace the halftime ones; if not, the separate final-statistics request still runs. Check the first real completion fetch.

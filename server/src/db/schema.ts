@@ -44,6 +44,9 @@ export const fixtures = pgTable('fixtures', {
   lineupsAttempts: integer('lineups_attempts').notNull().default(0),
   statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),
   statsFtAttempts: integer('stats_ft_attempts').notNull().default(0),
+  // The one fetch by id after full time (#24), which fills in what the last poll missed. Empty or failed answers count.
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  completionAttempts: integer('completion_attempts').notNull().default(0),
   // Kickoff and full time are owed from a change of status, written in the same statement as the new status (#14).
   // A score that went up while only football-data.org was answering (#21): the alert is owed, and the goals it
   // announced have no event rows yet. When API-Football returns, that many new goal events are not alerted again.
