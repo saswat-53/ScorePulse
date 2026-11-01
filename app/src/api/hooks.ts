@@ -38,6 +38,16 @@ export const useMatch = (id: number) => {
   return useQuery({ queryKey: ['match', id], queryFn: async () => api.match(await token(), id), refetchInterval: 60_000 });
 };
 
+export const useBrowse = () => {
+  const token = useToken();
+  return useQuery({ queryKey: ['browse'], queryFn: async () => api.browse(await token()), staleTime: 3_600_000 });
+};
+
+export const useLeagueClubs = (code: LeagueId) => {
+  const token = useToken();
+  return useQuery({ queryKey: ['league-clubs', code], queryFn: async () => api.leagueClubs(await token(), code) });
+};
+
 export const useTeamFixtures = (teamId: number) => {
   const token = useToken();
   return useQuery({ queryKey: ['team', teamId], queryFn: async () => api.teamFixtures(await token(), teamId) });

@@ -5,7 +5,7 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import { appConfig, favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
-import { getMatch, getStandings, listFixtures, teamFixtures } from './browse';
+import { getBrowseTree, getLeagueClubs, getMatch, getStandings, listFixtures, teamFixtures } from './browse';
 import { isLeagueCode } from './leagues';
 import { activeFollowIds, isOver } from './follows';
 import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
@@ -220,6 +220,15 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
           .orderBy(asc(teamMap.name))
           .limit(TEAMS_PAGE);
         return c.json({ teams: rows });
+      })
+
+      // Browse by world, country and league, then a league's clubs, from the stored tables (#26).
+      .get('/browse', requireAuth, (c) => c.json(getBrowseTree()))
+
+      .get('/leagues/:code/teams', requireAuth, async (c) => {
+        const code = c.req.param('code');
+        if (!isLeagueCode(code)) return c.json({ error: 'invalid_league' }, 400);
+        return c.json(await getLeagueClubs(getDb(c.env), code));
       })
 
       // A team's season: its fixtures and results from the stored tables, no provider request (#25). The id is the

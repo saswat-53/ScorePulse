@@ -9,3 +9,14 @@ export const isLeagueCode = (value: string | undefined): value is LeagueCode => 
 
 export const leagueCodeOf = (apiFootballLeagueId: number): LeagueCode | undefined =>
   LEAGUE_CODES.find((code) => API_FOOTBALL_LEAGUE[code] === apiFootballLeagueId);
+
+// What the browse screens show (#26): each league's name and the country it belongs to. The Champions League has no
+// country: it is the world's.
+export const LEAGUE_NAME: Record<LeagueCode, string> = {
+  CL: 'Champions League',
+  PL: 'Premier League',
+  PD: 'La Liga',
+  FL1: 'Ligue 1',
+  BL1: 'Bundesliga',
+};
+export const LEAGUE_COUNTRY: Record<LeagueCode, string | null> = { CL: null, PL: 'England', PD: 'Spain', FL1: 'France', BL1: 'Germany' };

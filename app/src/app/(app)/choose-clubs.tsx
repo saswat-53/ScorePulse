@@ -1,10 +1,10 @@
 import { FlashList } from '@shopify/flash-list';
 import { router, type Href } from 'expo-router';
-import { memo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { useTeams } from '@/api/hooks';
-import { Crest } from '@/components/ui/crest';
+import { ClubRow } from '@/components/clubs/club-row';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
@@ -12,40 +12,6 @@ import { Screen } from '@/components/ui/screen';
 import { MAX_FAVORITES, type Team } from '@/domain/types';
 import { markNotificationPromptDone, notificationPromptDone } from '@/lib/prompt-state';
 import { useSession } from '@/state/session';
-
-interface ClubRowProps {
-  team: Team;
-  selected: boolean;
-  onToggle: (team: Team) => void;
-}
-
-/** One club. Selected clubs get the glowing neon card from the mockup, with a remove button. */
-const ClubRow = memo(function ClubRow({ team, selected, onToggle }: ClubRowProps) {
-  return (
-    <View
-      className={`mt-2 h-[52px] flex-row items-center gap-3 rounded-2xl border pl-3 pr-1.5 ${
-        selected ? 'border-2 border-neon bg-[#0A1E3C]' : 'border-border bg-surface'
-      }`}
-      style={selected ? GLOW : undefined}>
-      <Crest team={team} size={selected ? 38 : 34} />
-      <Text numberOfLines={1} className={`flex-1 text-[15px] text-white ${selected ? 'font-bold' : 'font-semibold'}`}>
-        {team.name}
-      </Text>
-      <Pressable
-        onPress={() => onToggle(team)}
-        accessibilityRole="button"
-        accessibilityLabel={`${selected ? 'Remove' : 'Add'} ${team.name}`}
-        className="h-11 w-11 items-center justify-center">
-        <View
-          className={`h-8 w-8 items-center justify-center rounded-full ${
-            selected ? 'bg-white/10' : 'border border-neon/45'
-          }`}>
-          <Icon name={selected ? 'close' : 'plus'} size={16} color={selected ? '#FFFFFF' : '#19E3FF'} />
-        </View>
-      </Pressable>
-    </View>
-  );
-});
 
 function NotificationPrompt({ onDone }: { onDone: () => void }) {
   const { enableNotifications } = useSession();
@@ -125,6 +91,14 @@ export default function ChooseClubs() {
           className="flex-1 text-sm text-white"
         />
       </View>
+
+      <Pressable
+        onPress={() => router.push('/browse?pick=1' as Href)}
+        accessibilityRole="button"
+        className="mt-3 h-12 flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4">
+        <Text className="flex-1 text-sm font-semibold text-white">Browse by country and league</Text>
+        <Icon name="chevron-right" size={18} color="#8FA3C0" />
+      </Pressable>
 
       <Text className="mt-5 text-xs font-bold tracking-widest text-neon">
         YOUR CLUBS ({picked.length}/{MAX_FAVORITES})

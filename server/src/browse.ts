@@ -2,7 +2,7 @@ import { alias } from 'drizzle-orm/pg-core';
 import { and, asc, desc, eq, gte, inArray, isNull, lt, or, type SQL } from 'drizzle-orm';
 import { fixtureEvents, fixtureLineups, fixtures, fixtureStats, follows, standings, teamMap, type StoredLineupPlayer } from './db/schema';
 import { toStatRows } from './lineups-stats';
-import { API_FOOTBALL_LEAGUE, leagueCodeOf, type LeagueCode } from './leagues';
+import { API_FOOTBALL_LEAGUE, LEAGUE_CODES, LEAGUE_COUNTRY, LEAGUE_NAME, leagueCodeOf, type LeagueCode } from './leagues';
 import { runBatch, type PollDb } from './poller/db';
 import { hasFavorite, hasFollow } from './poller/run-poller';
 import { HALFTIME, IN_PLAY } from './poller/status';
@@ -202,6 +202,33 @@ function applySubstitutions(
     starters[off] = { ...incoming, grid: starters[off].grid };
   }
   return { starters, substitutes };
+}
+
+// World competitions, then countries (in name order) with their leagues (#26). Fixed: the five leagues the app covers.
+export function getBrowseTree() {
+  const league = (id: LeagueCode) => ({ id, name: LEAGUE_NAME[id] });
+  const countries = [...new Set(LEAGUE_CODES.flatMap((id) => LEAGUE_COUNTRY[id] ?? []))].sort((a, b) => a.localeCompare(b));
+  return {
+    world: LEAGUE_CODES.filter((id) => LEAGUE_COUNTRY[id] === null).map(league),
+    countries: countries.map((name) => ({ name, leagues: LEAGUE_CODES.filter((id) => LEAGUE_COUNTRY[id] === name).map(league) })),
+  };
+}
+
+// The clubs in a league's newest stored table, in name order. A club the server cannot map to an API-Football id is
+// left out: it could not be picked as a favorite. A club in two competitions is in both lists. Empty before the
+// daily update has stored the table.
+export async function getLeagueClubs(db: PollDb, code: LeagueCode) {
+  const rows = await db
+    .select({ season: standings.season, team: teamMap })
+    .from(standings)
+    .innerJoin(teamMap, eq(teamMap.footballDataId, standings.teamId))
+    .where(eq(standings.competition, code))
+    .orderBy(desc(standings.season));
+  const newest = rows[0]?.season;
+  return {
+    league: { id: code, name: LEAGUE_NAME[code] },
+    teams: rows.filter((r) => r.season === newest).map((r) => teamJson(r.team)).sort((a, b) => a.name.localeCompare(b.name)),
+  };
 }
 
 const CHAMPIONS_LEAGUE_PLACES = 4;

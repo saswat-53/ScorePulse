@@ -75,6 +75,15 @@ export default function More() {
           <Icon name="chevron-right" size={18} color="#8FA3C0" />
         </Pressable>
 
+        <Pressable
+          onPress={() => router.push('/browse' as Href)}
+          accessibilityRole="button"
+          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-neon/25 bg-surface px-4 py-3.5">
+          <Icon name="search" size={20} color="#19E3FF" />
+          <Text className="flex-1 text-[15px] font-semibold text-white">Browse clubs</Text>
+          <Icon name="chevron-right" size={18} color="#8FA3C0" />
+        </Pressable>
+
         <Text className="mb-2 mt-6 text-base font-bold text-neon">Notification Alerts</Text>
         <View className="rounded-2xl border border-neon/20 bg-surface px-3.5">
           {ALERTS.map((a, i) => (

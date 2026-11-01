@@ -5,6 +5,8 @@
 import { LEAGUES } from '@/domain/mock';
 import type {
   AlertSettings,
+  BrowseLeague,
+  BrowseTree,
   Fixture,
   League,
   LeagueId,
@@ -80,6 +82,15 @@ export const api = {
       standings: Omit<Standings, 'updatedAt' | 'rows'> & { updatedAt: string | null; rows: (Omit<StandingRow, 'team'> & { team: ServerTeam })[] };
     }>(token, `/standings/${leagueId}`);
     return { ...standings, updatedAt: standings.updatedAt ?? '', rows: standings.rows.map((r) => ({ ...r, team: toTeam(r.team) })) };
+  },
+
+  /** Real call: the world competitions and the countries with their leagues. */
+  browse: (token: string): Promise<BrowseTree> => call<BrowseTree>(token, '/browse'),
+
+  /** Real call: the clubs in a league's newest stored table, in name order. Empty before the daily update has run. */
+  leagueClubs: async (token: string, code: LeagueId): Promise<{ league: BrowseLeague; teams: Team[] }> => {
+    const body = await call<{ league: BrowseLeague; teams: ServerTeam[] }>(token, `/leagues/${code}/teams`);
+    return { league: body.league, teams: body.teams.map(toTeam) };
   },
 
   /** Real call: a team's season, from the stored tables, oldest first. Null for a team the server does not know. */

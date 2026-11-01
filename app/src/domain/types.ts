@@ -166,6 +166,18 @@ export interface Standings {
   source: Source;
 }
 
+/** A competition in the browse tree (#26): its name comes from the server. */
+export interface BrowseLeague {
+  id: LeagueId;
+  name: string;
+}
+
+/** World competitions first, then the countries (in name order) with their leagues. */
+export interface BrowseTree {
+  world: BrowseLeague[];
+  countries: { name: string; leagues: BrowseLeague[] }[];
+}
+
 export interface AlertSettings {
   goals: boolean;
   cards: boolean;
