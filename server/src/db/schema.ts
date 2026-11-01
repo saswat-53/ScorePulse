@@ -132,6 +132,13 @@ export const pushTokens = pgTable('push_tokens', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Settings the owner edits straight in Neon, with no admin screen (#16): min_app_version, latest_app_version and
+// download_page_url. The app reads them at launch, before sign-in.
+export const appConfig = pgTable('app_config', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+});
+
 // What a goal alert or its correction says (ADR 0009). Stored with the pending row, so the send needs no lookup.
 export type AlertPayload = {
   kind: 'goal' | 'goal_removed' | 'card' | 'substitution' | 'kickoff' | 'full_time';

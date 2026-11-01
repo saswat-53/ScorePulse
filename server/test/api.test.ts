@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 afterEach(() => testDb.close());
 
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 const call = (path: string, init: RequestInit = {}, token?: string) =>
   createApp(() => testDb.db).request(
     path,
@@ -50,5 +50,5 @@ test('an invalid token is rejected and creates no user', async () => {
 test('a public route needs no token', async () => {
   const res = await call('/health');
 
-  expect(await res.json()).toEqual({ ok: true, minAppVersion: '1.0.0' });
+  expect(await res.json()).toEqual({ ok: true });
 });

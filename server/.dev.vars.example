@@ -20,4 +20,3 @@ SENTRY_DSN=https://xxxx@oXXXX.ingest.sentry.io/XXXX
 
 # Poller config (these are not secrets, but are handy to override locally)
 POLL_INTERVAL_MINUTES=5
-MIN_APP_VERSION=1.0.0

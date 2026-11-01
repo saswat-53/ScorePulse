@@ -7,7 +7,7 @@ import { Wordmark } from '@/components/ui/wordmark';
 interface Props {
   current: string;
   required: string;
-  url: string;
+  url: string | null;
 }
 
 /** Blocking screen for builds below min_app_version. No way to dismiss it. */
@@ -39,7 +39,7 @@ export function UpdateRequiredView({ current, required, url }: Props) {
       <View className="flex-1" />
 
       <View className="w-full">
-        <PrimaryButton label="Get the update" onPress={() => Linking.openURL(url)} />
+        <PrimaryButton label="Get the update" disabled={!url} onPress={() => url && Linking.openURL(url)} />
       </View>
       <Text className="mt-3.5 text-center text-xs leading-[18px] text-muted">
         Opens the download page. Install over this version: you stay signed in and keep your teams.

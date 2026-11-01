@@ -18,7 +18,6 @@ import type {
   Standings,
   StatRow,
   Team,
-  VersionConfig,
 } from './types';
 
 export const LEAGUES: League[] = [
@@ -318,12 +317,6 @@ export const standings = (leagueId: LeagueId): Standings => {
 };
 
 // ---------------------------------------------------------------------------------------------
-
-export const VERSION_CONFIG: VersionConfig = {
-  minAppVersion: '1.0.0',
-  latestAppVersion: '2.1.0',
-  downloadPageUrl: 'https://scorepulse.vercel.app',
-};
 
 export const PROFILE: Profile = {
   name: 'Saswat Mohapatra',

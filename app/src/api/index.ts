@@ -2,7 +2,7 @@
  * The app's only view of the backend. Sign-in (`me`), the club picker, favorites and follows are real calls to the
  * Hono API; the rest still answers from mock data and becomes a real call as each ticket lands.
  */
-import { LEAGUES, VERSION_CONFIG } from '@/domain/mock';
+import { LEAGUES } from '@/domain/mock';
 import type {
   AlertSettings,
   Fixture,
@@ -149,5 +149,10 @@ export const api = {
     if (!res.ok) throw new Error(`unfollow failed: ${res.status}`);
   },
 
-  versionConfig: (): Promise<VersionConfig> => delay(VERSION_CONFIG),
+  /** Real call, no sign-in needed: the minimum and latest app versions and the download page, set by the owner in Neon. */
+  versionConfig: async (): Promise<VersionConfig> => {
+    const res = await fetch(`${API_URL}/config`);
+    if (!res.ok) throw new Error(`/config failed: ${res.status}`);
+    return res.json();
+  },
 };

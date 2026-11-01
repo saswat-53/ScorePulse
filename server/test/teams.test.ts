@@ -19,7 +19,7 @@ beforeEach(async () => {
 afterEach(() => testDb.close());
 
 type TeamRow = { id: number; name: string; shortName: string; code: string; crestUrl: string | null };
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 const teams = async (query = '') => {
   const res = await createApp(() => testDb.db).request(`/teams${query}`, { headers: { Authorization: 'Bearer token-user_a' } }, env);
   return { status: res.status, body: (await res.json()) as { teams: TeamRow[] } };

@@ -24,12 +24,14 @@ export function UpdateBanner() {
           {config.latestAppVersion} · New features, faster alerts
         </Text>
       </View>
-      <Pressable
-        onPress={() => Linking.openURL(config.downloadPageUrl)}
-        accessibilityRole="button"
-        className="h-11 items-center justify-center rounded-xl border border-neon bg-neon/15 px-3.5">
-        <Text className="text-[13px] font-bold text-white">Update</Text>
-      </Pressable>
+      {config.downloadPageUrl ? (
+        <Pressable
+          onPress={() => Linking.openURL(config.downloadPageUrl!)}
+          accessibilityRole="button"
+          className="h-11 items-center justify-center rounded-xl border border-neon bg-neon/15 px-3.5">
+          <Text className="text-[13px] font-bold text-white">Update</Text>
+        </Pressable>
+      ) : null}
       <Pressable
         onPress={() => setDismissed(true)}
         accessibilityRole="button"

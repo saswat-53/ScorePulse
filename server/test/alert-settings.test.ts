@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 afterEach(() => testDb.close());
 
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 const call = (method: string, path: string, user?: string, body?: unknown) =>
   createApp(() => testDb.db).request(
     path,

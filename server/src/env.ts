@@ -4,7 +4,6 @@ export type Bindings = {
   CLERK_SECRET_KEY: string;
   CLERK_PUBLISHABLE_KEY: string;
   SENTRY_DSN: string;
-  MIN_APP_VERSION: string;
   API_FOOTBALL_KEY: string;
   FOOTBALL_DATA_KEY: string;
   // Added in later phases: CLERK_WEBHOOK_SECRET

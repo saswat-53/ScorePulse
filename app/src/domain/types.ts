@@ -185,7 +185,7 @@ export interface VersionConfig {
   minAppVersion: string;
   latestAppVersion: string;
   /** The Vercel showcase page, never the Drive link (ADR 0006). */
-  downloadPageUrl: string;
+  downloadPageUrl: string | null;
 }
 
 export const MAX_FAVORITES = 3;

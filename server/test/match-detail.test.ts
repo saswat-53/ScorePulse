@@ -52,7 +52,7 @@ type MatchJson = {
   stats: unknown;
 };
 
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 async function get(path: string, user = 'user_a') {
   const res = await createApp(() => testDb.db).request(path, { headers: { Authorization: `Bearer token-${user}` } }, env);
   return { status: res.status, body: (await res.json()) as { match: MatchJson } };

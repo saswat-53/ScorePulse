@@ -28,7 +28,7 @@ type Player = { id: number; name: string; number: number; position: string; grid
 type LineupJson = { teamId: number; formation: string | null; coach: string | null; starters: Player[]; substitutes: Player[] };
 type StatJson = { key: string; label: string; home: number; away: number; unit: string | null };
 
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 async function getMatch(id: number) {
   const res = await createApp(() => testDb.db).request(`/matches/${id}`, { headers: { Authorization: 'Bearer token-user_a' } }, env);
   return (await res.json()) as { match: { lineups: LineupJson[] | null; stats: StatJson[] | null } };

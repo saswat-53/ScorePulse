@@ -2,7 +2,7 @@ import { verifyToken } from '@clerk/backend';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
+import { appConfig, favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
 import { getMatch, getStandings, listFixtures } from './browse';
 import { isLeagueCode } from './leagues';
@@ -44,6 +44,8 @@ const ALERT_COLUMNS = {
 const alertSettings = (u: typeof users.$inferSelect) =>
   Object.fromEntries(Object.entries(ALERT_COLUMNS).map(([key, column]) => [key, u[column]]));
 
+const VERSION = /^\d+(\.\d+){0,2}$/;
+
 type AppEnv = { Bindings: Bindings; Variables: Variables };
 
 // Verifies the Clerk session token sent by the app as `Authorization: Bearer <token>`.
@@ -69,8 +71,24 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
 export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date()) {
   return (
     new Hono<AppEnv>()
-      // Public: uptime check and the app's launch-time version gate.
-      .get('/health', (c) => c.json({ ok: true, minAppVersion: c.env.MIN_APP_VERSION }))
+      // Public: uptime check.
+      .get('/health', (c) => c.json({ ok: true }))
+
+      // Public, because the app checks it at launch before anyone signs in (ADR 0007). The owner sets the values in
+      // the app_config table in Neon. A value that is missing or not a version number is 0.0.0, which never blocks.
+      .get('/config', async (c) => {
+        const rows = await getDb(c.env).select().from(appConfig);
+        const value = (key: string) => rows.find((r) => r.key === key)?.value;
+        const version = (key: string) => {
+          const v = value(key)?.trim();
+          return v && VERSION.test(v) ? v : '0.0.0';
+        };
+        return c.json({
+          minAppVersion: version('min_app_version'),
+          latestAppVersion: version('latest_app_version'),
+          downloadPageUrl: value('download_page_url')?.trim() || null,
+        });
+      })
 
       // Public: whether polling has slowed or stopped because the day's API-Football quota is running low (#15 shows it).
       .get('/status', async (c) => c.json(await getPollStatus(getDb(c.env), new Date())))

@@ -120,6 +120,13 @@
       "when": 1793531599096,
       "tag": "0016_fixture_last_polled",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793532304688,
+      "tag": "0017_app_config",
+      "breakpoints": true
     }
   ]
 }

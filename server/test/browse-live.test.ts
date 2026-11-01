@@ -33,7 +33,7 @@ beforeEach(async () => {
 afterEach(() => testDb.close());
 
 type FixtureJson = { id: number; kickoffUtc: string; status: string; tracking: string; paused: boolean };
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 async function get(path: string) {
   const res = await createApp(() => testDb.db, () => NOW).request(path, { headers: { Authorization: 'Bearer token-user_a' } }, env);
   return ((await res.json()) as { fixtures: FixtureJson[] }).fixtures;

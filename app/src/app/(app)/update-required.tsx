@@ -8,7 +8,7 @@ export default function UpdateRequiredPreview() {
     <UpdateRequiredView
       current={gate.current}
       required={gate.config?.latestAppVersion ?? gate.current}
-      url={gate.config?.downloadPageUrl ?? ''}
+      url={gate.config?.downloadPageUrl ?? null}
     />
   );
 }

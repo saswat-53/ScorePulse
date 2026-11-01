@@ -20,7 +20,7 @@ beforeEach(async () => {
 });
 afterEach(() => testDb.close());
 
-const env = { CLERK_SECRET_KEY: 'sk_test', MIN_APP_VERSION: '1.0.0' } as Bindings;
+const env = { CLERK_SECRET_KEY: 'sk_test' } as Bindings;
 const T = new Date('2026-10-29T19:50:00Z'); // the moment the match was last polled
 const at = (m: number) => new Date(T.getTime() + m * 60_000);
 
