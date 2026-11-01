@@ -1,6 +1,6 @@
 import { FlashList } from '@shopify/flash-list';
 import { router, type Href } from 'expo-router';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { useTeams } from '@/api/hooks';
@@ -10,6 +10,7 @@ import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Screen } from '@/components/ui/screen';
 import { MAX_FAVORITES, type Team } from '@/domain/types';
+import { markNotificationPromptDone, notificationPromptDone } from '@/lib/prompt-state';
 import { useSession } from '@/state/session';
 
 interface ClubRowProps {
@@ -89,7 +90,15 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
 export default function ChooseClubs() {
   const { favoriteTeams: chosen, toggleFavorite } = useSession();
   const [query, setQuery] = useState('');
-  const [promptDismissed, setPromptDismissed] = useState(false);
+  // `null` until the device has been asked: the prompt is for the first time only, not every visit to this screen.
+  const [promptDone, setPromptDone] = useState<boolean | null>(null);
+  useEffect(() => {
+    void notificationPromptDone().then(setPromptDone);
+  }, []);
+  const closePrompt = () => {
+    setPromptDone(true);
+    void markNotificationPromptDone();
+  };
   const [limitHit, setLimitHit] = useState(false);
   const { data: results = [] } = useTeams(query);
 
@@ -143,8 +152,8 @@ export default function ChooseClubs() {
         renderItem={({ item }) => <ClubRow team={item} selected={false} onToggle={onToggle} />}
         ListHeaderComponent={header}
         ListFooterComponent={
-          picked.length > 0 && !promptDismissed ? (
-            <NotificationPrompt onDone={() => setPromptDismissed(true)} />
+          picked.length > 0 && promptDone === false ? (
+            <NotificationPrompt onDone={closePrompt} />
           ) : null
         }
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}

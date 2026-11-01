@@ -29,7 +29,7 @@ Limits as recorded while building it (13 football-data.org requests and 9 API-Fo
 - **Rate:** football-data.org allows 10 requests a minute. The sync makes 2 requests per league, one league per cron run, so it never gets near it.
 - **Events:** none on the free tier (no goals, bookings, substitutions, lineups, statistics). The sync stores fixtures, results and standings only.
 - **Delay:** still unmeasured (no live comparison done). Check on the first matchday, as in the earlier section.
-- **Window:** `competitions/{code}/matches?dateFrom=&dateTo=` works for the 5 leagues. The job asks for 3 days back (to catch final scores) to 14 days ahead.
+- **Window:** `competitions/{code}/matches?dateFrom=&dateTo=` works for the 5 leagues. The job asks for 7 days back (to catch final scores and fill the app's 7-day Results strip) to 14 days ahead.
 - **Teams:** `competitions/{code}/teams` returns the 95 teams of the 5 leagues. API-Football `teams?league=&season=2024` is allowed on the free plan (season 2026 is not), so the API-Football side of `team_map` comes from the 2024 lists of the top and second divisions plus the Champions League.
 
 `team_map` result: 86 of 95 teams linked by name (4 of them by hand-written overrides in `server/scripts/seed-team-map.ts`). **Unmatched, to link by hand:** AS Roma (100), SSC Napoli (113), FC Porto (503), Le Mans FC (535), PAE AEK (1899), LASK Linz (2016), Viking FK (5720), Como 1907 (7397), Sabah FK (10233). They play in the Champions League or in a league whose 2024 list was not fetched; until one is linked, a fixture with that team is skipped by the sync and reported.

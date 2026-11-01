@@ -25,13 +25,13 @@ function fakeFootballData() {
   return { asked, footballData };
 }
 
-test('each cron slot syncs one league: fixtures from 3 days back to 14 ahead, and the table', async () => {
+test('each cron slot syncs one league: fixtures from 7 days back to 14 ahead, and the table', async () => {
   const { db } = testDb;
   const fake = fakeFootballData();
 
   await runSync({ db, footballData: fake.footballData }, 0, new Date('2026-10-31T06:00:00Z'));
 
-  expect(fake.asked).toEqual([{ code: 'PL', from: '2026-10-28', to: '2026-11-14' }, { code: 'PL' }]);
+  expect(fake.asked).toEqual([{ code: 'PL', from: '2026-10-24', to: '2026-11-14' }, { code: 'PL' }]);
   expect((await db.select().from(fixtures)).length).toBe(next14Json.matches.length);
   expect((await db.select().from(standings)).length).toBe(standingsJson.standings[0].table.length);
 });
