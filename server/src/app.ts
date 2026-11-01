@@ -2,7 +2,7 @@ import { verifyToken } from '@clerk/backend';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { favoriteTeams, fixtures, follows, teamMap, users } from './db/schema';
+import { favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
 import { getMatch, getStandings, listFixtures } from './browse';
 import { isLeagueCode } from './leagues';
@@ -29,6 +29,9 @@ const isFavoritesFull = (e: unknown) =>
 
 const isFollowsFull = (e: unknown) =>
   /follows_full/.test(`${(e as Error)?.message} ${(e as { cause?: Error })?.cause?.message}`);
+
+// What Expo hands the app: ExponentPushToken[...] (ExpoPushToken[...] in newer SDKs).
+const EXPO_TOKEN = /^Expo(nent)?PushToken\[[^\]\s]+\]$/;
 
 type AppEnv = { Bindings: Bindings; Variables: Variables };
 
@@ -207,6 +210,30 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         await getDb(c.env)
           .delete(follows)
           .where(and(eq(follows.userId, c.get('userId')), eq(follows.fixtureId, fixtureId)));
+        return c.body(null, 204);
+      })
+
+      // Push tokens (ADR 0008). Every registered device of an account gets every alert. A token that signs in under
+      // another account moves to it. Signing out deletes only that device's token, and only the caller's own.
+      .put('/devices', requireAuth, async (c) => {
+        const body = await c.req.json<{ token?: unknown }>().catch(() => ({}) as { token?: unknown });
+        if (typeof body.token !== 'string' || !EXPO_TOKEN.test(body.token)) return c.json({ error: 'invalid_token' }, 400);
+        const db = getDb(c.env);
+        const userId = c.get('userId');
+        await db.insert(users).values({ id: userId }).onConflictDoNothing();
+        await db
+          .insert(pushTokens)
+          .values({ userId, token: body.token })
+          .onConflictDoUpdate({ target: pushTokens.token, set: { userId } });
+        return c.json({ ok: true });
+      })
+
+      .delete('/devices', requireAuth, async (c) => {
+        const token = c.req.query('token');
+        if (!token) return c.json({ error: 'invalid_token' }, 400);
+        await getDb(c.env)
+          .delete(pushTokens)
+          .where(and(eq(pushTokens.userId, c.get('userId')), eq(pushTokens.token, token)));
         return c.body(null, 204);
       })
 

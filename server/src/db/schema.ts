@@ -104,6 +104,17 @@ export const fixtureStats = pgTable(
   (t) => [unique('fixture_stats_fixture_team').on(t.fixtureId, t.teamId)],
 );
 
+// One row per device that can receive alerts (#13). A user with two devices has two rows and gets every alert on both
+// (ADR 0008). The token is unique: a device that signs in as someone else moves to that account.
+export const pushTokens = pgTable('push_tokens', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // A push already sent, so a retry or a second poll never sends it twice.
 export const notificationLog = pgTable(
   'notification_log',
