@@ -5,7 +5,7 @@ import { planLinks, type LinkCandidate } from '../src/poller/link';
 import { getPollStatus } from '../src/poller/quota';
 import { runPoller } from '../src/poller/run-poller';
 import { createTestDb } from './db';
-import { fakePush, lastGoalIndex, MATCH_WITH_3_GOALS, noExtras, pollOf, recordedMatch } from './poller-helpers';
+import { fakePush, lastGoalIndex, MATCH_WITH_3_GOALS, MATCH_WITH_OWN_GOAL, noExtras, pollOf, recordedMatch } from './poller-helpers';
 
 let testDb: Awaited<ReturnType<typeof createTestDb>>;
 beforeEach(async () => {
@@ -101,6 +101,88 @@ test('a live match whose id another fixture already holds is not linked a second
   await runPoller({ db: testDb.db, push: fakePush(), provider: provider([pollOf(match)]) }, at(3));
 
   expect((await row(twin.id)).apiFootballId).toBeNull();
+});
+
+// --- every live match is linked, not only the ones being tracked (the archive needs the ids, #23) ---
+
+// A second snapshot fixture, from another recorded match that is live in the same response, which nobody follows.
+const other = recordedMatch(MATCH_WITH_OWN_GOAL);
+async function untrackedSnapshotFixture(over: Partial<typeof fixtures.$inferInsert> = {}) {
+  const [r] = await testDb.db
+    .insert(fixtures)
+    .values({
+      footballDataId: 9002,
+      leagueId: other.league.id,
+      homeTeamId: other.teams.home.id,
+      awayTeamId: other.teams.away.id,
+      kickoff: new Date(other.fixture.date),
+      status: 'LIVE',
+      source: 'football-data',
+      ...over,
+    })
+    .returning();
+  return r;
+}
+const bothLive = () => ({ response: [...pollOf(match).response, ...pollOf(other).response] });
+
+test('a match nobody follows, live in the same response, is linked too, with no events stored and no alert', async () => {
+  const followed = await snapshotFixture();
+  await follow(followed.id);
+  const stranger = await untrackedSnapshotFixture();
+  const live = provider([bothLive()]);
+  const push = fakePush();
+
+  await runPoller({ db: testDb.db, push, provider: live }, at(3));
+
+  expect((await row(stranger.id)).apiFootballId).toBe(other.fixture.id);
+  expect((await row(followed.id)).apiFootballId).toBe(match.fixture.id);
+  expect((await testDb.db.select().from(fixtureEvents)).every((e) => e.fixtureId === followed.id)).toBe(true);
+  expect((await row(stranger.id)).firstPolledAt).toBeNull(); // not polled for events: only linked
+  expect(push.messages).toEqual([]);
+});
+
+test('linking the others costs no request beyond the poll', async () => {
+  const followed = await snapshotFixture();
+  await follow(followed.id);
+  await untrackedSnapshotFixture();
+  const live = provider([bothLive()]);
+
+  await runPoller({ db: testDb.db, push: fakePush(), provider: live }, at(3));
+
+  expect(live.calls).toHaveLength(1);
+  expect((await getPollStatus(testDb.db, at(3))).requestsToday).toBe(1);
+});
+
+test('a fixture whose kickoff is days away is left alone even when teams match', async () => {
+  const followed = await snapshotFixture();
+  await follow(followed.id);
+  const later = await untrackedSnapshotFixture({ kickoff: new Date(new Date(other.fixture.date).getTime() + 7 * 24 * 3_600_000) });
+
+  await runPoller({ db: testDb.db, push: fakePush(), provider: provider([bothLive()]) }, at(3));
+
+  expect((await row(later.id)).apiFootballId).toBeNull();
+});
+
+test('nothing is linked when no poll happens, because nothing is tracked', async () => {
+  const stranger = await untrackedSnapshotFixture();
+  const live = provider([bothLive()]);
+
+  await runPoller({ db: testDb.db, push: fakePush(), provider: live }, at(3));
+
+  expect(live.calls).toEqual([]);
+  expect((await row(stranger.id)).apiFootballId).toBeNull();
+});
+
+test('two untracked fixtures that both fit one live match are left unlinked', async () => {
+  const followed = await snapshotFixture();
+  await follow(followed.id);
+  const a = await untrackedSnapshotFixture({ footballDataId: 9003 });
+  const b = await untrackedSnapshotFixture({ footballDataId: 9004, kickoff: new Date(new Date(other.fixture.date).getTime() + 30 * 60_000) });
+
+  await runPoller({ db: testDb.db, push: fakePush(), provider: provider([bothLive()]) }, at(3));
+
+  expect((await row(a.id)).apiFootballId).toBeNull();
+  expect((await row(b.id)).apiFootballId).toBeNull();
 });
 
 // --- the matching rule ---

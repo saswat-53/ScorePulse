@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { favoriteTeams, fixtureEvents, fixtures, follows } from '../db/schema';
 import { runBatch, type PollDb } from './db';
 import { extrasQuery, fetchExtras, pickJobs, type ExtrasProvider } from './extras';
@@ -24,6 +24,22 @@ const owedAlertsQuery = (db: PollDb) =>
   db.select({
     count: sql<number>`(select count(*) from fixture_events where alert_state = 'due' or correction_due) + (select count(*) from fixtures where kickoff_alert_due or full_time_alert_due or score_alert_due)`.mapWith(Number),
   }).from(sql`(select 1) as one`);
+
+// Fixtures still without an API-Football id that could be in play now. The live response lists every match of the
+// polled leagues, so each one it matches gets its id for free; the archive needs those ids later (#23). Only the link is
+// made here: storing the events of matches nobody tracks would make the poll heavier, and it is already near its CPU cap.
+const LINK_WINDOW_AHEAD_MINUTES = 30;
+const unlinkedQuery = (db: PollDb, now: Date) =>
+  db
+    .select({ id: fixtures.id, leagueId: fixtures.leagueId, homeTeamId: fixtures.homeTeamId, awayTeamId: fixtures.awayTeamId, kickoff: fixtures.kickoff })
+    .from(fixtures)
+    .where(
+      and(
+        isNull(fixtures.apiFootballId),
+        gt(fixtures.kickoff, minutesBefore(now, MAX_MATCH_HOURS * 60)),
+        lte(fixtures.kickoff, new Date(now.getTime() + LINK_WINDOW_AHEAD_MINUTES * 60_000)),
+      ),
+    );
 
 export type LiveProvider = { fetchLive(leagueIds: number[]): Promise<PollResponse> } & ExtrasProvider;
 
@@ -68,13 +84,14 @@ export async function runPoller(
   now: Date,
 ) {
   // One Neon request reads the quota state, every candidate fixture and the fixtures that may need lineups or statistics.
-  const [stateRows, candidates, extraRows, owedRows, sendableRows, fallbackStateRows] = (await runBatch(deps.db, [
+  const [stateRows, candidates, extraRows, owedRows, sendableRows, fallbackStateRows, unlinkedRows] = (await runBatch(deps.db, [
     pollStateQuery(deps.db),
     dueFixturesQuery(deps.db, now),
     extrasQuery(deps.db, now),
     owedAlertsQuery(deps.db),
     sendableCountQuery(deps.db),
     pollStateQuery(deps.db, FALLBACK_STATE_ID),
+    unlinkedQuery(deps.db, now),
   ])) as [
     Awaited<ReturnType<typeof pollStateQuery>>,
     Awaited<ReturnType<typeof dueFixturesQuery>>,
@@ -82,6 +99,7 @@ export async function runPoller(
     Awaited<ReturnType<typeof owedAlertsQuery>>,
     Awaited<ReturnType<typeof sendableCountQuery>>,
     Awaited<ReturnType<typeof pollStateQuery>>,
+    Awaited<ReturnType<typeof unlinkedQuery>>,
   ];
   const plan = planPoll(stateRows[0], now);
 
@@ -91,10 +109,12 @@ export async function runPoller(
     const live = await deps.provider.fetchLive([...new Set(due.map((f) => f.leagueId))]);
     // A snapshot fixture has no API-Football id until it shows up in the live response: link it from there, with no
     // request of its own (#22). Whatever cannot be matched exactly is reported and left alone.
-    const unlinked = due.filter((f) => f.apiFootballId === null);
-    const plan = unlinked.length ? planLinks(unlinked, live.response) : { links: [], unmatched: [], ambiguous: [] };
-    if (plan.unmatched.length || plan.ambiguous.length) {
-      console.warn(`fixtures not linked to a live match: none found for [${plan.unmatched}], ambiguous for [${plan.ambiguous}]`);
+    const plan = unlinkedRows.length ? planLinks(unlinkedRows, live.response) : { links: [], unmatched: [], ambiguous: [] };
+    // A tracked fixture with no live match is worth a warning; one nobody tracks that is not live right now is not.
+    const dueIds = new Set(due.map((f) => f.id));
+    const notLinked = plan.unmatched.filter((id) => dueIds.has(id));
+    if (notLinked.length || plan.ambiguous.length) {
+      console.warn(`fixtures not linked to a live match: none found for [${notLinked}], ambiguous for [${plan.ambiguous}]`);
     }
     const linkedTo = new Map(plan.links.map((l) => [l.fixtureId, l.apiFootballId]));
     const tracked: TrackedFixture[] = due.flatMap((f) => {
