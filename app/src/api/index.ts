@@ -1,5 +1,5 @@
 /**
- * The app's only view of the backend. Sign-in (`me`), the club picker and favorites are real calls to the
+ * The app's only view of the backend. Sign-in (`me`), the club picker, favorites and follows are real calls to the
  * Hono API; the rest still answers from mock data and becomes a real call as each ticket lands.
  */
 import { LEAGUES, VERSION_CONFIG } from '@/domain/mock';
@@ -97,6 +97,22 @@ export const api = {
   removeFavorite: async (token: string, teamId: number): Promise<void> => {
     const res = await fetch(`${API_URL}/favorites/${teamId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error(`remove favorite failed: ${res.status}`);
+  },
+
+  /** Real call: the fixture ids the user follows whose match is not over. */
+  follows: async (token: string): Promise<number[]> => (await call<{ follows: number[] }>(token, '/follows')).follows,
+
+  /** Real call. `full`: the user already has 2 active follows. `over`: the match has ended. */
+  follow: async (token: string, fixtureId: number): Promise<'ok' | 'full' | 'over'> => {
+    const res = await fetch(`${API_URL}/follows/${fixtureId}`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 409) return ((await res.json()) as { error: string }).error === 'match_over' ? 'over' : 'full';
+    if (!res.ok) throw new Error(`follow failed: ${res.status}`);
+    return 'ok';
+  },
+
+  unfollow: async (token: string, fixtureId: number): Promise<void> => {
+    const res = await fetch(`${API_URL}/follows/${fixtureId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`unfollow failed: ${res.status}`);
   },
 
   versionConfig: (): Promise<VersionConfig> => delay(VERSION_CONFIG),

@@ -1,6 +1,6 @@
 /**
- * Signed-in state, favorites, follows and alert settings. Sign-in and favorites are real (Clerk and the
- * server, which holds the 3-favorite cap); follows and alerts are still held in memory and nothing is saved.
+ * Signed-in state, favorites, follows and alert settings. Sign-in, favorites and follows are real (Clerk and the
+ * server, which holds the 3-favorite and 2-active-follow caps); alerts are still held in memory and nothing is saved.
  * The server replaces those internals later; the hook's shape stays the same.
  */
 import { useAuth } from '@clerk/expo';
@@ -9,7 +9,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { api } from '@/api';
 
 import { PROFILE } from '@/domain/mock';
-import type { AlertSettings, Profile, Team } from '@/domain/types';
+import { MAX_ACTIVE_FOLLOWS, type AlertSettings, type Profile, type Team } from '@/domain/types';
 
 interface Session {
   signedIn: boolean;
@@ -19,16 +19,21 @@ interface Session {
   /** `loading` until the server answers, so onboarding does not flash; `error` when it could not be reached (retry). */
   favoritesStatus: 'loading' | 'ready' | 'error';
   retryFavorites: () => void;
+  /** The matches the user follows that are not over. */
   followedIds: number[];
+  /** False once the user has the most active follows; the control is disabled and the server would refuse anyway. */
+  canFollowMore: boolean;
   signOut: () => void;
   /** Adds or removes a favorite. Resolves false when the server refuses a 4th (the cap is the server's). */
   toggleFavorite: (team: Team) => Promise<boolean>;
-  toggleFollow: (fixtureId: number) => void;
+  /** Follows or unfollows. `full` and `over` are the server's refusals; `error` means it could not be reached. */
+  toggleFollow: (fixtureId: number) => Promise<'ok' | 'full' | 'over' | 'error'>;
   setAlert: (key: keyof AlertSettings, value: boolean) => void;
 }
 
 const SessionContext = createContext<Session | null>(null);
 const NO_TEAMS: Team[] = [];
+const NO_IDS: number[] = [];
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, userId, signOut: clerkSignOut, getToken } = useAuth();
@@ -42,7 +47,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const favoriteTeams = userId && loaded?.userId === userId ? loaded.teams : NO_TEAMS;
   const favoritesStatus: Session['favoritesStatus'] =
     userId && loaded?.userId === userId ? 'ready' : failed?.userId === userId && failed?.attempt === attempt ? 'error' : 'loading';
-  const [followedIds, setFollowedIds] = useState<number[]>([]);
+  // Tied to a user id like the favorites, so another account never sees the previous user's follows.
+  const [followed, setFollowed] = useState<{ userId: string; ids: number[] } | null>(null);
+  const followedIds = userId && followed?.userId === userId ? followed.ids : NO_IDS;
 
   // First sign-in creates the users row on the server. Failure is non-fatal: the app still works.
   useEffect(() => {
@@ -71,6 +78,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, [userId, attempt, getToken]);
 
+  // The follows live on the server too. A failed load leaves the list empty; the server still holds the cap.
+  useEffect(() => {
+    if (!userId) return;
+    let stale = false;
+    getToken()
+      .then((token) => (token ? api.follows(token) : Promise.reject(new Error('no token'))))
+      .then((ids) => {
+        if (!stale) setFollowed({ userId, ids });
+      })
+      .catch((e) => console.warn('follows load failed', e));
+    return () => {
+      stale = true;
+    };
+  }, [userId, getToken]);
+
   const value = useMemo<Session>(
     () => ({
       signedIn,
@@ -79,10 +101,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       favoritesStatus,
       retryFavorites: () => setAttempt((n) => n + 1),
       followedIds,
+      canFollowMore: followedIds.length < MAX_ACTIVE_FOLLOWS,
       signOut: () => {
         void clerkSignOut();
         setProfile(PROFILE);
-        setFollowedIds([]);
+        setFollowed(null);
       },
       toggleFavorite: async (team) => {
         const token = await getToken();
@@ -111,13 +134,34 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           return false;
         }
       },
-      toggleFollow: (fixtureId) =>
-        setFollowedIds((ids) =>
-          ids.includes(fixtureId) ? ids.filter((id) => id !== fixtureId) : [...ids, fixtureId],
-        ),
+      toggleFollow: async (fixtureId) => {
+        const token = await getToken();
+        if (!token || !userId) return 'error';
+        const has = followedIds.includes(fixtureId);
+        // Show the change at once; undo only this match's change if the server says no or cannot be reached.
+        const apply = (adding: boolean) =>
+          setFollowed((cur) => {
+            const ids = (cur?.userId === userId ? cur.ids : []).filter((id) => id !== fixtureId);
+            return { userId, ids: adding ? [...ids, fixtureId] : ids };
+          });
+        apply(!has);
+        try {
+          if (has) {
+            await api.unfollow(token, fixtureId);
+            return 'ok';
+          }
+          const result = await api.follow(token, fixtureId);
+          if (result !== 'ok') apply(false);
+          return result;
+        } catch (e) {
+          apply(has);
+          console.warn('follow change failed', e);
+          return 'error';
+        }
+      },
       setAlert: (key, v) => setProfile((p) => ({ ...p, alerts: { ...p.alerts, [key]: v } })),
     }),
-    [signedIn, profile, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken],
+    [signedIn, userId, profile, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

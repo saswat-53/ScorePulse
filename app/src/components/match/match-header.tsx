@@ -11,9 +11,11 @@ interface Props {
   match: MatchDetail;
   followed: boolean;
   onToggleFollow: () => void;
+  /** The user already follows the most matches, so this one cannot be added. */
+  followDisabled?: boolean;
 }
 
-export function MatchHeader({ match, followed, onToggleFollow }: Props) {
+export function MatchHeader({ match, followed, onToggleFollow, followDisabled }: Props) {
   const league = LEAGUES.find((l) => l.id === match.leagueId);
   const live = match.status === 'live' || match.status === 'halftime';
   const started = live || match.status === 'finished';
@@ -36,6 +38,7 @@ export function MatchHeader({ match, followed, onToggleFollow }: Props) {
             icon={followed ? 'bell-fill' : 'bell'}
             label={followed ? 'Unfollow this match' : 'Follow this match'}
             active={followed}
+            disabled={followDisabled}
             onPress={onToggleFollow}
           />
         )}

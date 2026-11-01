@@ -7,18 +7,21 @@ interface RoundButtonProps {
   label: string;
   onPress?: () => void;
   active?: boolean;
+  disabled?: boolean;
 }
 
 /** 44px round icon button, the touch-target size used across the mockup. */
-export function RoundButton({ icon, label, onPress, active }: RoundButtonProps) {
+export function RoundButton({ icon, label, onPress, active, disabled }: RoundButtonProps) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
+      accessibilityState={{ disabled: !!disabled }}
       accessibilityRole="button"
       accessibilityLabel={label}
       className={`h-11 w-11 items-center justify-center rounded-full border ${
         active ? 'border-neon bg-neon/15' : 'border-neon/30 bg-surface'
-      }`}>
+      } ${disabled ? 'opacity-40' : ''}`}>
       <Icon name={icon} size={20} color={active ? '#19E3FF' : '#FFFFFF'} />
     </Pressable>
   );

@@ -2,11 +2,12 @@ import { verifyToken } from '@clerk/backend';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
-import { favoriteTeams, teamMap, users } from './db/schema';
+import { favoriteTeams, fixtures, follows, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
 import { getMatch, getStandings, listFixtures } from './browse';
 import { isLeagueCode } from './leagues';
-import { MAX_FAVORITES } from './limits';
+import { activeFollowIds, isOver } from './follows';
+import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
 import { MAX_MATCH_HOURS } from './poller/status';
 import type { PollDb } from './poller/db';
 import { getPollStatus } from './poller/quota';
@@ -25,6 +26,9 @@ const teamColumns = {
 // The driver wraps the database's error, so the trigger's message can sit on the error or on its cause.
 const isFavoritesFull = (e: unknown) =>
   /favorites_full/.test(`${(e as Error)?.message} ${(e as { cause?: Error })?.cause?.message}`);
+
+const isFollowsFull = (e: unknown) =>
+  /follows_full/.test(`${(e as Error)?.message} ${(e as { cause?: Error })?.cause?.message}`);
 
 type AppEnv = { Bindings: Bindings; Variables: Variables };
 
@@ -166,6 +170,43 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         await getDb(c.env)
           .delete(favoriteTeams)
           .where(and(eq(favoriteTeams.userId, c.get('userId')), eq(favoriteTeams.teamId, teamId)));
+        return c.body(null, 204);
+      })
+
+      // Follows (ADR 0002, 0014). A follow makes the match live-tracked until full time and adds the user as a recipient;
+      // it costs no provider request. At most 2 are active per user.
+      .get('/follows', requireAuth, async (c) => c.json({ follows: await activeFollowIds(getDb(c.env), c.get('userId'), now()) }))
+
+      .put('/follows/:fixtureId', requireAuth, async (c) => {
+        const fixtureId = Number(c.req.param('fixtureId'));
+        if (!Number.isInteger(fixtureId)) return c.json({ error: 'invalid_match' }, 400);
+        const db = getDb(c.env);
+        const userId = c.get('userId');
+
+        const [fixture] = await db.select().from(fixtures).where(eq(fixtures.id, fixtureId));
+        if (!fixture) return c.json({ error: 'unknown_match' }, 404);
+        if (isOver(fixture, now())) return c.json({ error: 'match_over' }, 409);
+
+        await db.insert(users).values({ id: userId }).onConflictDoNothing();
+        const [existing] = await db.select().from(follows).where(and(eq(follows.userId, userId), eq(follows.fixtureId, fixtureId)));
+        if (existing) return c.json({ ok: true });
+
+        // The cap is a trigger in the database (migration 0012), so follows that arrive together cannot pass it.
+        try {
+          await db.insert(follows).values({ userId, fixtureId }).onConflictDoNothing();
+        } catch (e) {
+          if (isFollowsFull(e)) return c.json({ error: 'follows_full', max: MAX_ACTIVE_FOLLOWS }, 409);
+          throw e;
+        }
+        return c.json({ ok: true });
+      })
+
+      .delete('/follows/:fixtureId', requireAuth, async (c) => {
+        const fixtureId = Number(c.req.param('fixtureId'));
+        if (!Number.isInteger(fixtureId)) return c.json({ error: 'invalid_match' }, 400);
+        await getDb(c.env)
+          .delete(follows)
+          .where(and(eq(follows.userId, c.get('userId')), eq(follows.fixtureId, fixtureId)));
         return c.body(null, 204);
       })
 

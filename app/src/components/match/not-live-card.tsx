@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
 
 /** The "not live-tracked, tap Follow" state for a match the poller does not read. */
-export function NotLiveCard({ onFollow }: { onFollow: () => void }) {
+export function NotLiveCard({ onFollow, disabled }: { onFollow: () => void; disabled?: boolean }) {
   return (
     <View className="mx-4 mt-4 rounded-2xl border border-neon/55 bg-surface p-4" style={GLOW}>
       <View className="flex-row items-center gap-3">
@@ -21,7 +21,7 @@ export function NotLiveCard({ onFollow }: { onFollow: () => void }) {
         Tap Follow to get the live score, a full timeline and alerts for goals, cards and full time.
       </Text>
       <View className="mt-3.5">
-        <PrimaryButton label="Follow match" icon="bell" onPress={onFollow} />
+        <PrimaryButton label="Follow match" icon="bell" onPress={onFollow} disabled={disabled} />
       </View>
     </View>
   );

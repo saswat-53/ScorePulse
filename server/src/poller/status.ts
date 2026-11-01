@@ -17,3 +17,6 @@ export const HALFTIME_MINUTES = 14;
 export const PRESUMED_OVER_MINUTES = 100;
 // A fixture whose kickoff is older than this is over, whatever its stored status says.
 export const MAX_MATCH_HOURS = 4;
+
+// Statuses of a match that is over. Kept in step with migration 0012 (the follow cap).
+export const ENDED = ['FT', 'AET', 'PEN', 'AWD', 'WO', 'CANC'];

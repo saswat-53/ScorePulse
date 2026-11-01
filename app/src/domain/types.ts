@@ -189,3 +189,5 @@ export interface VersionConfig {
 }
 
 export const MAX_FAVORITES = 3;
+/** Active follows per user (ADR 0014). A follow ends at full time. The server is the lock. */
+export const MAX_ACTIVE_FOLLOWS = 2;

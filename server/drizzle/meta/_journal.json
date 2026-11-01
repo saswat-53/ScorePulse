@@ -85,6 +85,13 @@
       "when": 1793521699141,
       "tag": "0011_fixture_lineups_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793523267982,
+      "tag": "0012_follows_max_active",
+      "breakpoints": true
     }
   ]
 }
