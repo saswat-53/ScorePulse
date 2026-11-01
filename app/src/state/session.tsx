@@ -3,7 +3,7 @@
  * server, which holds the 3-favorite and 2-active-follow caps); alert toggles and the push token are saved on the server too.
  * The server replaces those internals later; the hook's shape stays the same.
  */
-import { useAuth } from '@clerk/expo';
+import { useAuth, useUser } from '@clerk/expo';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { api } from '@/api';
@@ -25,6 +25,8 @@ interface Session {
   /** False once the user has the most active follows; the control is disabled and the server would refuse anyway. */
   canFollowMore: boolean;
   signOut: () => void;
+  /** Deletes the account everywhere (the server removes the data and the Clerk user), then signs out. False if it could not finish; trying again is safe. */
+  deleteAccount: () => Promise<boolean>;
   /** Adds or removes a favorite. Resolves false when the server refuses a 4th (the cap is the server's). */
   toggleFavorite: (team: Team) => Promise<boolean>;
   /** Follows or unfollows. `full` and `over` are the server's refusals; `error` means it could not be reached. */
@@ -42,6 +44,7 @@ const NO_IDS: number[] = [];
 export function SessionProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, userId, signOut: clerkSignOut, getToken } = useAuth();
   const signedIn = !!isSignedIn;
+  const { user } = useUser();
   const [profile, setProfile] = useState<Profile>(PROFILE);
   // What the server last said, and for whom. Tying it to a user id means another account (or a session that
   // expired) never sees the previous user's clubs, with no reset step to forget.
@@ -135,7 +138,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Session>(
     () => ({
       signedIn,
-      profile: { ...profile, favoriteTeamIds: favoriteTeams.map((t) => t.id), alerts },
+      // The name, email and picture are the Clerk account's, not placeholders.
+      profile: {
+        ...profile,
+        name: user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? 'Your account',
+        email: user?.primaryEmailAddress?.emailAddress ?? '',
+        avatarUrl: user?.imageUrl ?? null,
+        favoriteTeamIds: favoriteTeams.map((t) => t.id),
+        alerts,
+      },
       favoriteTeams,
       favoritesStatus,
       retryFavorites: () => setAttempt((n) => n + 1),
@@ -160,6 +171,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         })();
         setProfile(PROFILE);
         setFollowed(null);
+      },
+      deleteAccount: async () => {
+        try {
+          const token = await getToken();
+          if (!token) return false;
+          await api.deleteAccount(token);
+        } catch (e) {
+          console.warn('account deletion failed', e);
+          return false;
+        }
+        // The server removed the tokens with the account; nothing is left to unregister.
+        pushToken.current = null;
+        setProfile(PROFILE);
+        setFollowed(null);
+        await clerkSignOut().catch(() => undefined); // the Clerk user is already gone, so this may complain
+        return true;
       },
       toggleFavorite: async (team) => {
         const token = await getToken();
@@ -237,7 +264,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [signedIn, userId, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
+    [signedIn, userId, user, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -1,4 +1,4 @@
-import { verifyToken } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
@@ -11,6 +11,7 @@ import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
 import { MAX_MATCH_HOURS } from './poller/status';
 import type { PollDb } from './poller/db';
 import { getPollStatus } from './poller/quota';
+import { verifySvix } from './webhook';
 
 const TEAMS_PAGE = 30;
 
@@ -67,8 +68,13 @@ const requireAuth = createMiddleware<AppEnv>(async (c, next) => {
   await next();
 });
 
-// `getDb` is how a request gets its database: Neon in the Worker, PGlite in tests. `now` is the clock, so tests can fix it.
-export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date()) {
+// What the API needs from Clerk: the one call that deletes a user.
+export type ClerkUsers = { deleteUser(userId: string): Promise<unknown> };
+const realClerk = (env: Bindings): ClerkUsers => createClerkClient({ secretKey: env.CLERK_SECRET_KEY }).users;
+
+// `getDb` is how a request gets its database: Neon in the Worker, PGlite in tests. `now` is the clock and `clerk` the
+// Clerk client, so tests can fix both.
+export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date(), clerk: (env: Bindings) => ClerkUsers = realClerk) {
   return (
     new Hono<AppEnv>()
       // Public: uptime check.
@@ -101,6 +107,40 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         await db.insert(users).values({ id: userId }).onConflictDoNothing();
         const [user] = await db.select().from(users).where(eq(users.id, userId));
         return c.json({ user });
+      })
+
+      // Deletes the account: the user row and, through the cascades, their tokens, favorites, follows and alert log;
+      // then the Clerk user. The rows go first, so if Clerk cannot be reached the user is already gone here and a retry
+      // only has to finish Clerk's side (the `user.deleted` webhook is the backstop).
+      .delete('/me', requireAuth, async (c) => {
+        const userId = c.get('userId');
+        await getDb(c.env).delete(users).where(eq(users.id, userId));
+        try {
+          await clerk(c.env).deleteUser(userId);
+        } catch (e) {
+          console.error(`Clerk could not delete ${userId}: ${e instanceof Error ? e.message : e}`);
+          return c.json({ error: 'clerk_delete_failed' }, 502);
+        }
+        return c.body(null, 204);
+      })
+
+      // Clerk tells us a user was deleted (in the dashboard, say). Signed by Svix; anything else is refused.
+      .post('/webhooks/clerk', async (c) => {
+        const secret = c.env.CLERK_WEBHOOK_SECRET;
+        if (!secret) return c.json({ error: 'webhook_not_configured' }, 500);
+        const body = await c.req.text();
+        const signed = await verifySvix(
+          secret,
+          { id: c.req.header('svix-id'), timestamp: c.req.header('svix-timestamp'), signature: c.req.header('svix-signature') },
+          body,
+          now(),
+        );
+        if (!signed) return c.json({ error: 'invalid_signature' }, 401);
+        const event = JSON.parse(body) as { type?: string; data?: { id?: string } };
+        if (event.type === 'user.deleted' && event.data?.id) {
+          await getDb(c.env).delete(users).where(eq(users.id, event.data.id));
+        }
+        return c.json({ ok: true });
       })
 
       // Fixtures and results from stored data. The window is UTC instants (`from` inclusive, `to` exclusive): the

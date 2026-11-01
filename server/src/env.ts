@@ -6,7 +6,8 @@ export type Bindings = {
   SENTRY_DSN: string;
   API_FOOTBALL_KEY: string;
   FOOTBALL_DATA_KEY: string;
-  // Added in later phases: CLERK_WEBHOOK_SECRET
+  // Signs Clerk's webhooks (the `whsec_...` value of the endpoint in the Clerk dashboard).
+  CLERK_WEBHOOK_SECRET?: string;
 };
 
 export type Variables = {

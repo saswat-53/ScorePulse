@@ -3,7 +3,7 @@ import { boolean, date, integer, jsonb, pgTable, serial, text, timestamp, unique
 export type StoredLineupPlayer = { id: number; name: string; number: number; position: 'G' | 'D' | 'M' | 'F'; grid: string | null };
 
 // Owned-by-app table. Row is created on first sign-in and deleted with the account
-// (kept in sync with Clerk by the `user.deleted` webhook, added in Phase 3).
+// (kept in sync with Clerk by the `user.deleted` webhook, and by DELETE /me).
 export const users = pgTable('users', {
   // Clerk user id (e.g. "user_2Rf...")
   id: text('id').primaryKey(),

@@ -114,6 +114,12 @@ export const api = {
     return ((await res.json()) as { alerts: AlertSettings }).alerts;
   },
 
+  /** Real call: deletes the account on the server (rows first, then the Clerk user). Throws if any part failed, and a retry finishes it. */
+  deleteAccount: async (token: string): Promise<void> => {
+    const res = await fetch(`${API_URL}/me`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`delete account failed: ${res.status}`);
+  },
+
   /** Real call: registers this device's push token under the signed-in account. */
   registerDevice: async (token: string, pushToken: string): Promise<void> => {
     const res = await fetch(`${API_URL}/devices`, {

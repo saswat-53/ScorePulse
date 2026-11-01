@@ -1,4 +1,5 @@
 import { router, type Href } from 'expo-router';
+import { useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Crest } from '@/components/ui/crest';
@@ -17,15 +18,25 @@ const ALERTS: { key: keyof AlertSettings; icon: IconName; title: string; subtitl
 ];
 
 export default function More() {
-  const { profile, favoriteTeams: favorites, setAlert, signOut } = useSession();
+  const { profile, favoriteTeams: favorites, setAlert, signOut, deleteAccount } = useSession();
+  const [deleting, setDeleting] = useState(false);
 
   const confirmDelete = () =>
     Alert.alert(
       'Delete account?',
-      'This removes your teams, follows and devices. It cannot be undone.',
+      'This removes your teams, follows and devices, and deletes your sign-in. It cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: signOut },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            const done = await deleteAccount();
+            setDeleting(false);
+            if (!done) Alert.alert('Could not delete the account', 'Check your connection and try again. Nothing is lost by trying twice.');
+          },
+        },
       ],
     );
 
@@ -88,10 +99,11 @@ export default function More() {
         </Pressable>
         <Pressable
           onPress={confirmDelete}
+          disabled={deleting}
           accessibilityRole="button"
-          className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl border border-danger/60 bg-danger/10">
+          className={`mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl border border-danger/60 bg-danger/10 ${deleting ? 'opacity-50' : ''}`}>
           <Icon name="trash" size={18} color="#FF3B47" />
-          <Text className="text-[15px] font-semibold text-danger">Delete Account</Text>
+          <Text className="text-[15px] font-semibold text-danger">{deleting ? 'Deleting…' : 'Delete Account'}</Text>
         </Pressable>
 
         {__DEV__ ? (
