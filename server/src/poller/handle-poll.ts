@@ -14,7 +14,10 @@ type ApiEvent = {
 };
 export type PollResponse = {
   response: {
-    fixture: { id: number; status?: { short: string; elapsed?: number | null } };
+    fixture: { id: number; date?: string; status?: { short: string; elapsed?: number | null } };
+    // What links a snapshot fixture to this match (#22).
+    league?: { id: number };
+    teams?: { home: { id: number }; away: { id: number } };
     goals?: { home: number | null; away: number | null };
     events?: ApiEvent[];
   }[];

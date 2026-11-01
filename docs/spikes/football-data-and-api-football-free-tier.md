@@ -36,6 +36,6 @@ Limits as recorded while building it (13 football-data.org requests and 9 API-Fo
 
 Matching deliberately never uses the three-letter code: it linked LASK Linz to Lincoln Red Imps and Viking FK to Vikingur Reykjavik in a trial.
 
-**Known gap:** a fixture created by the sync has no `apiFootballId`, and the poller only polls fixtures that have one. Something must link a snapshot fixture to its API-Football fixture (teams and kickoff date) before a follow or a favorite can be live-tracked. This is not in #7's criteria; it needs its own ticket.
+**Known gap (closed by #22):** a fixture created by the sync has no `apiFootballId`, and the poller only polls fixtures that have one. The poller now links it from the live response when the match goes live (same league, home and away team ids, kickoff within 2 hours), with no extra request. It cannot link before kickoff, so pre-match lineups (#11) are not fetched for a snapshot fixture.
 
 **Unverified, check on a matchday:** whether football-data.org's `score.fullTime` includes penalty shoot-out goals for a Champions League knockout tie (the sync would then store the shoot-out total as the final result, and log an overwrite against API-Football's score). Check against a recorded `PENALTY_SHOOTOUT` match before the knockout phase.

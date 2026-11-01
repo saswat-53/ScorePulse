@@ -2,6 +2,7 @@ import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import { favoriteTeams, fixtureEvents, fixtures, follows } from '../db/schema';
 import { runBatch, type PollDb } from './db';
 import { extrasQuery, fetchExtras, pickJobs, type ExtrasProvider } from './extras';
+import { planLinks } from './link';
 import { deliverAlerts } from './alerts';
 import { handlePoll, type PollResponse, type TrackedFixture } from './handle-poll';
 import { sendableCountQuery, type PushSender } from './send-alerts';
@@ -37,6 +38,7 @@ const dueFixturesQuery = (db: PollDb, now: Date) =>
       apiFootballId: fixtures.apiFootballId,
       leagueId: fixtures.leagueId,
       homeTeamId: fixtures.homeTeamId,
+      awayTeamId: fixtures.awayTeamId,
       kickoff: fixtures.kickoff,
       firstPolledAt: fixtures.firstPolledAt,
       status: fixtures.status,
@@ -79,9 +81,28 @@ export async function runPoller(deps: { db: PollDb; push: PushSender; provider: 
   const due = plan.canPoll ? candidates.filter((f) => !plan.favoritesOnly || f.favorite) : [];
   if (due.length > 0) {
     const live = await deps.provider.fetchLive([...new Set(due.map((f) => f.leagueId))]);
-    const tracked: TrackedFixture[] = due.flatMap((f) => (f.apiFootballId === null ? [] : [{ ...f, apiFootballId: f.apiFootballId }]));
+    // A snapshot fixture has no API-Football id until it shows up in the live response: link it from there, with no
+    // request of its own (#22). Whatever cannot be matched exactly is reported and left alone.
+    const unlinked = due.filter((f) => f.apiFootballId === null);
+    const plan = unlinked.length ? planLinks(unlinked, live.response) : { links: [], unmatched: [], ambiguous: [] };
+    if (plan.unmatched.length || plan.ambiguous.length) {
+      console.warn(`fixtures not linked to a live match: none found for [${plan.unmatched}], ambiguous for [${plan.ambiguous}]`);
+    }
+    const linkedTo = new Map(plan.links.map((l) => [l.fixtureId, l.apiFootballId]));
+    const tracked: TrackedFixture[] = due.flatMap((f) => {
+      const apiFootballId = f.apiFootballId ?? linkedTo.get(f.id) ?? null;
+      return apiFootballId === null ? [] : [{ ...f, apiFootballId }];
+    });
+    // In the poll's own batch, so a link and the events it unlocks are saved together. The `not exists` keeps the id
+    // unique if another fixture already holds it.
+    const linkWrites = plan.links.map((l) =>
+      deps.db
+        .update(fixtures)
+        .set({ apiFootballId: l.apiFootballId })
+        .where(and(eq(fixtures.id, l.fixtureId), sql`not exists (select 1 from fixtures other where other.api_football_id = ${l.apiFootballId})`)),
+    );
     // The request counter is written in the same batch as the poll's events.
-    const polled = await handlePoll({ db: deps.db, now }, live, tracked, [recordRequest(deps.db, now)]);
+    const polled = await handlePoll({ db: deps.db, now }, live, tracked, [recordRequest(deps.db, now), ...linkWrites]);
     alertsOwed ||= polled.alertsOwed;
   }
 
