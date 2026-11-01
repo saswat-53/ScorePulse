@@ -14,6 +14,8 @@ import { useAppAuth } from '@/lib/use-app-auth';
 import { MAX_ACTIVE_FOLLOWS, type AlertSettings, type Profile, type Team } from '@/domain/types';
 
 interface Session {
+  /** False until Clerk has worked out whether anyone is signed in. Until then `signedIn` is not an answer yet. */
+  authLoaded: boolean;
   signedIn: boolean;
   profile: Profile;
   /** The favorite teams, with names, in the order added. */
@@ -43,7 +45,7 @@ const NO_TEAMS: Team[] = [];
 const NO_IDS: number[] = [];
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn, userId, signOut: clerkSignOut, getToken: clerkGetToken, isDev } = useAppAuth();
+  const { isLoaded, isSignedIn, userId, signOut: clerkSignOut, getToken: clerkGetToken, isDev } = useAppAuth();
   // Clerk can hand back a new `getToken` on every render. The loads below depend on it, so each one that saved its
   // result would re-render, get a new function and load again, without end. This one never changes: it always calls
   // the latest.
@@ -146,6 +148,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Session>(
     () => ({
+      authLoaded: !!isLoaded,
       signedIn,
       // The name, email and picture are the Clerk account's, not placeholders.
       profile: {
@@ -273,7 +276,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
       },
     }),
-    [signedIn, userId, user, isDev, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
+    [isLoaded, signedIn, userId, user, isDev, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
