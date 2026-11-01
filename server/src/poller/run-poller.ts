@@ -17,12 +17,11 @@ import {
 
 const minutesBefore = (now: Date, minutes: number) => new Date(now.getTime() - minutes * 60_000);
 
-// Rows with an alert owed: a count in the first read, so a quiet run adds no request.
+// Alerts owed, from events and from a change of status: a count in the first read, so a quiet run adds no request.
 const owedAlertsQuery = (db: PollDb) =>
-  db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(fixtureEvents)
-    .where(or(eq(fixtureEvents.alertState, 'due'), eq(fixtureEvents.correctionDue, true)));
+  db.select({
+    count: sql<number>`(select count(*) from fixture_events where alert_state = 'due' or correction_due) + (select count(*) from fixtures where kickoff_alert_due or full_time_alert_due)`.mapWith(Number),
+  }).from(sql`(select 1) as one`);
 
 export type LiveProvider = { fetchLive(leagueIds: number[]): Promise<PollResponse> } & ExtrasProvider;
 

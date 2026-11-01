@@ -4,6 +4,7 @@
  */
 import { LEAGUES, VERSION_CONFIG } from '@/domain/mock';
 import type {
+  AlertSettings,
   Fixture,
   League,
   LeagueId,
@@ -97,6 +98,20 @@ export const api = {
   removeFavorite: async (token: string, teamId: number): Promise<void> => {
     const res = await fetch(`${API_URL}/favorites/${teamId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error(`remove favorite failed: ${res.status}`);
+  },
+
+  /** Real call: which alerts the user wants. Goals and full time are on until changed. */
+  alertSettings: async (token: string): Promise<AlertSettings> => (await call<{ alerts: AlertSettings }>(token, '/settings')).alerts,
+
+  /** Real call: saves one or more alert toggles and returns all of them. */
+  saveAlertSettings: async (token: string, changes: Partial<AlertSettings>): Promise<AlertSettings> => {
+    const res = await fetch(`${API_URL}/settings`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(changes),
+    });
+    if (!res.ok) throw new Error(`save settings failed: ${res.status}`);
+    return ((await res.json()) as { alerts: AlertSettings }).alerts;
   },
 
   /** Real call: registers this device's push token under the signed-in account. */

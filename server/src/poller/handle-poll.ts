@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { fixtureEvents, fixtures } from '../db/schema';
 import { runBatch, type PollDb, type Statement } from './db';
-import { FULL_TIME, IN_PLAY, PRESUMED_OVER_MINUTES } from './status';
+import { FULL_TIME, HALFTIME, IN_PLAY, NOT_STARTED, PRESUMED_OVER_MINUTES } from './status';
 
 // The parts of an API-Football `fixtures?live=` response the poller reads.
 type ApiEvent = {
@@ -14,7 +14,7 @@ type ApiEvent = {
 };
 export type PollResponse = {
   response: {
-    fixture: { id: number; status?: { short: string } };
+    fixture: { id: number; status?: { short: string; elapsed?: number | null } };
     goals?: { home: number | null; away: number | null };
     events?: ApiEvent[];
   }[];
@@ -54,10 +54,10 @@ export async function handlePoll(
       IN_PLAY.includes(f.status) &&
       now.getTime() - f.kickoff.getTime() >= PRESUMED_OVER_MINUTES * 60_000,
   );
-  const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
+  const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, fullTimeAlertDue: true, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
   if (known.length === 0) {
     await runBatch(deps.db, [...markOver, ...sameBatchWrites]);
-    return { alertsOwed: false };
+    return { alertsOwed: over.length > 0 };
   }
 
   // Every tracked fixture's events go in with one INSERT, however many matches are on: queries are what cost CPU.
@@ -72,8 +72,8 @@ export async function handlePoll(
       assistName: e.assist?.name ?? null,
       type: e.type,
       detail: e.detail,
-      // A goal scored after the first poll is news: the alert is owed from this insert on. Earlier goals are history.
-      alertState: isGoal(e) && fixture.firstPolledAt !== null ? ('due' as const) : ('none' as const),
+      // A goal, card or substitution after the first poll is news: the alert is owed from this insert on. Earlier ones are history.
+      alertState: isAlertable(e) && fixture.firstPolledAt !== null ? ('due' as const) : ('none' as const),
     })),
   );
 
@@ -101,13 +101,24 @@ export async function handlePoll(
   if (firstPolled.length) {
     statements.push(deps.db.update(fixtures).set({ firstPolledAt: new Date() }).where(inArray(fixtures.id, firstPolled)));
   }
+  let statusAlerts = false;
   // Status and score follow the provider, so a match at halftime or full time drops out of the next run (ADR 0016).
   for (const { match, fixture } of known) {
     const status = match.fixture.status?.short ?? fixture.status;
     const homeGoals = match.goals?.home ?? fixture.homeGoals;
     const awayGoals = match.goals?.away ?? fixture.awayGoals;
     if (status === fixture.status && homeGoals === fixture.homeGoals && awayGoals === fixture.awayGoals) continue;
-    statements.push(deps.db.update(fixtures).set({ status, homeGoals, awayGoals, updatedAt: new Date() }).where(eq(fixtures.id, fixture.id)));
+    // Kickoff and full time come from the change of status, never from the events, and are owed from this statement on.
+    // A match first seen well into the half is not a kickoff; one that was never in play before is not a full time.
+    const kickoff = fixture.status === NOT_STARTED && IN_PLAY.includes(status) && (match.fixture.status?.elapsed ?? 0) <= KICKOFF_ALERT_MAX_MINUTE;
+    const fullTime = FINISHED.includes(status) && [...IN_PLAY, HALFTIME].includes(fixture.status);
+    statusAlerts ||= kickoff || fullTime;
+    statements.push(
+      deps.db
+        .update(fixtures)
+        .set({ status, homeGoals, awayGoals, updatedAt: new Date(), ...(kickoff && { kickoffAlertDue: true }), ...(fullTime && { fullTimeAlertDue: true }) })
+        .where(eq(fixtures.id, fixture.id)),
+    );
   }
   statements.push(...markOver, ...sameBatchWrites);
 
@@ -172,11 +183,19 @@ export async function handlePoll(
     );
   }
   await runBatch(deps.db, stateWrites);
-  return { alertsOwed: values.some((v) => v.alertState === 'due') || removeIds.length > 0 };
+  return { alertsOwed: statusAlerts || over.length > 0 || values.some((v) => v.alertState === 'due') || removeIds.length > 0 };
 }
 
 // `team` on an event is the side credited with the goal, own goals included (checked against the recorded response).
 export const GOAL_DETAILS = new Set(['Normal Goal', 'Penalty', 'Own Goal']);
+
+// A kickoff alert is only for a match seen within this many minutes of the start.
+const KICKOFF_ALERT_MAX_MINUTE = 10;
+const FINISHED = ['FT', 'AET', 'PEN'];
+
+const isCard = (e: ApiEvent) => e.type === 'Card';
+const isSubstitution = (e: ApiEvent) => e.type === 'subst';
+const isAlertable = (e: ApiEvent) => isGoal(e) || isCard(e) || isSubstitution(e);
 
 const isGoal = (e: ApiEvent) => e.type === 'Goal' && GOAL_DETAILS.has(e.detail);
 

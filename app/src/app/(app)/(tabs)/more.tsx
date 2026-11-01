@@ -12,7 +12,7 @@ const ALERTS: { key: keyof AlertSettings; icon: IconName; title: string; subtitl
   { key: 'goals', icon: 'flag', title: 'Goals', subtitle: 'Notify me when my teams score' },
   { key: 'cards', icon: 'cards', title: 'Cards', subtitle: 'Yellow and red cards' },
   { key: 'substitutions', icon: 'sliders', title: 'Substitutions', subtitle: 'When players are swapped' },
-  { key: 'kickoff', icon: 'whistle', title: 'Match Start', subtitle: 'Notify before kickoff' },
+  { key: 'kickoff', icon: 'whistle', title: 'Match Start', subtitle: 'Notify me when the match kicks off' },
   { key: 'fullTime', icon: 'calendar', title: 'Full Time', subtitle: 'Get notified when the match ends' },
 ];
 

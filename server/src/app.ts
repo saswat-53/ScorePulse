@@ -33,6 +33,17 @@ const isFollowsFull = (e: unknown) =>
 // What Expo hands the app: ExponentPushToken[...] (ExpoPushToken[...] in newer SDKs).
 const EXPO_TOKEN = /^Expo(nent)?PushToken\[[^\]\s]+\]$/;
 
+// The settings the app shows, by the name it uses, and the column each is stored in.
+const ALERT_COLUMNS = {
+  goals: 'alertGoals',
+  cards: 'alertCards',
+  substitutions: 'alertSubstitutions',
+  kickoff: 'alertKickoff',
+  fullTime: 'alertFullTime',
+} as const;
+const alertSettings = (u: typeof users.$inferSelect) =>
+  Object.fromEntries(Object.entries(ALERT_COLUMNS).map(([key, column]) => [key, u[column]]));
+
 type AppEnv = { Bindings: Bindings; Variables: Variables };
 
 // Verifies the Clerk session token sent by the app as `Authorization: Bearer <token>`.
@@ -211,6 +222,32 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
           .delete(follows)
           .where(and(eq(follows.userId, c.get('userId')), eq(follows.fixtureId, fixtureId)));
         return c.body(null, 204);
+      })
+
+      // Which alerts the user wants (#14). Goals and full time are on until the user says otherwise.
+      .get('/settings', requireAuth, async (c) => {
+        const db = getDb(c.env);
+        const userId = c.get('userId');
+        await db.insert(users).values({ id: userId }).onConflictDoNothing();
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        return c.json({ alerts: alertSettings(user) });
+      })
+
+      .put('/settings', requireAuth, async (c) => {
+        const body = await c.req.json<Record<string, unknown>>().catch(() => ({}) as Record<string, unknown>);
+        const changes: Partial<typeof users.$inferInsert> = {};
+        for (const [key, column] of Object.entries(ALERT_COLUMNS)) {
+          if (!(key in body)) continue;
+          if (typeof body[key] !== 'boolean') return c.json({ error: 'invalid_setting', setting: key }, 400);
+          Object.assign(changes, { [column]: body[key] });
+        }
+        if (Object.keys(changes).length === 0) return c.json({ error: 'no_settings' }, 400);
+        const db = getDb(c.env);
+        const userId = c.get('userId');
+        await db.insert(users).values({ id: userId }).onConflictDoNothing();
+        await db.update(users).set(changes).where(eq(users.id, userId));
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        return c.json({ alerts: alertSettings(user) });
       })
 
       // Push tokens (ADR 0008). Every registered device of an account gets every alert. A token that signs in under

@@ -1,5 +1,6 @@
 import { and, eq, exists, inArray, lt, or, sql } from 'drizzle-orm';
-import { favoriteTeams, fixtures, follows, notificationLog, pushTokens, type AlertPayload } from '../db/schema';
+import { favoriteTeams, fixtures, follows, notificationLog, pushTokens, users, type AlertPayload } from '../db/schema';
+import { wantsAlert } from './settings';
 import { runBatch, type PollDb, type Statement } from './db';
 
 // A row is sent at most this many times when sends fail; it then stays `failed`. Retries must not eat the 100 requests a day.
@@ -12,10 +13,23 @@ export type ExpoTicket = { status: 'ok'; id?: string } | { status: 'error'; mess
 // One ticket per message, in order. Throws when Expo cannot be reached.
 export type PushSender = { send(messages: ExpoMessage[]): Promise<ExpoTicket[]> };
 
-export const alertText = (p: AlertPayload) =>
-  p.kind === 'goal'
-    ? { title: `GOAL! ${p.scorer ?? ''}`.trim(), body: `${p.homeName} ${p.homeGoals}-${p.awayGoals} ${p.awayName} · ${p.minute}` }
-    : { title: 'Goal cancelled', body: `${p.homeName} ${p.homeGoals}-${p.awayGoals} ${p.awayName} · score corrected after VAR` };
+export function alertText(p: AlertPayload): { title: string; body: string } {
+  const score = `${p.homeName} ${p.homeGoals}-${p.awayGoals} ${p.awayName}`;
+  switch (p.kind) {
+    case 'goal':
+      return { title: `GOAL! ${p.scorer ?? ''}`.trim(), body: `${score} · ${p.minute}` };
+    case 'goal_removed':
+      return { title: 'Goal cancelled', body: `${score} · score corrected after VAR` };
+    case 'card':
+      return { title: p.card === 'red' ? 'Red card' : 'Yellow card', body: `${p.player ?? 'A player'} · ${score} · ${p.minute}` };
+    case 'substitution':
+      return { title: 'Substitution', body: `${p.related ?? 'A player'} on for ${p.player ?? 'a team-mate'} · ${score} · ${p.minute}` };
+    case 'kickoff':
+      return { title: 'Kick-off', body: `${p.homeName} v ${p.awayName}` };
+    case 'full_time':
+      return { title: 'Full time', body: score };
+  }
+}
 
 const sendable = and(
   or(eq(notificationLog.status, 'pending'), eq(notificationLog.status, 'failed')),
@@ -34,6 +48,7 @@ export async function sendAlerts(db: PollDb, push: PushSender): Promise<void> {
     db
       .select({
         log: notificationLog,
+        user: users,
         // Still a recipient: the user follows the match, or has either team as a favorite.
         stillRecipient: sql<boolean>`${or(
           exists(db.select({ x: sql`1` }).from(follows).where(and(eq(follows.userId, notificationLog.userId), eq(follows.fixtureId, sql`(${notificationLog.payload}->>'fixtureId')::int`)))),
@@ -47,17 +62,20 @@ export async function sendAlerts(db: PollDb, push: PushSender): Promise<void> {
         )}`.as('still_recipient'),
       })
       .from(notificationLog)
+      .leftJoin(users, eq(users.id, notificationLog.userId))
       .where(sendable),
     db.select().from(pushTokens).where(inArray(pushTokens.userId, db.select({ id: notificationLog.userId }).from(notificationLog).where(sendable))),
-  ])) as [{ log: typeof notificationLog.$inferSelect; stillRecipient: boolean }[], (typeof pushTokens.$inferSelect)[]];
+  ])) as [{ log: typeof notificationLog.$inferSelect; user: typeof users.$inferSelect | null; stillRecipient: boolean }[], (typeof pushTokens.$inferSelect)[]];
   if (rows.length === 0) return;
 
   const writes: Statement[] = [];
   const outgoing: { rowId: number; message: ExpoMessage }[] = [];
   const skip = (id: number) => writes.push(db.update(notificationLog).set({ status: 'skipped' }).where(eq(notificationLog.id, id)));
 
-  for (const { log, stillRecipient } of rows) {
+  for (const { log, user, stillRecipient: follows_ } of rows) {
     const payload = log.payload!;
+    // Read now, like the recipient check: a toggle turned off since the alert was written stops it.
+    const stillRecipient = follows_ && wantsAlert(user ?? undefined, payload.kind);
     const devices = tokens.filter((t) => t.userId === log.userId && !log.deliveredTo.includes(t.token));
     if (!stillRecipient || devices.length === 0) {
       // Nothing left to send: not a recipient any more, no device, or every device already has it.

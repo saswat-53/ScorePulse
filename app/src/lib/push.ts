@@ -13,10 +13,23 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/** Asks the system for permission to show alerts. True when the user said yes, now or earlier. */
+export async function askForPushPermission(): Promise<boolean> {
+  try {
+    if (!Device.isDevice) return false;
+    const current = await Notifications.getPermissionsAsync();
+    if (current.granted) return true;
+    if (!current.canAskAgain) return false;
+    return (await Notifications.requestPermissionsAsync()).granted;
+  } catch (e) {
+    console.warn('push permission failed', e);
+    return false;
+  }
+}
+
 /**
  * This device's Expo push token, or null when it cannot have one: a simulator, no permission yet, or no EAS project.
- * It never asks for permission; the prompt belongs to the alert settings (#14), which calls this again once the user
- * has said yes.
+ * It never asks for permission: that is `askForPushPermission`, called when the user taps Enable after picking a club.
  */
 export async function getPushToken(): Promise<string | null> {
   try {

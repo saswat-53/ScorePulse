@@ -9,6 +9,12 @@ export const users = pgTable('users', {
   id: text('id').primaryKey(),
   // IANA timezone; times are stored in UTC and shown in this zone
   timezone: text('timezone').notNull().default('UTC'),
+  // Which alerts the user wants (#14). Goals and full time are on by default.
+  alertGoals: boolean('alert_goals').notNull().default(true),
+  alertCards: boolean('alert_cards').notNull().default(false),
+  alertSubstitutions: boolean('alert_substitutions').notNull().default(false),
+  alertKickoff: boolean('alert_kickoff').notNull().default(false),
+  alertFullTime: boolean('alert_full_time').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -33,6 +39,9 @@ export const fixtures = pgTable('fixtures', {
   lineupsAttempts: integer('lineups_attempts').notNull().default(0),
   statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),
   statsFtAttempts: integer('stats_ft_attempts').notNull().default(0),
+  // Kickoff and full time are owed from a change of status, written in the same statement as the new status (#14).
+  kickoffAlertDue: boolean('kickoff_alert_due').notNull().default(false),
+  fullTimeAlertDue: boolean('full_time_alert_due').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -122,7 +131,7 @@ export const pushTokens = pgTable('push_tokens', {
 
 // What a goal alert or its correction says (ADR 0009). Stored with the pending row, so the send needs no lookup.
 export type AlertPayload = {
-  kind: 'goal' | 'goal_removed';
+  kind: 'goal' | 'goal_removed' | 'card' | 'substitution' | 'kickoff' | 'full_time';
   fixtureId: number;
   // `fixture:{id}:event:{eventId}` for a goal, with `:removed` appended for its correction.
   eventKey: string;
@@ -134,6 +143,10 @@ export type AlertPayload = {
   awayGoals: number;
   homeName: string;
   awayName: string;
+  // A card: who and which. A substitution: `player` goes off, `related` comes on.
+  player?: string | null;
+  related?: string | null;
+  card?: 'yellow' | 'red';
 };
 
 // The outbox (#13): one row per user and event, written as 'pending' and sent later, so a crash loses nothing. The

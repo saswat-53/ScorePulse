@@ -47,6 +47,14 @@ const ClubRow = memo(function ClubRow({ team, selected, onToggle }: ClubRowProps
 });
 
 function NotificationPrompt({ onDone }: { onDone: () => void }) {
+  const { enableNotifications } = useSession();
+  const [asking, setAsking] = useState(false);
+  // Asks the system for permission only now, after the first club, never at launch. The prompt closes either way.
+  const enable = async () => {
+    setAsking(true);
+    await enableNotifications();
+    onDone();
+  };
   return (
     <View className="mt-5 rounded-2xl border-2 border-neon/80 bg-[#0A1E3C] p-4" style={GLOW}>
       <View className="flex-row items-center gap-3">
@@ -66,7 +74,8 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
           <Text className="text-sm font-semibold text-white">Not Now</Text>
         </Pressable>
         <Pressable
-          onPress={onDone}
+          onPress={enable}
+          disabled={asking}
           accessibilityRole="button"
           className="h-12 flex-1 items-center justify-center rounded-xl bg-neon"
           style={GLOW_SOFT}>

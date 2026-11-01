@@ -1,15 +1,15 @@
 /**
  * Signed-in state, favorites, follows and alert settings. Sign-in, favorites and follows are real (Clerk and the
- * server, which holds the 3-favorite and 2-active-follow caps); alerts are still held in memory and nothing is saved.
+ * server, which holds the 3-favorite and 2-active-follow caps); alert toggles and the push token are saved on the server too.
  * The server replaces those internals later; the hook's shape stays the same.
  */
 import { useAuth } from '@clerk/expo';
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { api } from '@/api';
 
 import { PROFILE } from '@/domain/mock';
-import { getPushToken } from '@/lib/push';
+import { askForPushPermission, getPushToken } from '@/lib/push';
 import { MAX_ACTIVE_FOLLOWS, type AlertSettings, type Profile, type Team } from '@/domain/types';
 
 interface Session {
@@ -29,7 +29,10 @@ interface Session {
   toggleFavorite: (team: Team) => Promise<boolean>;
   /** Follows or unfollows. `full` and `over` are the server's refusals; `error` means it could not be reached. */
   toggleFollow: (fixtureId: number) => Promise<'ok' | 'full' | 'over' | 'error'>;
-  setAlert: (key: keyof AlertSettings, value: boolean) => void;
+  /** Saves a toggle on the server, showing it at once and undoing it if the server cannot be reached. */
+  setAlert: (key: keyof AlertSettings, value: boolean) => Promise<void>;
+  /** Asks the system for notification permission and, if given, registers this device. True when alerts can arrive. */
+  enableNotifications: () => Promise<boolean>;
 }
 
 const SessionContext = createContext<Session | null>(null);
@@ -55,21 +58,37 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // The token this device registered, kept so signing out can remove exactly that one.
   const pushToken = useRef<string | null>(null);
 
-  // A signed-in device registers its push token so the server can send it alerts (#13). With no permission yet
-  // there is no token: the alert settings (#14) ask, then register.
+  // Registers this device's push token under the signed-in account (#13). With no permission yet there is no token.
+  const registerDevice = useCallback(async () => {
+    const [pushed, token] = await Promise.all([getPushToken(), getToken()]);
+    if (!pushed || !token) return false;
+    await api.registerDevice(token, pushed);
+    pushToken.current = pushed;
+    return true;
+  }, [getToken]);
+
+  // A signed-in device that already has permission registers at once.
   useEffect(() => {
     if (!signedIn) return;
+    registerDevice().catch((e) => console.warn('device registration failed', e));
+  }, [signedIn, registerDevice]);
+
+  // The alert toggles live on the server too, tied to the user like the favorites (#14).
+  const [alertState, setAlertState] = useState<{ userId: string; alerts: AlertSettings } | null>(null);
+  useEffect(() => {
+    if (!userId) return;
     let stale = false;
-    (async () => {
-      const [pushed, token] = await Promise.all([getPushToken(), getToken()]);
-      if (stale || !pushed || !token) return;
-      await api.registerDevice(token, pushed);
-      pushToken.current = pushed;
-    })().catch((e) => console.warn('device registration failed', e));
+    getToken()
+      .then((token) => (token ? api.alertSettings(token) : Promise.reject(new Error('no token'))))
+      .then((alerts) => {
+        if (!stale) setAlertState({ userId, alerts });
+      })
+      .catch((e) => console.warn('alert settings load failed', e));
     return () => {
       stale = true;
     };
-  }, [signedIn, getToken]);
+  }, [userId, getToken]);
+  const alerts = userId && alertState?.userId === userId ? alertState.alerts : profile.alerts;
 
   // First sign-in creates the users row on the server. Failure is non-fatal: the app still works.
   useEffect(() => {
@@ -116,7 +135,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Session>(
     () => ({
       signedIn,
-      profile: { ...profile, favoriteTeamIds: favoriteTeams.map((t) => t.id) },
+      profile: { ...profile, favoriteTeamIds: favoriteTeams.map((t) => t.id), alerts },
       favoriteTeams,
       favoritesStatus,
       retryFavorites: () => setAttempt((n) => n + 1),
@@ -194,9 +213,31 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           return 'error';
         }
       },
-      setAlert: (key, v) => setProfile((p) => ({ ...p, alerts: { ...p.alerts, [key]: v } })),
+      setAlert: async (key, v) => {
+        const token = await getToken();
+        if (!token || !userId) return;
+        const before = alerts[key];
+        const apply = (value: boolean) =>
+          setAlertState((cur) => ({ userId, alerts: { ...(cur?.userId === userId ? cur.alerts : alerts), [key]: value } }));
+        apply(v);
+        try {
+          await api.saveAlertSettings(token, { [key]: v });
+        } catch (e) {
+          apply(before);
+          console.warn('alert setting failed', e);
+        }
+      },
+      enableNotifications: async () => {
+        if (!(await askForPushPermission())) return false;
+        try {
+          return await registerDevice();
+        } catch (e) {
+          console.warn('device registration failed', e);
+          return false;
+        }
+      },
     }),
-    [signedIn, userId, profile, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken],
+    [signedIn, userId, profile, alerts, favoriteTeams, favoritesStatus, followedIds, clerkSignOut, getToken, registerDevice],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
