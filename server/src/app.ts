@@ -1,6 +1,7 @@
 import { createClerkClient, verifyToken } from '@clerk/backend';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import { appConfig, favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
@@ -77,6 +78,17 @@ const realClerk = (env: Bindings): ClerkUsers => createClerkClient({ secretKey: 
 export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date(), clerk: (env: Bindings) => ClerkUsers = realClerk) {
   return (
     new Hono<AppEnv>()
+      // The web build, which only runs on a developer's machine, asks permission before each call (CORS). The shipped
+      // app is native and sends no origin, so only local development origins are allowed, never another website.
+      .use(
+        cors({
+          origin: (origin) => (/^http:\/\/localhost:\d+$/.test(origin) ? origin : null),
+          allowHeaders: ['Authorization', 'Content-Type'],
+          allowMethods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+          maxAge: 600,
+        }),
+      )
+
       // Public: uptime check.
       .get('/health', (c) => c.json({ ok: true }))
 
