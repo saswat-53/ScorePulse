@@ -5,7 +5,6 @@ import { useFixtures } from '@/api/hooks';
 import { DayStrip } from '@/components/fixtures/day-strip';
 import { FixtureRow } from '@/components/fixtures/fixture-row';
 import { GroupHeader } from '@/components/fixtures/group-header';
-import { RoundButton } from '@/components/ui/round-button';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { LEAGUES } from '@/domain/mock';
@@ -32,7 +31,6 @@ export default function Fixtures() {
     <Screen>
       <View className="flex-row items-center justify-between px-4">
         <Text className="text-[28px] font-extrabold text-white">Fixtures</Text>
-        <RoundButton icon="search" label="Search" />
       </View>
 
       <View className="mx-4 mb-3.5 mt-3">

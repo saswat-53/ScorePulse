@@ -93,9 +93,8 @@ whatever the device is, so an emulator would not save that work.
 
 ### Found, not fixed (your decision)
 
-- Dead buttons: the search icon (Home and Fixtures), the bell (Home) and the "1 live ›" link do nothing. None of them is
-  in the plan or in docs/deferred.md. Either list them in deferred.md and hide them, or wire them (the bell could open
-  the alert settings on More).
+- Dead buttons (hidden, and listed in docs/deferred.md): the search icon (Home and Fixtures), the bell (Home) and the
+  chevron on "1 live". None is in the plan.
 - The "Enable Notifications?" prompt shows again every time the club picker is opened from More, even after the user
   chose. It should only show on first onboarding.
 - The Results strip offers the last 7 days, but the snapshot keeps results for only 3 days back until it has run

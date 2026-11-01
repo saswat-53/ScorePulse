@@ -17,6 +17,9 @@ Added 2026-10-29.
 | Feature | Why deferred | Returns when |
 | --- | --- | --- |
 | News tab (bottom nav) and News league tab | News is Phase 6 | Phase 6 |
+| Search icon (Home, Fixtures) | Not in the spec, and nothing to search yet | A search is planned |
+| Notifications bell on Home | Not in the spec: there is no in-app inbox, alerts are push only | An inbox is planned |
+| "N live ›" link on Home | Nothing to open: the live matches are already listed below it | A Live tab exists |
 | Google Play logo on the update banner | Distribution is the Vercel page and Drive, not Play | Play listing exists |
 
 ## Match screen
