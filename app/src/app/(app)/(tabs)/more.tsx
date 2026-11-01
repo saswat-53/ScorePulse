@@ -62,7 +62,13 @@ export default function More() {
             <Text className="text-[15px] font-semibold text-white">Favorite teams</Text>
             <View className="mt-1.5 flex-row gap-1.5">
               {favorites.map((t) => (
-                <Crest key={t.id} team={t} size={24} />
+                <Pressable
+                  key={t.id}
+                  onPress={() => router.push(`/team/${t.id}` as Href)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t.name}: season`}>
+                  <Crest team={t} size={24} />
+                </Pressable>
               ))}
             </View>
           </View>

@@ -1,5 +1,5 @@
 import { alias } from 'drizzle-orm/pg-core';
-import { and, asc, desc, eq, gte, inArray, isNull, lt, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lt, or, type SQL } from 'drizzle-orm';
 import { fixtureEvents, fixtureLineups, fixtures, fixtureStats, follows, standings, teamMap, type StoredLineupPlayer } from './db/schema';
 import { toStatRows } from './lineups-stats';
 import { API_FOOTBALL_LEAGUE, leagueCodeOf, type LeagueCode } from './leagues';
@@ -91,6 +91,16 @@ export async function listFixtures(
   if (query.league) where.push(eq(fixtures.leagueId, API_FOOTBALL_LEAGUE[query.league]));
   if (query.inPlayOnly) where.push(inArray(fixtures.status, IN_PLAY_STATUSES));
   return (await selectFixtures(db, where)).map((row) => toFixture(row, status));
+}
+
+// One team's fixtures in date order (oldest first), home and away, optionally in one competition. Null for a team that is
+// not in team_map. Everything comes from the stored tables.
+export async function teamFixtures(db: PollDb, teamId: number, league: LeagueCode | undefined, status: UpdateStatus) {
+  const [team] = await db.select().from(teamMap).where(eq(teamMap.apiFootballId, teamId));
+  if (!team) return null;
+  const where: (SQL | undefined)[] = [or(eq(fixtures.homeTeamId, teamId), eq(fixtures.awayTeamId, teamId))];
+  if (league) where.push(eq(fixtures.leagueId, API_FOOTBALL_LEAGUE[league]));
+  return { team: teamJson(team), fixtures: (await selectFixtures(db, where)).map((row) => toFixture(row, status)) };
 }
 
 // Timeline events as the app shows them. "Goal" covers a missed penalty too (no score); VAR rows are not shown

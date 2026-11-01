@@ -1,5 +1,6 @@
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useStandings } from '@/api/hooks';
 import { LeagueChips } from '@/components/fixtures/league-chips';
@@ -42,8 +43,11 @@ export default function Standings() {
           {data?.rows.map((r) => {
             const mine = profile.favoriteTeamIds.includes(r.team.id);
             return (
-              <View
+              <Pressable
                 key={r.team.id}
+                onPress={() => r.team.id > 0 && router.push(`/team/${r.team.id}` as Href)}
+                accessibilityRole="button"
+                accessibilityLabel={`${r.team.name}, position ${r.position}`}
                 className={`h-[46px] flex-row items-center border-b border-neon/5 pl-4 pr-3 ${mine ? 'bg-neon/10' : ''}`}>
                 <View
                   className={`absolute bottom-2 left-0 top-2 w-[3px] rounded-sm ${
@@ -65,7 +69,7 @@ export default function Standings() {
                   {r.goalDifference > 0 ? `+${r.goalDifference}` : r.goalDifference}
                 </Text>
                 <Text className="w-[34px] text-right text-[13px] font-extrabold text-white">{r.points}</Text>
-              </View>
+              </Pressable>
             );
           })}
         </View>

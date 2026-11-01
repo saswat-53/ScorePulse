@@ -38,6 +38,11 @@ export const useMatch = (id: number) => {
   return useQuery({ queryKey: ['match', id], queryFn: async () => api.match(await token(), id), refetchInterval: 60_000 });
 };
 
+export const useTeamFixtures = (teamId: number) => {
+  const token = useToken();
+  return useQuery({ queryKey: ['team', teamId], queryFn: async () => api.teamFixtures(await token(), teamId) });
+};
+
 export const useStandings = (leagueId: LeagueId) => {
   const token = useToken();
   return useQuery({ queryKey: ['standings', leagueId], queryFn: async () => api.standings(await token(), leagueId) });

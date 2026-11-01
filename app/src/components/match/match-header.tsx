@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { Text, View } from 'react-native';
+import { router, type Href } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
 
 import { Crest } from '@/components/ui/crest';
 import { RoundButton } from '@/components/ui/round-button';
@@ -45,10 +45,14 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
       </View>
 
       <View className="flex-row items-center justify-center gap-3 px-4 pt-4">
-        <View className="w-[104px] items-center gap-1.5">
+        <Pressable
+          onPress={() => router.push(`/team/${match.home.id}` as Href)}
+          accessibilityRole="button"
+          accessibilityLabel={`${match.home.name}: season`}
+          className="w-[104px] items-center gap-1.5">
           <Crest team={match.home} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.home.shortName}</Text>
-        </View>
+        </Pressable>
         <View className="items-center">
           {started ? (
             <>
@@ -73,10 +77,14 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
             </>
           )}
         </View>
-        <View className="w-[104px] items-center gap-1.5">
+        <Pressable
+          onPress={() => router.push(`/team/${match.away.id}` as Href)}
+          accessibilityRole="button"
+          accessibilityLabel={`${match.away.name}: season`}
+          className="w-[104px] items-center gap-1.5">
           <Crest team={match.away} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.away.shortName}</Text>
-        </View>
+        </Pressable>
       </View>
     </View>
   );

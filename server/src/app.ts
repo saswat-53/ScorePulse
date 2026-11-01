@@ -5,7 +5,7 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import { appConfig, favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
-import { getMatch, getStandings, listFixtures } from './browse';
+import { getMatch, getStandings, listFixtures, teamFixtures } from './browse';
 import { isLeagueCode } from './leagues';
 import { activeFollowIds, isOver } from './follows';
 import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
@@ -220,6 +220,19 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
           .orderBy(asc(teamMap.name))
           .limit(TEAMS_PAGE);
         return c.json({ teams: rows });
+      })
+
+      // A team's season: its fixtures and results from the stored tables, no provider request (#25). The id is the
+      // API-Football id, as everywhere else.
+      .get('/teams/:id/fixtures', requireAuth, async (c) => {
+        const id = Number(c.req.param('id'));
+        const league = c.req.query('league');
+        if (!Number.isInteger(id)) return c.json({ error: 'invalid_team' }, 400);
+        if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
+        const db = getDb(c.env);
+        const status = await getPollStatus(db, now());
+        const result = await teamFixtures(db, id, league, status);
+        return result ? c.json(result) : c.json({ error: 'unknown_team' }, 404);
       })
 
       // Favorites. A team's id here is its API-Football id, which is what live events and fixtures carry;

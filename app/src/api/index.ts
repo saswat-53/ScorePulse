@@ -82,6 +82,15 @@ export const api = {
     return { ...standings, updatedAt: standings.updatedAt ?? '', rows: standings.rows.map((r) => ({ ...r, team: toTeam(r.team) })) };
   },
 
+  /** Real call: a team's season, from the stored tables, oldest first. Null for a team the server does not know. */
+  teamFixtures: async (token: string, teamId: number): Promise<{ team: Team; fixtures: Fixture[] } | null> => {
+    const res = await fetch(`${API_URL}/teams/${teamId}/fixtures`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`/teams/${teamId}/fixtures failed: ${res.status}`);
+    const body = (await res.json()) as { team: ServerTeam; fixtures: WithServerTeams<Fixture>[] };
+    return { team: toTeam(body.team), fixtures: body.fixtures.map(withColors<Fixture>) };
+  },
+
   /** Real call: clubs for the picker. A team's id is its API-Football id (what the server stores favorites by). */
   teams: async (token: string, query: string): Promise<Team[]> => {
     const body = await call<{ teams: ServerTeam[] }>(token, `/teams?q=${encodeURIComponent(query.trim())}`);

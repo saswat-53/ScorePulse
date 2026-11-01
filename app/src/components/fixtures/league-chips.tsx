@@ -7,6 +7,8 @@ interface Props {
   value: LeagueId | 'all';
   onChange: (value: LeagueId | 'all') => void;
   includeAll?: boolean;
+  /** Show only these competitions (a team's page lists the ones it plays in). */
+  only?: LeagueId[];
 }
 
 function LeagueTab({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
@@ -22,7 +24,7 @@ function LeagueTab({ label, active, onPress }: { label: string; active: boolean;
 }
 
 /** League switcher as underlined text tabs, as in the mockup's home screen. */
-export function LeagueChips({ value, onChange, includeAll = true }: Props) {
+export function LeagueChips({ value, onChange, includeAll = true, only }: Props) {
   return (
     <ScrollView
       horizontal
@@ -30,7 +32,7 @@ export function LeagueChips({ value, onChange, includeAll = true }: Props) {
       contentContainerStyle={{ paddingHorizontal: 16, gap: 20 }}
       className="grow-0 border-b border-neon/10">
       {includeAll ? <LeagueTab label="All" active={value === 'all'} onPress={() => onChange('all')} /> : null}
-      {LEAGUES.map((l) => (
+      {LEAGUES.filter((l) => !only || only.includes(l.id)).map((l) => (
         <LeagueTab key={l.id} label={l.shortName} active={value === l.id} onPress={() => onChange(l.id)} />
       ))}
     </ScrollView>

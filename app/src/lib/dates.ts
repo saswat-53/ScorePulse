@@ -54,3 +54,9 @@ export const dayLabel = (iso: string): string => {
 
 export const minutesAgo = (iso: string): number =>
   Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+
+/** "25 Oct", in the user's time zone, for a list that spans a season. */
+export const shortDate = (iso: string): string => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+/** "October 2026", to group a season by month. */
+export const monthLabel = (iso: string): string => new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
