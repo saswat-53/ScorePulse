@@ -36,7 +36,8 @@
       ],
       "@clerk/expo",
       "expo-secure-store",
-      "expo-image"
+      "expo-image",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

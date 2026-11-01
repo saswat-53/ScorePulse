@@ -99,6 +99,25 @@ export const api = {
     if (!res.ok) throw new Error(`remove favorite failed: ${res.status}`);
   },
 
+  /** Real call: registers this device's push token under the signed-in account. */
+  registerDevice: async (token: string, pushToken: string): Promise<void> => {
+    const res = await fetch(`${API_URL}/devices`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: pushToken }),
+    });
+    if (!res.ok) throw new Error(`register device failed: ${res.status}`);
+  },
+
+  /** Real call: removes this device's token only. Called on sign-out, while the session token is still valid. */
+  unregisterDevice: async (token: string, pushToken: string): Promise<void> => {
+    const res = await fetch(`${API_URL}/devices?token=${encodeURIComponent(pushToken)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error(`unregister device failed: ${res.status}`);
+  },
+
   /** Real call: the fixture ids the user follows whose match is not over. */
   follows: async (token: string): Promise<number[]> => (await call<{ follows: number[] }>(token, '/follows')).follows,
 

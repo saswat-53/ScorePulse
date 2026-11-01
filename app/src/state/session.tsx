@@ -4,11 +4,12 @@
  * The server replaces those internals later; the hook's shape stays the same.
  */
 import { useAuth } from '@clerk/expo';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { api } from '@/api';
 
 import { PROFILE } from '@/domain/mock';
+import { getPushToken } from '@/lib/push';
 import { MAX_ACTIVE_FOLLOWS, type AlertSettings, type Profile, type Team } from '@/domain/types';
 
 interface Session {
@@ -50,6 +51,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // Tied to a user id like the favorites, so another account never sees the previous user's follows.
   const [followed, setFollowed] = useState<{ userId: string; ids: number[] } | null>(null);
   const followedIds = userId && followed?.userId === userId ? followed.ids : NO_IDS;
+
+  // The token this device registered, kept so signing out can remove exactly that one.
+  const pushToken = useRef<string | null>(null);
+
+  // A signed-in device registers its push token so the server can send it alerts (#13). With no permission yet
+  // there is no token: the alert settings (#14) ask, then register.
+  useEffect(() => {
+    if (!signedIn) return;
+    let stale = false;
+    (async () => {
+      const [pushed, token] = await Promise.all([getPushToken(), getToken()]);
+      if (stale || !pushed || !token) return;
+      await api.registerDevice(token, pushed);
+      pushToken.current = pushed;
+    })().catch((e) => console.warn('device registration failed', e));
+    return () => {
+      stale = true;
+    };
+  }, [signedIn, getToken]);
 
   // First sign-in creates the users row on the server. Failure is non-fatal: the app still works.
   useEffect(() => {
@@ -103,7 +123,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       followedIds,
       canFollowMore: followedIds.length < MAX_ACTIVE_FOLLOWS,
       signOut: () => {
-        void clerkSignOut();
+        // This device's token goes first, while the session can still prove who is asking; then the session ends.
+        // A failed delete does not block signing out: the server drops the token when Expo reports it dead.
+        const pushed = pushToken.current;
+        pushToken.current = null;
+        void (async () => {
+          try {
+            const token = await getToken();
+            // Waits at most 3 seconds, so a bad connection cannot trap the user signed in.
+            if (token && pushed) {
+              await Promise.race([api.unregisterDevice(token, pushed), new Promise((resolve) => setTimeout(resolve, 3000))]);
+            }
+          } catch (e) {
+            console.warn('device unregistration failed', e);
+          }
+          await clerkSignOut();
+        })();
         setProfile(PROFILE);
         setFollowed(null);
       },
