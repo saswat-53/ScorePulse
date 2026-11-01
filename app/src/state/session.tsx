@@ -42,7 +42,15 @@ const NO_TEAMS: Team[] = [];
 const NO_IDS: number[] = [];
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { isSignedIn, userId, signOut: clerkSignOut, getToken } = useAuth();
+  const { isSignedIn, userId, signOut: clerkSignOut, getToken: clerkGetToken } = useAuth();
+  // Clerk can hand back a new `getToken` on every render. The loads below depend on it, so each one that saved its
+  // result would re-render, get a new function and load again, without end. This one never changes: it always calls
+  // the latest.
+  const latestGetToken = useRef(clerkGetToken);
+  useEffect(() => {
+    latestGetToken.current = clerkGetToken;
+  });
+  const getToken = useCallback(() => latestGetToken.current(), []);
   const signedIn = !!isSignedIn;
   const { user } = useUser();
   const [profile, setProfile] = useState<Profile>(PROFILE);
