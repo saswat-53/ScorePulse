@@ -14,8 +14,9 @@
     "crons": [
       "*/5 11-22 * * FRI,SAT,SUN,MON",
       "*/5 17-22 * * TUE,WED,THU",
-      // Snapshot sync (#7): 06:00 and 23:30 UTC, one league per run, five minutes apart. Keep in step with SYNC_CRONS in index.ts.
-      "0,5,10,15,20 6 * * *",
+      // 06:00 to 06:20 UTC is the snapshot sync (#7), one league per run; the rest of 06:00-09:55 is the archive's catch-up
+      // (#23), one match per run. 23:30 UTC is the evening sync. Keep both in step with src/schedule.ts.
+      "*/5 6-9 * * *",
       "30,35,40,45,50 23 * * *"
     ]
   },

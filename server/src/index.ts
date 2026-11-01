@@ -2,14 +2,13 @@ import * as Sentry from '@sentry/cloudflare';
 import { getDb } from './db/client';
 import { createApp } from './app';
 import { apiFootball } from './poller/api-football';
+import { runArchive } from './poller/archive';
 import { expoPush } from './poller/expo';
 import { runPoller } from './poller/run-poller';
+import { routeScheduled } from './schedule';
 import { footballData } from './sync/football-data';
 import { runSync } from './sync/run-sync';
 import type { Bindings } from './env';
-
-// Must equal the snapshot job triggers in wrangler.jsonc.
-const SYNC_CRONS = ['0,5,10,15,20 6 * * *', '30,35,40,45,50 23 * * *'];
 
 const app = createApp((env) => getDb(env.DATABASE_URL));
 
@@ -24,9 +23,15 @@ export default Sentry.withSentry(
     async scheduled(controller, env) {
       const now = new Date(controller.scheduledTime);
       const db = getDb(env.DATABASE_URL);
-      // The morning and night snapshot jobs fire five times, five minutes apart, one league each (wrangler.jsonc).
-      if (SYNC_CRONS.includes(controller.cron)) {
-        await runSync({ db, footballData: footballData(env.FOOTBALL_DATA_KEY) }, (now.getUTCMinutes() % 30) / 5, now);
+      const route = routeScheduled(controller.cron, now);
+      // The snapshot sync runs five times, five minutes apart, one league each (wrangler.jsonc).
+      if (route.job === 'sync') {
+        await runSync({ db, footballData: footballData(env.FOOTBALL_DATA_KEY) }, route.slot, now);
+        return;
+      }
+      // The rest of the early morning, when nothing is live: fetch the details of one finished match (#23).
+      if (route.job === 'archive') {
+        await runArchive({ db, provider: apiFootball(env.API_FOOTBALL_KEY) }, now);
         return;
       }
       // The poller's crons only fire in the matchday windows; the poller itself decides whether a run is due.

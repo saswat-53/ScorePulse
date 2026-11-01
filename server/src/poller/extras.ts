@@ -15,7 +15,7 @@ export const MAX_TRIES = 3;
 export const MAX_EXTRA_PER_RUN = 3;
 // A match is marked FT at about 100 minutes, a little before the whistle. Final statistics wait until it is surely over.
 export const FINAL_STATS_AFTER_MINUTES = 110;
-const FINISHED = ['FT', 'AET', 'PEN'];
+export const FINISHED = ['FT', 'AET', 'PEN'];
 
 // What a goal found only after full time may still be news: within this long after kickoff it is alerted, after it the
 // timeline is filled in silently (the final score has long since reached everyone).
@@ -34,7 +34,7 @@ export type ExtrasProvider = {
 
 // Written out in full: drizzle drops the table name from a column in a single-table select, and a bare `id` would
 // resolve to the subquery's own table.
-const exists = (table: string, extra = sql``) =>
+export const exists = (table: string, extra = sql``) =>
   sql<boolean>`exists (select 1 from ${sql.identifier(table)} where ${sql.identifier(table)}.fixture_id = "fixtures"."id" ${extra})`;
 
 // Live-tracked fixtures that may need lineups or statistics, with what they already have.
@@ -66,7 +66,9 @@ export const extrasQuery = (db: PollDb, now: Date) =>
     );
 
 type Candidate = Awaited<ReturnType<typeof extrasQuery>>[number];
-type Job = { kind: 'lineups' | 'final' | 'stats-ht' | 'stats-ft'; fixture: Candidate & { apiFootballId: number } };
+// What a fetch needs to know about its match. The archive (#23) has fewer columns than the poller's candidates.
+type JobFixture = Pick<Candidate, 'id' | 'kickoff' | 'firstPolledAt' | 'hasLineups'> & { apiFootballId: number };
+export type Job = { kind: 'lineups' | 'final' | 'stats-ht' | 'stats-ft'; fixture: JobFixture };
 
 // What to fetch now, most useful first: lineups (favorites first), the match completed by id, then final statistics,
 // then halftime ones.
