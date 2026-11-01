@@ -21,7 +21,8 @@ function place(lineup: Lineup, top: boolean): Placed[] {
   const out: Placed[] = [];
   for (const [row, players] of rows) {
     const sorted = [...players].sort((a, b) => Number(a.grid?.split(':')[1]) - Number(b.grid?.split(':')[1]));
-    const depth = 0.075 + ((row - 1) * 0.37) / Math.max(1, rowCount - 1);
+    // Each team uses nearly all of its half, so a five-row formation (4-2-3-1) does not overlap itself.
+    const depth = 0.06 + ((row - 1) * 0.38) / Math.max(1, rowCount - 1);
     sorted.forEach((p, i) => {
       out.push({
         id: p.id,
@@ -63,7 +64,7 @@ export function Lineups({ match }: { match: MatchDetail }) {
         </Text>
       </View>
 
-      <View className="mx-4 h-[390px] overflow-hidden rounded-2xl border border-neon/35 bg-[#062033]">
+      <View className="mx-4 h-[560px] overflow-hidden rounded-2xl border border-neon/35 bg-[#062033]">
         <View className="absolute left-0 right-0 top-1/2 h-px bg-neon/30" />
         <View className="absolute left-1/2 top-1/2 -ml-[42px] -mt-[42px] h-[84px] w-[84px] rounded-full border border-neon/30" />
         <View className="absolute inset-x-[28%] top-0 h-12 border border-t-0 border-neon/30" />

@@ -9,6 +9,7 @@ import type {
   League,
   LeagueId,
   MatchDetail,
+  StandingRow,
   Standings,
   Team,
   VersionConfig,
@@ -31,6 +32,10 @@ interface ServerTeam {
 
 const toTeam = (t: ServerTeam): Team => ({ ...t, color: teamColor(t.id) });
 
+// The server sends no team colour, so every call that carries teams adds it here, the same as the club picker does.
+type WithServerTeams<T> = Omit<T, 'home' | 'away'> & { home: ServerTeam; away: ServerTeam };
+const withColors = <T extends { home: Team; away: Team }>(f: WithServerTeams<T>): T => ({ ...f, home: toTeam(f.home), away: toTeam(f.away) }) as unknown as T;
+
 async function call<T>(token: string, path: string): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
@@ -51,14 +56,14 @@ export const api = {
   fixtures: async (token: string, date: string, leagueId?: LeagueId): Promise<Fixture[]> => {
     const { from, to } = dayBoundsUtc(date);
     const league = leagueId ? `&league=${leagueId}` : '';
-    const body = await call<{ fixtures: Fixture[] }>(token, `/fixtures?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}${league}`);
-    return body.fixtures;
+    const body = await call<{ fixtures: WithServerTeams<Fixture>[] }>(token, `/fixtures?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}${league}`);
+    return body.fixtures.map(withColors<Fixture>);
   },
 
   /** Real call: matches in play or at halftime now. */
   live: async (token: string, leagueId?: LeagueId): Promise<Fixture[]> => {
-    const body = await call<{ fixtures: Fixture[] }>(token, `/live${leagueId ? `?league=${leagueId}` : ''}`);
-    return body.fixtures;
+    const body = await call<{ fixtures: WithServerTeams<Fixture>[] }>(token, `/live${leagueId ? `?league=${leagueId}` : ''}`);
+    return body.fixtures.map(withColors<Fixture>);
   },
 
   /** Real call: one match with its timeline (empty and locked when it is not live-tracked). Null when unknown. */
@@ -66,13 +71,15 @@ export const api = {
     const res = await fetch(`${API_URL}/matches/${id}`, { headers: { Authorization: `Bearer ${token}` } });
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`/matches/${id} failed: ${res.status}`);
-    return ((await res.json()) as { match: MatchDetail }).match;
+    return withColors<MatchDetail>(((await res.json()) as { match: WithServerTeams<MatchDetail> }).match);
   },
 
   /** Real call: the stored table of a league. Empty until the snapshot job has synced it. */
   standings: async (token: string, leagueId: LeagueId): Promise<Standings> => {
-    const { standings } = await call<{ standings: Omit<Standings, 'updatedAt'> & { updatedAt: string | null } }>(token, `/standings/${leagueId}`);
-    return { ...standings, updatedAt: standings.updatedAt ?? '' };
+    const { standings } = await call<{
+      standings: Omit<Standings, 'updatedAt' | 'rows'> & { updatedAt: string | null; rows: (Omit<StandingRow, 'team'> & { team: ServerTeam })[] };
+    }>(token, `/standings/${leagueId}`);
+    return { ...standings, updatedAt: standings.updatedAt ?? '', rows: standings.rows.map((r) => ({ ...r, team: toTeam(r.team) })) };
   },
 
   /** Real call: clubs for the picker. A team's id is its API-Football id (what the server stores favorites by). */

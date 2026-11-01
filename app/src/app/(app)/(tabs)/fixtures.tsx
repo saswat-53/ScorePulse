@@ -19,7 +19,7 @@ const FIXTURE_DAYS = dayChips(0, 13);
 const RESULT_DAYS = dayChips(-7, -1);
 
 export default function Fixtures() {
-  const [mode, setMode] = useState<Mode>('results');
+  const [mode, setMode] = useState<Mode>('fixtures');
   const [fixtureDay, setFixtureDay] = useState(dateKey(new Date()));
   const [resultDay, setResultDay] = useState(RESULT_DAYS[RESULT_DAYS.length - 1].key);
   const { profile } = useSession();

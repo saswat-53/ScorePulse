@@ -14,7 +14,9 @@ export function DayStrip({ days, value, onChange }: Props) {
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-      className="grow-0">
+      // On the web a horizontal scroll area shrinks to fit when another scroll area shares its column, which cut
+      // the day buttons in half. It keeps its own height.
+      style={{ flexGrow: 0, flexShrink: 0 }}>
       {days.map((d) => {
         const active = d.key === value;
         return (
