@@ -152,8 +152,8 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return c.json({ error: 'invalid_window' }, 400);
         if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
         const db = getDb(c.env);
-        const { paused } = await getPollStatus(db, now());
-        return c.json({ fixtures: await listFixtures(db, { from, to, league }, paused) });
+        const status = await getPollStatus(db, now());
+        return c.json({ fixtures: await listFixtures(db, { from, to, league }, status) });
       })
 
       // Matches in play or at halftime right now.
@@ -162,10 +162,10 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
         const db = getDb(c.env);
         const at = now();
-        const { paused } = await getPollStatus(db, at);
+        const status = await getPollStatus(db, at);
         // A stored status older than a match can last is stale, as the poller treats it.
         const from = new Date(at.getTime() - MAX_MATCH_HOURS * 3_600_000);
-        return c.json({ fixtures: await listFixtures(db, { from, to: at, league, inPlayOnly: true }, paused) });
+        return c.json({ fixtures: await listFixtures(db, { from, to: at, league, inPlayOnly: true }, status) });
       })
 
       // One match: saved info, plus the timeline when it is live-tracked.
@@ -173,8 +173,8 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         const id = Number(c.req.param('id'));
         if (!Number.isInteger(id)) return c.json({ error: 'invalid_match' }, 400);
         const db = getDb(c.env);
-        const { paused } = await getPollStatus(db, now());
-        const match = await getMatch(db, id, c.get('userId'), paused);
+        const status = await getPollStatus(db, now());
+        const match = await getMatch(db, id, c.get('userId'), status);
         return match ? c.json({ match }) : c.json({ error: 'unknown_match' }, 404);
       })
 

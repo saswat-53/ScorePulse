@@ -15,6 +15,9 @@ export function footballData(apiKey: string) {
     // Fixtures and results from `from` to `to` (YYYY-MM-DD).
     matches: (code: Competition, from: string, to: string) =>
       get<FdMatchesResponse>(`competitions/${code}/matches?dateFrom=${from}&dateTo=${to}`),
+    // Every match of the five leagues that is in play, at halftime or finished today: one request for the fallback
+    // poll (#21). Score and status only on the free tier.
+    liveScores: () => get<FdMatchesResponse>(`matches?competitions=${COMPETITIONS.join(',')}&status=IN_PLAY,PAUSED,FINISHED`),
     standings: (code: Competition) => get<FdStandingsResponse>(`competitions/${code}/standings`),
   };
 }

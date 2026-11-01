@@ -18,6 +18,8 @@ export function alertText(p: AlertPayload): { title: string; body: string } {
   switch (p.kind) {
     case 'goal':
       return { title: `GOAL! ${p.scorer ?? ''}`.trim(), body: `${score} · ${p.minute}` };
+    case 'score':
+      return { title: `Goal: ${score}`, body: 'Scores only for now: scorer and minute are not available' };
     case 'goal_removed':
       return { title: 'Goal cancelled', body: `${score} · score corrected after VAR` };
     case 'card':

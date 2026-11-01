@@ -19,3 +19,20 @@ export function PausedBanner({ updatedAt }: { updatedAt: string }) {
     </View>
   );
 }
+
+/** Shown when the day's live-data limit is used up and football-data.org keeps the scores moving (ADR 0015). */
+export function LimitedBanner() {
+  return (
+    <View className="mx-4 mt-3 flex-row items-center gap-3 rounded-2xl border border-warn/60 bg-warn/10 px-3.5 py-3">
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-warn/20">
+        <Icon name="info" size={18} color="#FFB020" />
+      </View>
+      <View className="flex-1">
+        <Text className="text-sm font-bold text-warn">Limited updates: scores only</Text>
+        <Text className="mt-0.5 text-xs leading-[17px] text-soft">
+          Live data is limited today. The score updates about every 10 minutes; goals, cards and the timeline are back tomorrow.
+        </Text>
+      </View>
+    </View>
+  );
+}

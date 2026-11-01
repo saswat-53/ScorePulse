@@ -1,11 +1,12 @@
 import type { AlertPayload, users } from '../db/schema';
 
-// Whether a user has this kind of alert switched on (#14). A correction follows the goals toggle. A user who is not
+// Whether a user has this kind of alert switched on (#14). A correction and a scores-only alert follow the goals toggle. A user who is not
 // found (deleted meanwhile) gets nothing.
 export function wantsAlert(user: typeof users.$inferSelect | undefined, kind: AlertPayload['kind']): boolean {
   if (!user) return false;
   switch (kind) {
     case 'goal':
+    case 'score':
     case 'goal_removed':
       return user.alertGoals;
     case 'card':

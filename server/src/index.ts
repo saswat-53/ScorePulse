@@ -35,6 +35,7 @@ export default Sentry.withSentry(
           db,
           push: expoPush(),
           provider: apiFootball(env.API_FOOTBALL_KEY),
+          fallback: { fetchLiveScores: () => footballData(env.FOOTBALL_DATA_KEY).liveScores() },
         },
         now,
       );

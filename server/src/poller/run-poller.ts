@@ -6,7 +6,8 @@ import { planLinks } from './link';
 import { deliverAlerts } from './alerts';
 import { handlePoll, type PollResponse, type TrackedFixture } from './handle-poll';
 import { sendableCountQuery, type PushSender } from './send-alerts';
-import { planPoll, pollStateQuery, recordRequest } from './quota';
+import { applyFallbackScores, type ScoreProvider } from './fallback';
+import { FALLBACK_STATE_ID, planFallback, planPoll, pollStateQuery, recordRequest } from './quota';
 import {
   HALFTIME,
   HALFTIME_MINUTES,
@@ -21,7 +22,7 @@ const minutesBefore = (now: Date, minutes: number) => new Date(now.getTime() - m
 // Alerts owed, from events and from a change of status: a count in the first read, so a quiet run adds no request.
 const owedAlertsQuery = (db: PollDb) =>
   db.select({
-    count: sql<number>`(select count(*) from fixture_events where alert_state = 'due' or correction_due) + (select count(*) from fixtures where kickoff_alert_due or full_time_alert_due)`.mapWith(Number),
+    count: sql<number>`(select count(*) from fixture_events where alert_state = 'due' or correction_due) + (select count(*) from fixtures where kickoff_alert_due or full_time_alert_due or score_alert_due)`.mapWith(Number),
   }).from(sql`(select 1) as one`);
 
 export type LiveProvider = { fetchLive(leagueIds: number[]): Promise<PollResponse> } & ExtrasProvider;
@@ -36,6 +37,7 @@ const dueFixturesQuery = (db: PollDb, now: Date) =>
     .select({
       id: fixtures.id,
       apiFootballId: fixtures.apiFootballId,
+      footballDataId: fixtures.footballDataId,
       leagueId: fixtures.leagueId,
       homeTeamId: fixtures.homeTeamId,
       awayTeamId: fixtures.awayTeamId,
@@ -60,20 +62,26 @@ const dueFixturesQuery = (db: PollDb, now: Date) =>
       ),
     );
 
-export async function runPoller(deps: { db: PollDb; push: PushSender; provider: LiveProvider }, now: Date) {
+export async function runPoller(
+  // `fallback` is football-data.org: it stands in while API-Football's quota is spent (#21).
+  deps: { db: PollDb; push: PushSender; provider: LiveProvider; fallback?: ScoreProvider },
+  now: Date,
+) {
   // One Neon request reads the quota state, every candidate fixture and the fixtures that may need lineups or statistics.
-  const [stateRows, candidates, extraRows, owedRows, sendableRows] = (await runBatch(deps.db, [
+  const [stateRows, candidates, extraRows, owedRows, sendableRows, fallbackStateRows] = (await runBatch(deps.db, [
     pollStateQuery(deps.db),
     dueFixturesQuery(deps.db, now),
     extrasQuery(deps.db, now),
     owedAlertsQuery(deps.db),
     sendableCountQuery(deps.db),
+    pollStateQuery(deps.db, FALLBACK_STATE_ID),
   ])) as [
     Awaited<ReturnType<typeof pollStateQuery>>,
     Awaited<ReturnType<typeof dueFixturesQuery>>,
     Awaited<ReturnType<typeof extrasQuery>>,
     Awaited<ReturnType<typeof owedAlertsQuery>>,
     Awaited<ReturnType<typeof sendableCountQuery>>,
+    Awaited<ReturnType<typeof pollStateQuery>>,
   ];
   const plan = planPoll(stateRows[0], now);
 
@@ -104,6 +112,19 @@ export async function runPoller(deps: { db: PollDb; push: PushSender; provider: 
     // The request counter is written in the same batch as the poll's events.
     const polled = await handlePoll({ db: deps.db, now }, live, tracked, [recordRequest(deps.db, now), ...linkWrites]);
     alertsOwed ||= polled.alertsOwed;
+  }
+
+  // The quota is spent: football-data.org gives the score and status of what is in play, every 10 minutes (ADR 0015).
+  // If it fails too, nothing is polled and the app shows "updates paused"; the next beat tries again.
+  if (plan.remaining === 0 && deps.fallback && candidates.length > 0 && planFallback(fallbackStateRows[0], now).canPoll) {
+    try {
+      const scores = await deps.fallback.fetchLiveScores();
+      const applied = applyFallbackScores(deps.db, scores, candidates, now);
+      await runBatch(deps.db, [...applied.statements, recordRequest(deps.db, now, FALLBACK_STATE_ID)]);
+      alertsOwed ||= applied.alertsOwed;
+    } catch (e) {
+      console.error(`football-data.org fallback failed: ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   // Lineups and statistics come after the live poll, from what is left of the day's quota.

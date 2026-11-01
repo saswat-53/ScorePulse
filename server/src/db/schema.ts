@@ -43,6 +43,10 @@ export const fixtures = pgTable('fixtures', {
   statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),
   statsFtAttempts: integer('stats_ft_attempts').notNull().default(0),
   // Kickoff and full time are owed from a change of status, written in the same statement as the new status (#14).
+  // A score that went up while only football-data.org was answering (#21): the alert is owed, and the goals it
+  // announced have no event rows yet. When API-Football returns, that many new goal events are not alerted again.
+  scoreAlertDue: boolean('score_alert_due').notNull().default(false),
+  uncoveredGoals: integer('uncovered_goals').notNull().default(0),
   kickoffAlertDue: boolean('kickoff_alert_due').notNull().default(false),
   fullTimeAlertDue: boolean('full_time_alert_due').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -141,7 +145,7 @@ export const appConfig = pgTable('app_config', {
 
 // What a goal alert or its correction says (ADR 0009). Stored with the pending row, so the send needs no lookup.
 export type AlertPayload = {
-  kind: 'goal' | 'goal_removed' | 'card' | 'substitution' | 'kickoff' | 'full_time';
+  kind: 'goal' | 'goal_removed' | 'card' | 'substitution' | 'kickoff' | 'full_time' | 'score';
   fixtureId: number;
   // `fixture:{id}:event:{eventId}` for a goal, with `:removed` appended for its correction.
   eventKey: string;

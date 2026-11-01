@@ -127,6 +127,13 @@
       "when": 1793532304688,
       "tag": "0017_app_config",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793533446398,
+      "tag": "0018_score_fallback",
+      "breakpoints": true
     }
   ]
 }

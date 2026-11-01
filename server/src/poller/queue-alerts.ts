@@ -32,7 +32,7 @@ function eventAlert(
 // doing it twice adds nothing.
 export async function queueAlerts(db: PollDb): Promise<boolean> {
   const owed = or(eq(fixtureEvents.alertState, 'due'), eq(fixtureEvents.correctionDue, true));
-  const owedStatus = or(eq(fixtures.kickoffAlertDue, true), eq(fixtures.fullTimeAlertDue, true));
+  const owedStatus = or(eq(fixtures.kickoffAlertDue, true), eq(fixtures.fullTimeAlertDue, true), eq(fixtures.scoreAlertDue, true));
   const owedByEvent = db.select({ id: fixtureEvents.fixtureId }).from(fixtureEvents).where(owed);
   const owedByStatus = db.select({ id: fixtures.id }).from(fixtures).where(owedStatus);
   const isOwed = (column: Parameters<typeof inArray>[0]) => or(inArray(column, owedByEvent), inArray(column, owedByStatus))!;
@@ -64,6 +64,8 @@ export async function queueAlerts(db: PollDb): Promise<boolean> {
         awayGoals: fixtures.awayGoals,
         kickoffDue: fixtures.kickoffAlertDue,
         fullTimeDue: fixtures.fullTimeAlertDue,
+        scoreDue: fixtures.scoreAlertDue,
+        uncoveredGoals: fixtures.uncoveredGoals,
         home: home.shortName,
         away: away.shortName,
       })
@@ -78,10 +80,10 @@ export async function queueAlerts(db: PollDb): Promise<boolean> {
     EventRow[],
     { fixtureId: number; userId: string }[],
     { fixtureId: number; userId: string }[],
-    { fixtureId: number; homeTeamId: number; homeGoals: number | null; awayGoals: number | null; kickoffDue: boolean; fullTimeDue: boolean; home: string | null; away: string | null }[],
+    { fixtureId: number; homeTeamId: number; homeGoals: number | null; awayGoals: number | null; kickoffDue: boolean; fullTimeDue: boolean; scoreDue: boolean; uncoveredGoals: number; home: string | null; away: string | null }[],
     (typeof users.$inferSelect)[],
   ];
-  if (dueRows.length === 0 && !names.some((n) => n.kickoffDue || n.fullTimeDue)) return false;
+  if (dueRows.length === 0 && !names.some((n) => n.kickoffDue || n.fullTimeDue || n.scoreDue)) return false;
 
   // Corrections go to the users who were sent the goal alert. Read once, and only when there are corrections.
   const corrections = dueRows.filter((e) => e.correctionDue);
@@ -103,7 +105,27 @@ export async function queueAlerts(db: PollDb): Promise<boolean> {
   const statements: Statement[] = [];
   const rows: (typeof notificationLog.$inferInsert)[] = [];
 
+  // Goals a scores-only alert already announced (#21): the oldest new goal events of that fixture are not alerted again.
+  const uncovered = new Map(names.map((n) => [n.fixtureId, n.uncoveredGoals]));
+  const covered = new Set<number>();
+  for (const e of [...dueRows].sort((a, b) => a.elapsed - b.elapsed || (a.extra ?? 0) - (b.extra ?? 0) || a.id - b.id)) {
+    const left = uncovered.get(e.fixtureId) ?? 0;
+    if (e.alertState === 'due' && e.type === 'Goal' && left > 0) {
+      covered.add(e.id);
+      uncovered.set(e.fixtureId, left - 1);
+    }
+  }
+  for (const n of names) {
+    if (uncovered.get(n.fixtureId) !== n.uncoveredGoals) {
+      statements.push(db.update(fixtures).set({ uncoveredGoals: uncovered.get(n.fixtureId) }).where(eq(fixtures.id, n.fixtureId)));
+    }
+  }
+
   for (const e of dueRows) {
+    if (covered.has(e.id)) {
+      statements.push(db.update(fixtureEvents).set({ alertState: 'none' }).where(eq(fixtureEvents.id, e.id)));
+      continue;
+    }
     const fixture = names.find((n) => n.fixtureId === e.fixtureId);
     if (!fixture) continue;
     const goals = standingGoals
@@ -152,6 +174,11 @@ export async function queueAlerts(db: PollDb): Promise<boolean> {
 
   for (const f of names) {
     const base = { fixtureId: f.fixtureId, homeName: f.home ?? 'Home', awayName: f.away ?? 'Away', minute: '', scorer: null, homeGoals: f.homeGoals ?? 0, awayGoals: f.awayGoals ?? 0 };
+    if (f.scoreDue) {
+      const payload: AlertPayload = { ...base, kind: 'score', eventKey: `fixture:${f.fixtureId}:score:${f.homeGoals ?? 0}-${f.awayGoals ?? 0}` };
+      for (const userId of recipientsOf(f.fixtureId, 'score')) rows.push({ userId, eventKey: payload.eventKey, payload });
+      statements.push(db.update(fixtures).set({ scoreAlertDue: false }).where(eq(fixtures.id, f.fixtureId)));
+    }
     if (f.kickoffDue) {
       const payload: AlertPayload = { ...base, kind: 'kickoff', eventKey: `fixture:${f.fixtureId}:kickoff` };
       for (const userId of recipientsOf(f.fixtureId, 'kickoff')) rows.push({ userId, eventKey: payload.eventKey, payload });

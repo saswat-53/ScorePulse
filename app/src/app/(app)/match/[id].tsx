@@ -9,7 +9,7 @@ import { MatchHeader } from '@/components/match/match-header';
 import { MatchTabs, type MatchTab } from '@/components/match/match-tabs';
 import { LockedTimeline, NotLiveCard } from '@/components/match/not-live-card';
 import { Overview } from '@/components/match/overview';
-import { PausedBanner } from '@/components/match/paused-banner';
+import { LimitedBanner, PausedBanner } from '@/components/match/paused-banner';
 import { Stats } from '@/components/match/stats';
 import { Timeline } from '@/components/match/timeline';
 import { Screen } from '@/components/ui/screen';
@@ -67,6 +67,7 @@ export default function MatchScreen() {
         </Text>
       ) : null}
       {liveTracked && match.paused ? <PausedBanner updatedAt={match.updatedAt} /> : null}
+      {liveTracked && match.limited ? <LimitedBanner /> : null}
       <MatchTabs value={active} onChange={setTab} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>

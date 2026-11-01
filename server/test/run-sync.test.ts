@@ -18,7 +18,7 @@ afterEach(() => testDb.close());
 // football-data.org as recorded: it answers for the Premier League only, and remembers what it was asked.
 function fakeFootballData() {
   const asked: { code: string; from?: string; to?: string }[] = [];
-  const footballData: FootballData = {
+  const footballData: Pick<FootballData, 'matches' | 'standings'> = {
     matches: async (code, from, to) => (asked.push({ code, from, to }), next14Json as FdMatchesResponse),
     standings: async (code) => (asked.push({ code }), standingsJson as FdStandingsResponse),
   };

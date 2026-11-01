@@ -68,6 +68,8 @@ export interface Fixture {
   tracking: Tracking;
   /** True when the polling interval has widened and live data is arriving less often. */
   paused: boolean;
+  /** The daily live-data limit is used up and only scores move (about every 10 minutes): no new timeline events. */
+  limited?: boolean;
   /** When the stored data last changed. */
   updatedAt: string;
   source: Source;

@@ -9,7 +9,7 @@ const day = (now: Date, offset: number) => new Date(now.getTime() + offset * 86_
 
 // One league per cron run (the free plan caps a run at 10 ms of CPU, ADR 0004): the cron fires five times
 // five minutes apart, and the slot picks the league. `slot` is 0 to 4.
-export async function runSync(deps: { db: PollDb; footballData: FootballData }, slot: number, now: Date) {
+export async function runSync(deps: { db: PollDb; footballData: Pick<FootballData, 'matches' | 'standings'> }, slot: number, now: Date) {
   const code = COMPETITIONS[slot];
   if (!code) return;
   const matches = await deps.footballData.matches(code, day(now, -BEHIND_DAYS), day(now, AHEAD_DAYS));

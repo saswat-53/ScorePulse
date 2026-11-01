@@ -39,3 +39,11 @@ Matching deliberately never uses the three-letter code: it linked LASK Linz to L
 **Known gap (closed by #22):** a fixture created by the sync has no `apiFootballId`, and the poller only polls fixtures that have one. The poller now links it from the live response when the match goes live (same league, home and away team ids, kickoff within 2 hours), with no extra request. It cannot link before kickoff, so pre-match lineups (#11) are not fetched for a snapshot fixture.
 
 **Unverified, check on a matchday:** whether football-data.org's `score.fullTime` includes penalty shoot-out goals for a Champions League knockout tie (the sync would then store the shoot-out total as the final result, and log an overwrite against API-Football's score). Check against a recorded `PENALTY_SHOOTOUT` match before the knockout phase.
+
+## Fallback poll (#21): to measure on the first matchday
+
+Built from ADR 0015, not yet run against the live service. Two things are unverified and must be checked before relying on it:
+
+- **The request.** The poller asks `matches?competitions=PL,PD,FL1,BL1,CL&status=IN_PLAY,PAUSED,FINISHED` (one request for all five leagues). That the free tier allows this unfiltered-by-date endpoint, and what window it returns, has not been tried.
+- **The delay.** How far football-data.org's live score lags API-Football is unmeasured. While a match is in play, call both and note the minute each shows a goal. Record the lag here. If it is large (several minutes), the "Goal: Arsenal 2-1 Chelsea" fallback alert is late and the match screen should say so.
+- **The score field.** The fallback reads `score.fullTime` as the running score during a match. Confirm that is what football-data.org puts there while a match is live.

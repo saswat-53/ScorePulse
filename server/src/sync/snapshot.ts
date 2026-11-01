@@ -18,7 +18,7 @@ export type FdMatch = {
 export type FdMatchesResponse = { matches: FdMatch[] };
 
 // football-data.org match status -> the API-Football short code the rest of the server uses.
-const STATUS: Record<string, string> = {
+export const STATUS: Record<string, string> = {
   SCHEDULED: NOT_STARTED,
   TIMED: NOT_STARTED,
   IN_PLAY: LIVE,

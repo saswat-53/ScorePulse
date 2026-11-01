@@ -52,8 +52,12 @@ const selectFixtures = (db: PollDb, where: (SQL | undefined)[]) =>
 
 type FixtureRow = Awaited<ReturnType<typeof selectFixtures>>[number];
 
-// `quotaLow`: the poll interval has widened, so a follow-only match in play shows as paused (ADR 0013).
-const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: FixtureRow, quotaLow: boolean) => ({
+// How current the live data is (ADR 0013, 0015). `paused`: the poll interval has widened (a follow-only match
+// stops being polled), or the quota is spent and football-data.org is not answering either (nothing is polled).
+// `scoresOnly`: the quota is spent and football-data.org stands in, so scores still move.
+export type UpdateStatus = { paused: boolean; exhausted: boolean; scoresOnly: boolean };
+
+const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: FixtureRow, status: UpdateStatus) => ({
   id: f.id,
   leagueId: leagueCodeOf(f.leagueId),
   round: null,
@@ -66,7 +70,12 @@ const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: Fixture
   venue: null,
   tracking: favorite || followed ? ('live' as const) : ('snapshot' as const),
   // Only a match being polled can be paused: a follow ends at full time and a future match is not polled yet.
-  paused: quotaLow && followed && !favorite && IN_PLAY_STATUSES.includes(f.status),
+  paused:
+    IN_PLAY_STATUSES.includes(f.status) &&
+    (favorite || followed) &&
+    (status.exhausted ? !status.scoresOnly : status.paused && !favorite),
+  // The quota is spent but football-data.org covers it: scores move, the timeline does not.
+  limited: IN_PLAY_STATUSES.includes(f.status) && (favorite || followed) && status.exhausted && status.scoresOnly,
   // When the data was last known to be current: the last poll that covered the match, or its last change if later.
   updatedAt: new Date(Math.max(f.updatedAt.getTime(), f.lastPolledAt?.getTime() ?? 0)).toISOString(),
   source: f.source,
@@ -75,12 +84,12 @@ const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: Fixture
 export async function listFixtures(
   db: PollDb,
   query: { from: Date; to: Date; league?: LeagueCode; inPlayOnly?: boolean },
-  quotaLow: boolean,
+  status: UpdateStatus,
 ) {
   const where: (SQL | undefined)[] = [gte(fixtures.kickoff, query.from), lt(fixtures.kickoff, query.to)];
   if (query.league) where.push(eq(fixtures.leagueId, API_FOOTBALL_LEAGUE[query.league]));
   if (query.inPlayOnly) where.push(inArray(fixtures.status, IN_PLAY_STATUSES));
-  return (await selectFixtures(db, where)).map((row) => toFixture(row, quotaLow));
+  return (await selectFixtures(db, where)).map((row) => toFixture(row, status));
 }
 
 // Timeline events as the app shows them. "Goal" covers a missed penalty too (no score); VAR rows are not shown
@@ -108,7 +117,7 @@ const CARD_DETAIL: Record<string, string> = { 'Yellow Card': 'yellow-card', 'Red
 
 // A match with its timeline. A match nobody tracks has no stored events, so its timeline is empty: the app shows
 // it locked ("not live-tracked, tap Follow") from `tracking`.
-export async function getMatch(db: PollDb, id: number, userId: string, quotaLow: boolean) {
+export async function getMatch(db: PollDb, id: number, userId: string, status: UpdateStatus) {
   const [row] = await selectFixtures(db, [eq(fixtures.id, id)]);
   if (!row) return null;
   const [rows, followRows, lineupRows, statRows] = (await runBatch(db, [
@@ -157,7 +166,7 @@ export async function getMatch(db: PollDb, id: number, userId: string, quotaLow:
   const awayStats = statRows.find((s) => s.teamId === row.fixture.awayTeamId);
 
   return {
-    ...toFixture(row, quotaLow),
+    ...toFixture(row, status),
     events,
     lineups: lineups.length ? lineups : null,
     stats: homeStats && awayStats ? toStatRows(homeStats.stats, awayStats.stats) : null,
