@@ -55,8 +55,10 @@ export async function handlePoll(
       now.getTime() - f.kickoff.getTime() >= PRESUMED_OVER_MINUTES * 60_000,
   );
   const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, fullTimeAlertDue: true, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
+  // Every fixture this poll covered is now seen, whether or not the provider listed it (#15).
+  const markSeen = tracked.length ? [deps.db.update(fixtures).set({ lastPolledAt: now }).where(inArray(fixtures.id, tracked.map((f) => f.id)))] : [];
   if (known.length === 0) {
-    await runBatch(deps.db, [...markOver, ...sameBatchWrites]);
+    await runBatch(deps.db, [...markSeen, ...markOver, ...sameBatchWrites]);
     return { alertsOwed: over.length > 0 };
   }
 
@@ -116,11 +118,11 @@ export async function handlePoll(
     statements.push(
       deps.db
         .update(fixtures)
-        .set({ status, homeGoals, awayGoals, updatedAt: new Date(), ...(kickoff && { kickoffAlertDue: true }), ...(fullTime && { fullTimeAlertDue: true }) })
+        .set({ status, homeGoals, awayGoals, updatedAt: now, ...(kickoff && { kickoffAlertDue: true }), ...(fullTime && { fullTimeAlertDue: true }) })
         .where(eq(fixtures.id, fixture.id)),
     );
   }
-  statements.push(...markOver, ...sameBatchWrites);
+  statements.push(...markSeen, ...markOver, ...sameBatchWrites);
 
   const results = await runBatch(deps.db, statements);
   const goalRows = results[goalsAt] as EventRow[];

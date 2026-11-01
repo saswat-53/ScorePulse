@@ -35,6 +35,9 @@ export const fixtures = pgTable('fixtures', {
   source: text('source').notNull(),
   // Set by the poller on a fixture's first poll; events seen before this are backfill, not news (ADR 0002).
   firstPolledAt: timestamp('first_polled_at', { withTimezone: true }),
+  // The last poll that covered this fixture, even a quiet one. `updated_at` only moves when the score or status
+  // changes, so it cannot say how stale a paused match is (#15).
+  lastPolledAt: timestamp('last_polled_at', { withTimezone: true }),
   // Fetches that came back empty (#11), so a match whose lineups or stats never arrive is not asked for forever.
   lineupsAttempts: integer('lineups_attempts').notNull().default(0),
   statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),

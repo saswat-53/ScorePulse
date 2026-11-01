@@ -67,7 +67,8 @@ const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: Fixture
   tracking: favorite || followed ? ('live' as const) : ('snapshot' as const),
   // Only a match being polled can be paused: a follow ends at full time and a future match is not polled yet.
   paused: quotaLow && followed && !favorite && IN_PLAY_STATUSES.includes(f.status),
-  updatedAt: f.updatedAt.toISOString(),
+  // When the data was last known to be current: the last poll that covered the match, or its last change if later.
+  updatedAt: new Date(Math.max(f.updatedAt.getTime(), f.lastPolledAt?.getTime() ?? 0)).toISOString(),
   source: f.source,
 });
 
