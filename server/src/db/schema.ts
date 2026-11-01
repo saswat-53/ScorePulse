@@ -1,4 +1,4 @@
-import { date, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { boolean, date, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 export type StoredLineupPlayer = { id: number; name: string; number: number; position: 'G' | 'D' | 'M' | 'F'; grid: string | null };
 
@@ -59,6 +59,11 @@ export const fixtureEvents = pgTable(
     missingPolls: integer('missing_polls').notNull().default(0),
     // Set when the goal is cancelled (VAR event or 2 missing polls). The row stays so the timeline can show it.
     removedAt: timestamp('removed_at', { withTimezone: true }),
+    // The alert owed for this goal (#13), written in the same statement as the event so a crash cannot lose it:
+    // 'none' (not a goal, or backfilled), 'due' (owed, no pending rows yet) or 'issued' (pending rows exist).
+    alertState: text('alert_state').$type<'none' | 'due' | 'issued'>().notNull().default('none'),
+    // Set with `removed_at` on a goal whose alert was issued: the correction is owed.
+    correctionDue: boolean('correction_due').notNull().default(false),
   },
   (t) => [
     // NULLS NOT DISTINCT: a plain unique treats two NULLs as different and would store the event twice.
@@ -115,7 +120,24 @@ export const pushTokens = pgTable('push_tokens', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-// A push already sent, so a retry or a second poll never sends it twice.
+// What a goal alert or its correction says (ADR 0009). Stored with the pending row, so the send needs no lookup.
+export type AlertPayload = {
+  kind: 'goal' | 'goal_removed';
+  fixtureId: number;
+  // `fixture:{id}:event:{eventId}` for a goal, with `:removed` appended for its correction.
+  eventKey: string;
+  // Null on a correction: the stored row does not keep the scorer's name.
+  scorer: string | null;
+  minute: string;
+  // The score after this alert: with the new goal counted, or with the cancelled goal taken out.
+  homeGoals: number;
+  awayGoals: number;
+  homeName: string;
+  awayName: string;
+};
+
+// The outbox (#13): one row per user and event, written as 'pending' and sent later, so a crash loses nothing. The
+// unique key makes every step safe to repeat. 'skipped': the user is no longer a recipient or has no device.
 export const notificationLog = pgTable(
   'notification_log',
   {
@@ -125,6 +147,12 @@ export const notificationLog = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     eventKey: text('event_key').notNull(),
     sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+    status: text('status').$type<'pending' | 'sent' | 'failed' | 'skipped'>().notNull().default('pending'),
+    payload: jsonb('payload').$type<AlertPayload>(),
+    // Sends that failed. A row is retried until it reaches the cap.
+    attempts: integer('attempts').notNull().default(0),
+    // Tokens that already got it, so a retry after a partial failure does not send to them twice.
+    deliveredTo: jsonb('delivered_to').$type<string[]>().notNull().default([]),
   },
   (t) => [unique('notification_log_user_event').on(t.userId, t.eventKey)],
 );

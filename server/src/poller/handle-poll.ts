@@ -3,20 +3,6 @@ import { fixtureEvents, fixtures } from '../db/schema';
 import { runBatch, type PollDb, type Statement } from './db';
 import { FULL_TIME, IN_PLAY, PRESUMED_OVER_MINUTES } from './status';
 
-export type GoalPush = {
-  kind: 'goal' | 'goal_removed';
-  fixtureId: number;
-  // `fixture:{id}:event:{eventId}` for a goal, with `:removed` appended for its correction (ADR 0009).
-  eventKey: string;
-  // Null on a correction: the stored row does not keep the scorer's name.
-  scorer: string | null;
-  minute: string;
-  // The score after this push: with the new goal counted, or with the cancelled goal taken out.
-  homeGoals: number;
-  awayGoals: number;
-};
-export type PushSender = { send(push: GoalPush): Promise<void> };
-
 // The parts of an API-Football `fixtures?live=` response the poller reads.
 type ApiEvent = {
   time: { elapsed: number; extra: number | null };
@@ -46,7 +32,7 @@ type EventRow = typeof fixtureEvents.$inferSelect;
 const MISSING_POLLS_TO_REMOVE = 2;
 
 export async function handlePoll(
-  deps: { db: PollDb; push: PushSender; now?: Date },
+  deps: { db: PollDb; now?: Date },
   live: PollResponse,
   tracked: readonly TrackedFixture[],
   // Writes of the caller that ride in the poll's batch, so they cost no request of their own.
@@ -71,7 +57,7 @@ export async function handlePoll(
   const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
   if (known.length === 0) {
     await runBatch(deps.db, [...markOver, ...sameBatchWrites]);
-    return;
+    return { alertsOwed: false };
   }
 
   // Every tracked fixture's events go in with one INSERT, however many matches are on: queries are what cost CPU.
@@ -86,13 +72,15 @@ export async function handlePoll(
       assistName: e.assist?.name ?? null,
       type: e.type,
       detail: e.detail,
+      // A goal scored after the first poll is news: the alert is owed from this insert on. Earlier goals are history.
+      alertState: isGoal(e) && fixture.firstPolledAt !== null ? ('due' as const) : ('none' as const),
     })),
   );
 
   // One Neon request for all the reads and writes below. It is one transaction, so if the insert fails nothing is
   // marked: the retry is still a first poll and pushes nothing stale (ADR 0002).
   const statements: Statement[] = [];
-  const insertAt = values.length ? statements.push(deps.db.insert(fixtureEvents).values(values).onConflictDoNothing().returning()) - 1 : -1;
+  if (values.length) statements.push(deps.db.insert(fixtureEvents).values(values).onConflictDoNothing());
   // Every stored goal of the tracked fixtures, new ones included, removed ones too (they must not count in a score).
   const goalsAt =
     statements.push(
@@ -124,13 +112,11 @@ export async function handlePoll(
   statements.push(...markOver, ...sameBatchWrites);
 
   const results = await runBatch(deps.db, statements);
-  const inserted = insertAt >= 0 ? (results[insertAt] as EventRow[]) : [];
   const goalRows = results[goalsAt] as EventRow[];
 
   const recoveredIds: number[] = [];
   const stillMissingIds: number[] = [];
   const removeIds: number[] = [];
-  const insertedIds = new Set(inserted.map((r) => r.id));
 
   for (const { fixture, events } of known) {
     const stored = goalRows.filter((r) => r.fixtureId === fixture.id);
@@ -156,46 +142,6 @@ export async function handlePoll(
       }
     }
     removeIds.push(...removedNow.map((r) => r.id));
-    const removedIds = new Set(removedNow.map((r) => r.id));
-    const isRemoved = (r: EventRow) => r.removedAt !== null || removedIds.has(r.id);
-
-    if (fixture.firstPolledAt === null) continue; // backfill: store and update state, send nothing
-
-    // Walk the events in order so each new goal carries the score as it stood right after it.
-    const score = { home: 0, away: 0 };
-    for (const e of inResponse) {
-      const row = stored.find((r) => sameEvent(r, fixture.id, e));
-      if (row && isRemoved(row)) continue;
-      credit(score, fixture.homeTeamId, e.team.id);
-
-      // A goal that arrived and was cancelled in the same poll was never announced: nothing to send or correct.
-      if (!row || !insertedIds.has(row.id) || removedIds.has(row.id)) continue;
-      await deps.push.send({
-        kind: 'goal',
-        fixtureId: fixture.id,
-        eventKey: `fixture:${fixture.id}:event:${row.id}`,
-        scorer: e.player.name,
-        minute: formatMinute(e.time),
-        homeGoals: score.home,
-        awayGoals: score.away,
-      });
-    }
-
-    // One correction per removed goal, with the score from the goals still standing.
-    const standing = { home: 0, away: 0 };
-    for (const r of stored) if (!isRemoved(r)) credit(standing, fixture.homeTeamId, r.teamId);
-    for (const row of removedNow) {
-      if (insertedIds.has(row.id)) continue;
-      await deps.push.send({
-        kind: 'goal_removed',
-        fixtureId: fixture.id,
-        eventKey: `fixture:${fixture.id}:event:${row.id}:removed`,
-        scorer: null,
-        minute: formatMinute({ elapsed: row.elapsed, extra: row.extra }),
-        homeGoals: standing.home,
-        awayGoals: standing.away,
-      });
-    }
   }
 
   // State changes are written only when something changed, so a quiet poll adds no request.
@@ -212,24 +158,31 @@ export async function handlePoll(
     );
   }
   if (removeIds.length) {
-    stateWrites.push(deps.db.update(fixtureEvents).set({ removedAt: new Date() }).where(inArray(fixtureEvents.id, removeIds)));
+    // One statement decides the alert: a goal whose alert was issued is owed a correction; one whose alert was never
+    // issued (still owed, or backfilled) has nothing to correct, and an owed alert is withdrawn.
+    stateWrites.push(
+      deps.db
+        .update(fixtureEvents)
+        .set({
+          removedAt: new Date(),
+          correctionDue: sql`${fixtureEvents.alertState} = 'issued'`,
+          alertState: sql`case when ${fixtureEvents.alertState} = 'due' then 'none' else ${fixtureEvents.alertState} end`,
+        })
+        .where(inArray(fixtureEvents.id, removeIds)),
+    );
   }
   await runBatch(deps.db, stateWrites);
+  return { alertsOwed: values.some((v) => v.alertState === 'due') || removeIds.length > 0 };
 }
 
 // `team` on an event is the side credited with the goal, own goals included (checked against the recorded response).
-const GOAL_DETAILS = new Set(['Normal Goal', 'Penalty', 'Own Goal']);
+export const GOAL_DETAILS = new Set(['Normal Goal', 'Penalty', 'Own Goal']);
 
 const isGoal = (e: ApiEvent) => e.type === 'Goal' && GOAL_DETAILS.has(e.detail);
 
 // Recorded VAR wording (2024-25 Everton v Brighton): type "Var", detail "Goal cancelled". "Penalty cancelled" is a
 // different event (a penalty, not a goal) and is not matched. "Goal Disallowed ..." is the other known form, unverified.
 const isGoalCancellation = (e: ApiEvent) => e.type === 'Var' && /^goal\s+(cancell?ed|disallowed)/i.test(e.detail);
-
-const credit = (score: { home: number; away: number }, homeTeamId: number, scoringTeamId: number) => {
-  if (scoringTeamId === homeTeamId) score.home++;
-  else score.away++;
-};
 
 const sameEvent = (row: EventRow, fixtureId: number, e: ApiEvent) =>
   row.fixtureId === fixtureId &&
@@ -243,5 +196,3 @@ const sameEvent = (row: EventRow, fixtureId: number, e: ApiEvent) =>
 // A VAR cancellation names the goal's team, player and minute but carries its own type and detail.
 const sameGoal = (row: EventRow, v: ApiEvent) =>
   row.elapsed === v.time.elapsed && row.extra === v.time.extra && row.teamId === v.team.id && row.playerId === v.player.id;
-
-const formatMinute = (t: { elapsed: number; extra: number | null }) => `${t.elapsed}${t.extra ? `+${t.extra}` : ''}'`;

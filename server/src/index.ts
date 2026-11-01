@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/cloudflare';
 import { getDb } from './db/client';
 import { createApp } from './app';
 import { apiFootball } from './poller/api-football';
+import { expoPush } from './poller/expo';
 import { runPoller } from './poller/run-poller';
 import { footballData } from './sync/football-data';
 import { runSync } from './sync/run-sync';
@@ -32,8 +33,7 @@ export default Sentry.withSentry(
       await runPoller(
         {
           db,
-          // Placeholder until push delivery lands (#13): the alert is logged, not sent.
-          push: { send: async (push) => console.log(JSON.stringify(push)) },
+          push: expoPush(),
           provider: apiFootball(env.API_FOOTBALL_KEY),
         },
         now,

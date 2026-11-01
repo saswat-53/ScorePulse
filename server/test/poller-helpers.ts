@@ -1,8 +1,11 @@
 import recorded from '../fixtures/api-football/live-all-2026-10-29.json';
 import varMatchJson from '../fixtures/api-football/var-everton-brighton-2024-25.json';
 import { inArray } from 'drizzle-orm';
-import { fixtures } from '../src/db/schema';
-import { type GoalPush, handlePoll, type PollResponse, type PushSender } from '../src/poller/handle-poll';
+import { fixtures, follows, pushTokens, users } from '../src/db/schema';
+import type { AlertPayload } from '../src/db/schema';
+import { deliverAlerts } from '../src/poller/alerts';
+import { handlePoll, type PollResponse } from '../src/poller/handle-poll';
+import type { ExpoMessage, PushSender } from '../src/poller/send-alerts';
 import type { createTestDb } from './db';
 
 export type LiveResponse = typeof recorded;
@@ -57,9 +60,21 @@ export async function insertFixture(
   return row;
 }
 
+// A push service that answers every message with an accepted ticket and keeps the alerts it was given. `sent` holds
+// the payload of each message, in order; `messages` the Expo messages themselves.
 export function fakePush() {
-  const sent: GoalPush[] = [];
-  return { sent, send: async (push: GoalPush) => void sent.push(push) };
+  const sent: AlertPayload[] = [];
+  const messages: ExpoMessage[] = [];
+  const push: PushSender & { sent: AlertPayload[]; messages: ExpoMessage[] } = {
+    sent,
+    messages,
+    send: async (batch) => {
+      messages.push(...batch);
+      sent.push(...batch.map((m) => m.data));
+      return batch.map(() => ({ status: 'ok' as const }));
+    },
+  };
+  return push;
 }
 
 // Real 2024-25 Everton 0-3 Brighton (fixture 1208024): the only VAR recording we have, used as a test file only.
@@ -95,15 +110,24 @@ export async function insertVarFixture(db: Awaited<ReturnType<typeof createTestD
   return row;
 }
 
-// One poll as the Worker makes it: the tracked fixtures are read from the database, then handed to the handler.
-// `trackedApiIds` narrows which matches of the response count as live-tracked (default: all of them).
+// The one account that hears the alerts in tests that are about the poller, not about who gets what: it follows
+// every tracked fixture and has one device.
+export const TEST_USER = 'user_alerts';
+
+// One poll as the Worker makes it: the tracked fixtures are read from the database, handed to the handler, and the
+// alerts it owes are written and sent. `trackedApiIds` narrows which matches of the response count as live-tracked
+// (default: all of them).
 export async function pollOnce(
   deps: { db: Awaited<ReturnType<typeof createTestDb>>['db']; push: PushSender },
   response: PollResponse,
   trackedApiIds: number[] = response.response.map((m) => m.fixture.id),
 ) {
   const rows = await deps.db.select().from(fixtures).where(inArray(fixtures.apiFootballId, trackedApiIds));
+  await deps.db.insert(users).values({ id: TEST_USER }).onConflictDoNothing();
+  await deps.db.insert(pushTokens).values({ userId: TEST_USER, token: 'ExponentPushToken[alerts-test-device]' }).onConflictDoNothing();
+  if (rows.length) await deps.db.insert(follows).values(rows.map((r) => ({ userId: TEST_USER, fixtureId: r.id }))).onConflictDoNothing();
   await handlePoll(deps, response, rows.flatMap((r) => (r.apiFootballId === null ? [] : [{ ...r, apiFootballId: r.apiFootballId }])));
+  await deliverAlerts(deps);
 }
 
 // The lineups and statistics half of a provider, for tests that only exercise the live poll: nothing announced.

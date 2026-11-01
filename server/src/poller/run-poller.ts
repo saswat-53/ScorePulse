@@ -1,8 +1,10 @@
 import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
-import { favoriteTeams, fixtures, follows } from '../db/schema';
+import { favoriteTeams, fixtureEvents, fixtures, follows } from '../db/schema';
 import { runBatch, type PollDb } from './db';
 import { extrasQuery, fetchExtras, pickJobs, type ExtrasProvider } from './extras';
-import { handlePoll, type PollResponse, type PushSender, type TrackedFixture } from './handle-poll';
+import { deliverAlerts } from './alerts';
+import { handlePoll, type PollResponse, type TrackedFixture } from './handle-poll';
+import { sendableCountQuery, type PushSender } from './send-alerts';
 import { planPoll, pollStateQuery, recordRequest } from './quota';
 import {
   HALFTIME,
@@ -14,6 +16,13 @@ import {
 } from './status';
 
 const minutesBefore = (now: Date, minutes: number) => new Date(now.getTime() - minutes * 60_000);
+
+// Rows with an alert owed: a count in the first read, so a quiet run adds no request.
+const owedAlertsQuery = (db: PollDb) =>
+  db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(fixtureEvents)
+    .where(or(eq(fixtureEvents.alertState, 'due'), eq(fixtureEvents.correctionDue, true)));
 
 export type LiveProvider = { fetchLive(leagueIds: number[]): Promise<PollResponse> } & ExtrasProvider;
 
@@ -52,26 +61,35 @@ const dueFixturesQuery = (db: PollDb, now: Date) =>
 
 export async function runPoller(deps: { db: PollDb; push: PushSender; provider: LiveProvider }, now: Date) {
   // One Neon request reads the quota state, every candidate fixture and the fixtures that may need lineups or statistics.
-  const [stateRows, candidates, extraRows] = (await runBatch(deps.db, [
+  const [stateRows, candidates, extraRows, owedRows, sendableRows] = (await runBatch(deps.db, [
     pollStateQuery(deps.db),
     dueFixturesQuery(deps.db, now),
     extrasQuery(deps.db, now),
+    owedAlertsQuery(deps.db),
+    sendableCountQuery(deps.db),
   ])) as [
     Awaited<ReturnType<typeof pollStateQuery>>,
     Awaited<ReturnType<typeof dueFixturesQuery>>,
     Awaited<ReturnType<typeof extrasQuery>>,
+    Awaited<ReturnType<typeof owedAlertsQuery>>,
+    Awaited<ReturnType<typeof sendableCountQuery>>,
   ];
   const plan = planPoll(stateRows[0], now);
 
+  let alertsOwed = owedRows[0].count > 0 || sendableRows[0].count > 0; // left over from an earlier run
   const due = plan.canPoll ? candidates.filter((f) => !plan.favoritesOnly || f.favorite) : [];
   if (due.length > 0) {
     const live = await deps.provider.fetchLive([...new Set(due.map((f) => f.leagueId))]);
     const tracked: TrackedFixture[] = due.flatMap((f) => (f.apiFootballId === null ? [] : [{ ...f, apiFootballId: f.apiFootballId }]));
     // The request counter is written in the same batch as the poll's events.
-    await handlePoll({ ...deps, now }, live, tracked, [recordRequest(deps.db, now)]);
+    const polled = await handlePoll({ db: deps.db, now }, live, tracked, [recordRequest(deps.db, now)]);
+    alertsOwed ||= polled.alertsOwed;
   }
 
   // Lineups and statistics come after the live poll, from what is left of the day's quota.
   const jobs = pickJobs(extraRows, now, { low: plan.low, remaining: plan.remaining - (due.length > 0 ? 1 : 0) });
   await fetchExtras(deps, jobs, now);
+
+  // Goals and corrections the poll owes, or an earlier run left unsent: write them as pending rows, then send (#13).
+  if (alertsOwed) await deliverAlerts(deps);
 }
