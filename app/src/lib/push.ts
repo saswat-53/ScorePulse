@@ -5,7 +5,9 @@ import { Platform } from 'react-native';
 
 // Push works in a development or release build on a phone. The web build has no push, and Expo Go on Android dropped
 // it in SDK 53, so there everything below stays off instead of warning.
-const PUSH_AVAILABLE = Platform.OS !== 'web' && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+const IN_EXPO_GO =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient || Constants.appOwnership === 'expo';
+const PUSH_AVAILABLE = Platform.OS !== 'web' && !IN_EXPO_GO;
 
 // An alert that arrives while the app is open still shows as a banner.
 if (PUSH_AVAILABLE) {
