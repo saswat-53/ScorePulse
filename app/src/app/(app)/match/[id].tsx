@@ -67,8 +67,15 @@ export default function MatchScreen() {
           ) : (
             <Timeline match={match} />
           ))}
-        {active === 'lineups' && <Lineups match={match} />}
-        {active === 'stats' && <Stats match={match} />}
+        {/* Lineups and stats are only fetched for live-tracked matches, so any other match offers Follow instead. */}
+        {(active === 'lineups' || active === 'stats') &&
+          (showFollowCard ? (
+            <NotLiveCard onFollow={() => toggleFollow(match.id)} />
+          ) : active === 'lineups' ? (
+            <Lineups match={match} />
+          ) : (
+            <Stats match={match} />
+          ))}
       </ScrollView>
     </Screen>
   );

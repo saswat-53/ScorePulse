@@ -105,3 +105,9 @@ export async function pollOnce(
   const rows = await deps.db.select().from(fixtures).where(inArray(fixtures.apiFootballId, trackedApiIds));
   await handlePoll(deps, response, rows.flatMap((r) => (r.apiFootballId === null ? [] : [{ ...r, apiFootballId: r.apiFootballId }])));
 }
+
+// The lineups and statistics half of a provider, for tests that only exercise the live poll: nothing announced.
+export const noExtras = {
+  fetchLineups: async () => ({ response: [] }),
+  fetchStatistics: async () => ({ response: [] }),
+};

@@ -42,7 +42,7 @@ export function Lineups({ match }: { match: MatchDetail }) {
   if (!home || !away) {
     return (
       <Text className="mx-4 mt-6 text-center text-[13px] text-muted">
-        Lineups appear when they are announced.
+        {match.status === 'finished' ? 'No lineup was saved for this match.' : 'Lineups appear when they are announced.'}
       </Text>
     );
   }

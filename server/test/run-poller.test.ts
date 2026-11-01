@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { favoriteTeams, fixtures, follows, users } from '../src/db/schema';
 import { runPoller } from '../src/poller/run-poller';
 import { createTestDb } from './db';
-import { fakePush, insertFixture, MATCH_WITH_3_GOALS, MATCH_WITH_OWN_GOAL, pollOf, recordedMatch } from './poller-helpers';
+import { fakePush, insertFixture, noExtras, MATCH_WITH_3_GOALS, MATCH_WITH_OWN_GOAL, pollOf, recordedMatch } from './poller-helpers';
 
 let testDb: Awaited<ReturnType<typeof createTestDb>>;
 beforeEach(async () => {
@@ -20,7 +20,7 @@ function fakeProvider() {
   const requests: number[][] = [];
   return {
     requests,
-    fetchLive: async (leagueIds: number[]) => {
+    ...noExtras, fetchLive: async (leagueIds: number[]) => {
       requests.push(leagueIds);
       return pollOf(recordedMatch(MATCH_WITH_3_GOALS));
     },
@@ -100,7 +100,7 @@ test('a poll that brings a new goal makes two Neon requests: one to read, one to
     await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   }
   const provider = {
-    fetchLive: async () => ({
+    ...noExtras, fetchLive: async () => ({
       response: [recordedMatch(MATCH_WITH_3_GOALS), recordedMatch(MATCH_WITH_OWN_GOAL)],
     }),
   };
@@ -116,7 +116,7 @@ test('stores the status and score from the poll, and a match at halftime is not 
   const fixture = await insertFixture(db, match, { kickoff: KICKOFF, status: '1H' });
   await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   const atHalftime = { ...pollOf(match), response: [{ ...match, fixture: { ...match.fixture, status: { ...match.fixture.status, short: 'HT' } }, goals: { home: 2, away: 1 } }] };
-  const provider = { requests: 0, fetchLive: async () => (provider.requests++, atHalftime) };
+  const provider = { requests: 0, ...noExtras, fetchLive: async () => (provider.requests++, atHalftime) };
 
   await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(45));
   await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(50));
@@ -158,7 +158,7 @@ test('a match that has left the live response after 100 minutes is over, and pol
   const fixture = await insertFixture(db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '1H' });
   await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   let live = pollOf(recordedMatch(MATCH_WITH_3_GOALS));
-  const provider = { requests: 0, fetchLive: async () => (provider.requests++, live) };
+  const provider = { requests: 0, ...noExtras, fetchLive: async () => (provider.requests++, live) };
 
   await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(50)); // seen live
   live = { response: [] }; // the API stops listing it at full time
@@ -175,7 +175,7 @@ test('a match missing from the live response before 100 minutes is not written o
   const fixture = await insertFixture(db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '1H' });
   await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   let live = pollOf(recordedMatch(MATCH_WITH_3_GOALS));
-  const provider = { fetchLive: async () => live };
+  const provider = { ...noExtras, fetchLive: async () => live };
 
   await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(50));
   live = { response: [] }; // an API hiccup

@@ -4,7 +4,11 @@ import type { MatchDetail } from '@/domain/types';
 
 export function Stats({ match }: { match: MatchDetail }) {
   if (!match.stats) {
-    return <Text className="mx-4 mt-6 text-center text-[13px] text-muted">Stats are not available yet.</Text>;
+    return (
+      <Text className="mx-4 mt-6 text-center text-[13px] text-muted">
+        {match.status === 'finished' ? 'No stats were saved for this match.' : 'Stats appear at halftime.'}
+      </Text>
+    );
   }
   return (
     <View className="mx-4 mt-4 rounded-2xl border border-neon/25 bg-surface px-4 pb-3 pt-1">
@@ -34,6 +38,7 @@ export function Stats({ match }: { match: MatchDetail }) {
           </View>
         );
       })}
+      <Text className="pt-4 text-center text-[11px] text-muted">Updated at halftime and full time.</Text>
     </View>
   );
 }

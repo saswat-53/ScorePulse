@@ -1,4 +1,6 @@
-import { date, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { date, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+
+export type StoredLineupPlayer = { id: number; name: string; number: number; position: 'G' | 'D' | 'M' | 'F'; grid: string | null };
 
 // Owned-by-app table. Row is created on first sign-in and deleted with the account
 // (kept in sync with Clerk by the `user.deleted` webhook, added in Phase 3).
@@ -27,6 +29,10 @@ export const fixtures = pgTable('fixtures', {
   source: text('source').notNull(),
   // Set by the poller on a fixture's first poll; events seen before this are backfill, not news (ADR 0002).
   firstPolledAt: timestamp('first_polled_at', { withTimezone: true }),
+  // Fetches that came back empty (#11), so a match whose lineups or stats never arrive is not asked for forever.
+  lineupsAttempts: integer('lineups_attempts').notNull().default(0),
+  statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),
+  statsFtAttempts: integer('stats_ft_attempts').notNull().default(0),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -60,6 +66,42 @@ export const fixtureEvents = pgTable(
       .on(t.fixtureId, t.elapsed, t.extra, t.teamId, t.playerId, t.type, t.detail)
       .nullsNotDistinct(),
   ],
+);
+
+// A team's lineup for a live-tracked fixture, fetched once before kickoff (#11). It is the starting lineup:
+// substitutions are applied on read from `fixture_events`, so the poll needs no second request for them.
+export const fixtureLineups = pgTable(
+  'fixture_lineups',
+  {
+    id: serial('id').primaryKey(),
+    fixtureId: integer('fixture_id')
+      .notNull()
+      .references(() => fixtures.id, { onDelete: 'cascade' }),
+    teamId: integer('team_id').notNull(),
+    formation: text('formation'),
+    coach: text('coach'),
+    starters: jsonb('starters').$type<StoredLineupPlayer[]>().notNull(),
+    substitutes: jsonb('substitutes').$type<StoredLineupPlayer[]>().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('fixture_lineups_fixture_team').on(t.fixtureId, t.teamId)],
+);
+
+// A team's match statistics, as numbers under the app's stat keys. Overwritten by each fetch (halftime, full time).
+export const fixtureStats = pgTable(
+  'fixture_stats',
+  {
+    id: serial('id').primaryKey(),
+    fixtureId: integer('fixture_id')
+      .notNull()
+      .references(() => fixtures.id, { onDelete: 'cascade' }),
+    teamId: integer('team_id').notNull(),
+    stats: jsonb('stats').$type<Record<string, number>>().notNull(),
+    // When it was taken: 'HT' (halftime) or 'FT' (final, replaces the halftime numbers).
+    phase: text('phase').$type<'HT' | 'FT'>().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('fixture_stats_fixture_team').on(t.fixtureId, t.teamId)],
 );
 
 // A push already sent, so a retry or a second poll never sends it twice.

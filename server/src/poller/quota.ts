@@ -36,7 +36,8 @@ export function planPoll(row: StateRow, now: Date) {
   const intervalMs = (low ? LOW_INTERVAL_MINUTES : NORMAL_INTERVAL_MINUTES) * 60_000;
   const lastPolledAt = row?.lastPolledAt ?? null;
   const tooSoon = lastPolledAt !== null && now.getTime() - lastPolledAt.getTime() < intervalMs - INTERVAL_SLACK_MS;
-  return { canPoll: requestsUsed(row, now) < DAILY_REQUESTS && !tooSoon, favoritesOnly: low };
+  const remaining = Math.max(0, DAILY_REQUESTS - requestsUsed(row, now));
+  return { canPoll: remaining > 0 && !tooSoon, favoritesOnly: low, low, remaining };
 }
 
 // Not awaited here: it goes into the same batch as the poll's writes.
@@ -51,6 +52,22 @@ export function recordRequest(db: PollDb, now: Date) {
         requestsToday: sql`case when ${pollState.quotaDay} = ${day} then ${pollState.requestsToday} + 1 else 1 end`,
         quotaDay: day,
         lastPolledAt: now,
+      },
+    });
+}
+
+// Requests spent on lineups and statistics (#11). They count toward the day but leave `lastPolledAt` alone,
+// so they never move the live poll off its beat.
+export function recordExtraRequests(db: PollDb, now: Date, count: number) {
+  const day = quotaDay(now);
+  return db
+    .insert(pollState)
+    .values({ id: STATE_ID, requestsToday: count, quotaDay: day })
+    .onConflictDoUpdate({
+      target: pollState.id,
+      set: {
+        requestsToday: sql`case when ${pollState.quotaDay} = ${day} then ${pollState.requestsToday} + ${count} else ${count} end`,
+        quotaDay: day,
       },
     });
 }

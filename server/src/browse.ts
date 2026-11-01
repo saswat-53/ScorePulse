@@ -1,6 +1,7 @@
 import { alias } from 'drizzle-orm/pg-core';
 import { and, asc, desc, eq, gte, inArray, isNull, lt, type SQL } from 'drizzle-orm';
-import { fixtureEvents, fixtures, follows, standings, teamMap } from './db/schema';
+import { fixtureEvents, fixtureLineups, fixtures, fixtureStats, follows, standings, teamMap, type StoredLineupPlayer } from './db/schema';
+import { toStatRows } from './lineups-stats';
 import { API_FOOTBALL_LEAGUE, leagueCodeOf, type LeagueCode } from './leagues';
 import { runBatch, type PollDb } from './poller/db';
 import { hasFavorite, hasFollow } from './poller/run-poller';
@@ -105,14 +106,16 @@ const GOAL_DETAIL: Record<string, string> = {
 const CARD_DETAIL: Record<string, string> = { 'Yellow Card': 'yellow-card', 'Red Card': 'red-card' };
 
 // A match with its timeline. A match nobody tracks has no stored events, so its timeline is empty: the app shows
-// it locked ("not live-tracked, tap Follow") from `tracking`. Lineups and statistics are #11.
+// it locked ("not live-tracked, tap Follow") from `tracking`.
 export async function getMatch(db: PollDb, id: number, userId: string, quotaLow: boolean) {
   const [row] = await selectFixtures(db, [eq(fixtures.id, id)]);
   if (!row) return null;
-  const [rows, followRows] = (await runBatch(db, [
+  const [rows, followRows, lineupRows, statRows] = (await runBatch(db, [
     db.select().from(fixtureEvents).where(and(eq(fixtureEvents.fixtureId, id), isNull(fixtureEvents.removedAt))),
     db.select().from(follows).where(and(eq(follows.fixtureId, id), eq(follows.userId, userId))),
-  ])) as [(typeof fixtureEvents.$inferSelect)[], unknown[]];
+    db.select().from(fixtureLineups).where(eq(fixtureLineups.fixtureId, id)),
+    db.select().from(fixtureStats).where(eq(fixtureStats.fixtureId, id)),
+  ])) as [(typeof fixtureEvents.$inferSelect)[], unknown[], (typeof fixtureLineups.$inferSelect)[], (typeof fixtureStats.$inferSelect)[]];
 
   const ordered = [...rows].sort((a, b) => a.elapsed - b.elapsed || (a.extra ?? 0) - (b.extra ?? 0) || a.id - b.id);
   // The score after each goal, from the goals still standing. The API credits an own goal to the side that gains it.
@@ -142,7 +145,42 @@ export async function getMatch(db: PollDb, id: number, userId: string, quotaLow:
     return [];
   });
 
-  return { ...toFixture(row, quotaLow), events, lineups: null, stats: null, followed: followRows.length > 0 };
+  const substitutions = ordered.filter((e) => e.type === 'subst');
+  const lineups = [row.fixture.homeTeamId, row.fixture.awayTeamId].flatMap((teamId) => {
+    const stored = lineupRows.find((l) => l.teamId === teamId);
+    if (!stored) return [];
+    const { starters, substitutes } = applySubstitutions(stored, substitutions.filter((e) => e.teamId === teamId));
+    return [{ teamId, formation: stored.formation, coach: stored.coach, starters, substitutes }];
+  });
+  const homeStats = statRows.find((s) => s.teamId === row.fixture.homeTeamId);
+  const awayStats = statRows.find((s) => s.teamId === row.fixture.awayTeamId);
+
+  return {
+    ...toFixture(row, quotaLow),
+    events,
+    lineups: lineups.length ? lineups : null,
+    stats: homeStats && awayStats ? toStatRows(homeStats.stats, awayStats.stats) : null,
+    followed: followRows.length > 0,
+  };
+}
+
+// The stored lineup is the starting one. Each substitution puts the player who came on in the place of the one who
+// went off (he takes the same spot on the pitch) and takes him off the bench. The API names the player going off by
+// id and the one coming on by name only. One it cannot place is skipped, so a mismatch never loses a player.
+function applySubstitutions(
+  lineup: { starters: StoredLineupPlayer[]; substitutes: StoredLineupPlayer[] },
+  substitutions: { playerId: number | null; assistName: string | null }[],
+) {
+  const starters = [...lineup.starters];
+  const substitutes = [...lineup.substitutes];
+  for (const { playerId, assistName } of substitutions) {
+    const off = starters.findIndex((p) => p.id === playerId);
+    const on = substitutes.findIndex((p) => p.name === assistName);
+    if (off < 0 || on < 0) continue;
+    const [incoming] = substitutes.splice(on, 1);
+    starters[off] = { ...incoming, grid: starters[off].grid };
+  }
+  return { starters, substitutes };
 }
 
 const CHAMPIONS_LEAGUE_PLACES = 4;

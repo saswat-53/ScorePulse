@@ -3,7 +3,7 @@ import { favoriteTeams, fixtures, follows, pollState, users } from '../src/db/sc
 import { getPollStatus } from '../src/poller/quota';
 import { runPoller } from '../src/poller/run-poller';
 import { createTestDb } from './db';
-import { fakePush, insertFixture, MATCH_WITH_3_GOALS, MATCH_WITH_OWN_GOAL, pollOf, recordedMatch } from './poller-helpers';
+import { fakePush, insertFixture, noExtras, MATCH_WITH_3_GOALS, MATCH_WITH_OWN_GOAL, pollOf, recordedMatch } from './poller-helpers';
 
 let testDb: Awaited<ReturnType<typeof createTestDb>>;
 beforeEach(async () => {
@@ -19,7 +19,7 @@ function fakeProvider() {
   const requests: number[][] = [];
   return {
     requests,
-    fetchLive: async (leagueIds: number[]) => {
+    ...noExtras, fetchLive: async (leagueIds: number[]) => {
       requests.push(leagueIds);
       return pollOf(recordedMatch(MATCH_WITH_3_GOALS));
     },

@@ -78,6 +78,13 @@
       "when": 1793463093450,
       "tag": "0010_fixture_events_names",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793521699141,
+      "tag": "0011_fixture_lineups_stats",
+      "breakpoints": true
     }
   ]
 }
