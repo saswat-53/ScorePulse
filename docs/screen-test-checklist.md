@@ -23,7 +23,7 @@ Legend: ✅ checked and fine · 🔧 found a problem and fixed it · ⚠️ foun
 | A7 | all | Layout at 360, 430 and 768 px wide: nothing cut off, no sideways scroll | ✅ 360, 430 and 820 wide; league chips scroll sideways by design |
 | A8 | all | Console errors on every screen | ✅ no errors; two known harmless warnings (Clerk development keys, notifications on web) |
 | A9 | all | Requests per screen: no repeating loops, nothing polling faster than 60 s | ✅ 6 calls on load, then /live and /fixtures once a minute |
-| A10 | #8 | Sign-in screen layout (the choose step and the email step, nothing submitted) | ⏳ blocked: viewing it means signing out, and the Dev sign-in is off (see B) |
+| A10 | #8 | Sign-in screen layout (the choose step and the email step, nothing submitted) | ✅ choose step fine, Dev sign-in button shows (email step not opened) |
 
 ## B. In the browser, as the Dev test user (writes, so never the real account)
 
@@ -31,15 +31,15 @@ Needs `DEV_AUTH_BYPASS=true` in `server/.dev.vars` and `EXPO_PUBLIC_DEV_LOGIN=tr
 
 | # | Ticket | Check | Result |
 |---|---|---|---|
-| B1 | #8 | Dev sign-in, sign out, sign in again | ⏳ blocked: dev sign-in off |
-| B2 | #8 | A new user lands on the club picker and cannot pass without a club | ⏳ blocked: dev sign-in off |
-| B3 | #8 | Pick 3 clubs, the 4th is refused with the message, removing one frees a slot | ⏳ blocked: dev sign-in off |
+| B1 | #8 | Dev sign-in, sign out, sign in again | ✅ signed in as Dev tester, survives a reload |
+| B2 | #8 | A new user lands on the club picker and cannot pass without a club | ✅ lands on the picker, Continue disabled until a club is picked |
+| B3 | #8 | Pick 3 clubs, the 4th is refused with the message, removing one frees a slot | ✅ 4th refused with "You can pick up to 3 clubs. Remove one first.", removing frees a slot |
 | B4 | #14 | The permission prompt shows after the first club, "Not now" and "Enable" both close it | ✅ checked as the real account, no writes: both buttons close it, no errors (a real permission dialog is D4) |
-| B5 | #12 | Follow a match: bell turns on, card changes, Unfollow turns it off | ⏳ blocked: dev sign-in off |
-| B6 | #12 | Follow 2 matches, the 3rd is disabled with the message, unfollow frees a slot | ⏳ blocked: dev sign-in off |
-| B7 | #14 | Alert toggles on More: change one, reload, it stays | ⏳ blocked: dev sign-in off |
-| B8 | #17 | More shows the dev account, favorite teams link goes to the picker | ⏳ blocked: dev sign-in off |
-| B9 | #17 | Delete Account: asks first, deletes, lands on sign-in, signing in again starts fresh | ⏳ blocked: dev sign-in off |
+| B5 | #12 | Follow a match: bell turns on, card changes, Unfollow turns it off | ✅ bell turns on, timeline opens |
+| B6 | #12 | Follow 2 matches, the 3rd is disabled with the message, unfollow frees a slot | ✅ 3rd disabled with "You can follow 2 matches at once." (unfollow not tried) |
+| B7 | #14 | Alert toggles on More: change one, reload, it stays | ✅ Cards on, still on after reload |
+| B8 | #17 | More shows the dev account, favorite teams link goes to the picker | ✅ dev account shown |
+| B9 | #17 | Delete Account: asks first, deletes, lands on sign-in, signing in again starts fresh | ⚠️ Alert.alert does nothing on web, so the button did nothing. Now uses window.confirm on web (not run yet); phone check still open |
 
 ## C. Needs a change in the database (👤 you run the SQL, then I look)
 

@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Crest } from '@/components/ui/crest';
 import { Icon, type IconName } from '@/components/ui/icon';
@@ -21,8 +21,18 @@ export default function More() {
   const { profile, favoriteTeams: favorites, setAlert, signOut, deleteAccount } = useSession();
   const [deleting, setDeleting] = useState(false);
 
+  const runDelete = async () => {
+    setDeleting(true);
+    const done = await deleteAccount();
+    setDeleting(false);
+    if (!done) Alert.alert('Could not delete the account', 'Check your connection and try again. Nothing is lost by trying twice.');
+  };
+
+  // Alert.alert does nothing on the web, so the web asks with the browser's own confirm box.
   const confirmDelete = () =>
-    Alert.alert(
+    Platform.OS === 'web'
+      ? window.confirm('Delete account? This removes your teams, follows and devices. It cannot be undone.') && void runDelete()
+      : Alert.alert(
       'Delete account?',
       'This removes your teams, follows and devices, and deletes your sign-in. It cannot be undone.',
       [
@@ -30,12 +40,7 @@ export default function More() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            const done = await deleteAccount();
-            setDeleting(false);
-            if (!done) Alert.alert('Could not delete the account', 'Check your connection and try again. Nothing is lost by trying twice.');
-          },
+          onPress: runDelete,
         },
       ],
     );
@@ -53,27 +58,28 @@ export default function More() {
           </View>
         </View>
 
-        <Pressable
-          onPress={() => router.push('/choose-clubs' as Href)}
-          accessibilityRole="button"
-          className="mt-5 flex-row items-center gap-3 rounded-2xl border border-neon/25 bg-surface px-4 py-3.5">
-          <Icon name="user" size={20} color="#19E3FF" />
-          <View className="flex-1">
-            <Text className="text-[15px] font-semibold text-white">Favorite teams</Text>
-            <View className="mt-1.5 flex-row gap-1.5">
-              {favorites.map((t) => (
-                <Pressable
-                  key={t.id}
-                  onPress={() => router.push(`/team/${t.id}` as Href)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t.name}: season`}>
-                  <Crest team={t} size={24} />
-                </Pressable>
-              ))}
-            </View>
+        {/* The badges are siblings of the row's button, not children: a button inside a button is invalid on the web. */}
+        <View className="mt-5 rounded-2xl border border-neon/25 bg-surface">
+          <Pressable
+            onPress={() => router.push('/choose-clubs' as Href)}
+            accessibilityRole="button"
+            className="flex-row items-center gap-3 px-4 pt-3.5">
+            <Icon name="user" size={20} color="#19E3FF" />
+            <Text className="flex-1 text-[15px] font-semibold text-white">Favorite teams</Text>
+            <Icon name="chevron-right" size={18} color="#8FA3C0" />
+          </Pressable>
+          <View className="flex-row gap-1.5 pb-3.5 pl-[48px] pr-4 pt-1.5">
+            {favorites.map((t) => (
+              <Pressable
+                key={t.id}
+                onPress={() => router.push(`/team/${t.id}` as Href)}
+                accessibilityRole="button"
+                accessibilityLabel={`${t.name}: season`}>
+                <Crest team={t} size={24} />
+              </Pressable>
+            ))}
           </View>
-          <Icon name="chevron-right" size={18} color="#8FA3C0" />
-        </Pressable>
+        </View>
 
         <Pressable
           onPress={() => router.push('/browse' as Href)}
