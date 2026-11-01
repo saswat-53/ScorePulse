@@ -59,7 +59,19 @@ export async function handlePoll(
   );
   const markOver = over.length ? [deps.db.update(fixtures).set({ status: FULL_TIME, fullTimeAlertDue: true, updatedAt: now }).where(inArray(fixtures.id, over.map((f) => f.id)))] : [];
   // Every fixture this poll covered is now seen, whether or not the provider listed it (#15).
-  const markSeen = tracked.length ? [deps.db.update(fixtures).set({ lastPolledAt: now }).where(inArray(fixtures.id, tracked.map((f) => f.id)))] : [];
+  // The same statement records the minute each listed match is at, so the screen can show it.
+  const minutes = known.flatMap(({ match, fixture }) => (typeof match.fixture.status?.elapsed === 'number' ? [{ id: fixture.id, minute: match.fixture.status.elapsed }] : []));
+  const markSeen = tracked.length
+    ? [
+        deps.db
+          .update(fixtures)
+          .set({
+            lastPolledAt: now,
+            ...(minutes.length && { minute: sql`case ${fixtures.id} ${sql.join(minutes.map((m) => sql`when ${m.id} then ${m.minute}`), sql` `)} else ${fixtures.minute} end` }),
+          })
+          .where(inArray(fixtures.id, tracked.map((f) => f.id))),
+      ]
+    : [];
   if (known.length === 0) {
     await runBatch(deps.db, [...markSeen, ...markOver, ...sameBatchWrites]);
     return { alertsOwed: over.length > 0 };

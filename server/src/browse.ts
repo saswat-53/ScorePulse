@@ -63,7 +63,8 @@ const toFixture = ({ fixture: f, home: h, away: a, favorite, followed }: Fixture
   round: null,
   kickoffUtc: f.kickoff.toISOString(),
   status: STATUS[f.status] ?? 'scheduled',
-  minute: null,
+  // Only while the ball is in play: at halftime and outside the match there is no minute to show.
+  minute: IN_PLAY.includes(f.status) ? f.minute : null,
   home: teamJson(h),
   away: teamJson(a),
   score: { home: f.homeGoals, away: f.awayGoals },

@@ -134,6 +134,13 @@
       "when": 1793533446398,
       "tag": "0018_score_fallback",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793537193824,
+      "tag": "0019_fixture_minute",
+      "breakpoints": true
     }
   ]
 }
