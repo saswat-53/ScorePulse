@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScorePulse</title>
+    <meta name="description" content="Goals, cards and full time from the clubs you follow, on your phone. Five leagues, no noise." />
+    <meta name="theme-color" content="#050B14" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23050B14'/%3E%3Cpath d='M3 17h7l3-8 5 15 3-7h8' fill='none' stroke='%2319E3FF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="#top" aria-label="ScorePulse">Score<span>Pulse</span></a>
+      <a class="get" data-download href="#get">Get the app</a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>The match,<br />without the noise.</h1>
+          <p class="lede">Pick up to three clubs. ScorePulse tells you about their goals, cards, substitutions, kick-off and full time, and shows you the live match, the table and the whole season.</p>
+          <div class="cta-row">
+            <a class="btn" data-download href="#get">Get the Android app</a>
+            <span class="soft">Free. Five leagues.</span>
+          </div>
+        </div>
+        <figure class="phone hero-phone">
+          <img src="/shots/home.png" width="430" height="941" alt="ScorePulse home screen with two live matches and the day's fixtures" />
+        </figure>
+
+        <div class="strip" role="img" aria-label="A match timeline: goal at 23 minutes, yellow card at 41, substitution at 58, goal at 74, full time at 90">
+          <div class="strip-axis"><i></i></div>
+          <span class="ev goal" style="--at:25.5%"><b>23'</b> Goal</span>
+          <span class="ev card" style="--at:45.5%"><b>41'</b> Yellow card</span>
+          <span class="ev sub" style="--at:64.5%"><b>58'</b> Substitution</span>
+          <span class="ev goal" style="--at:82%"><b>74'</b> Goal</span>
+          <span class="ev end" style="--at:100%"><b>90'</b> Full time</span>
+        </div>
+      </section>
+
+      <section class="row">
+        <div class="row-copy">
+          <h2>Your clubs, your alerts</h2>
+          <p>Choose up to three clubs and follow up to two matches at a time. Then decide what is worth a buzz: goals, cards, substitutions, kick-off, full time. Each one is a switch.</p>
+          <p class="fine">You can search every club in Europe's top leagues by country, or by name.</p>
+        </div>
+        <figure class="phone"><img src="/shots/alerts.png" width="430" height="553" loading="lazy" alt="Notification settings with a switch for goals, cards, substitutions, match start and full time" /></figure>
+      </section>
+
+      <section class="row flip">
+        <div class="row-copy">
+          <h2>The table, as it stands</h2>
+          <p>Premier League, La Liga, Bundesliga, Ligue 1 and the Champions League. The top four are marked, and your own clubs are lit up so you find them fast.</p>
+        </div>
+        <figure class="phone"><img src="/shots/standings.png" width="430" height="941" loading="lazy" alt="Premier League table with the top four marked" /></figure>
+      </section>
+
+      <section class="row">
+        <div class="row-copy">
+          <h2>A whole season, one tap away</h2>
+          <p>Open any club to see every result and every fixture still to come, month by month. Tap a match for the timeline, the line-ups and the stats.</p>
+        </div>
+        <figure class="phone"><img src="/shots/team.png" width="430" height="941" loading="lazy" alt="A club's season, listed month by month with results and upcoming fixtures" /></figure>
+      </section>
+
+      <section class="plain">
+        <h2>What it is, and what it isn't</h2>
+        <dl>
+          <div><dt>Near-live, not instant</dt><dd>Scores refresh every few minutes while matches are on. It is built to keep you informed, not to beat the broadcast.</dd></div>
+          <div><dt>Five competitions</dt><dd>Premier League, La Liga, Bundesliga, Ligue 1 and the Champions League.</dd></div>
+          <div><dt>Yours to delete</dt><dd>One tap in the app removes your account, your clubs and your devices.</dd></div>
+        </dl>
+      </section>
+
+      <section class="get" id="get">
+        <h2>Join the first players</h2>
+        <p>ScorePulse is new, and the first group on the pitch shapes what comes next.</p>
+        <a class="btn big" data-download href="#get">Get the Android app</a>
+        <p class="fine" data-download-note></p>
+      </section>
+    </main>
+
+    <footer>
+      <span>ScorePulse</span>
+      <span>Not affiliated with any league or club. Data from football-data.org and API-Football.</span>
+    </footer>
+  </body>
+</html>
