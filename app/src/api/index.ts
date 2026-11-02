@@ -62,6 +62,22 @@ export const api = {
     return body.fixtures.map(withColors<Fixture>);
   },
 
+  /** Real call: a page of everything ahead (soonest first) or everything played (newest first), for one league or all. */
+  fixturesPage: async (
+    token: string,
+    scope: 'upcoming' | 'results',
+    leagueId: LeagueId | undefined,
+    offset: number,
+    limit: number,
+  ): Promise<{ fixtures: Fixture[]; hasMore: boolean }> => {
+    const league = leagueId ? `&league=${leagueId}` : '';
+    const body = await call<{ fixtures: WithServerTeams<Fixture>[]; hasMore: boolean }>(
+      token,
+      `/fixtures?scope=${scope}&limit=${limit}&offset=${offset}${league}`,
+    );
+    return { fixtures: body.fixtures.map(withColors<Fixture>), hasMore: body.hasMore };
+  },
+
   /** Real call: matches in play or at halftime now. */
   live: async (token: string, leagueId?: LeagueId): Promise<Fixture[]> => {
     const body = await call<{ fixtures: WithServerTeams<Fixture>[] }>(token, `/live${leagueId ? `?league=${leagueId}` : ''}`);

@@ -1,5 +1,5 @@
 import { useAppAuth } from '@/lib/use-app-auth';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import type { LeagueId } from '@/domain/types';
 
@@ -19,6 +19,20 @@ export const useFixtures = (date: string, leagueId?: LeagueId) => {
     queryKey: ['fixtures', date, leagueId ?? 'all'],
     queryFn: async () => api.fixtures(await token(), date, leagueId),
     refetchInterval: 60_000, // scores and statuses change while the screen is open
+  });
+};
+
+const PAGE = 30;
+
+/** Everything ahead (`upcoming`) or already played (`results`), a page at a time, for one league or all. */
+export const useFixturesScope = (scope: 'upcoming' | 'results', leagueId?: LeagueId, pageSize = PAGE) => {
+  const token = useToken();
+  return useInfiniteQuery({
+    queryKey: ['fixtures-scope', scope, leagueId ?? 'all', pageSize],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => api.fixturesPage(await token(), scope, leagueId, pageParam, pageSize),
+    getNextPageParam: (last, pages) => (last.hasMore ? pages.reduce((n, p) => n + p.fixtures.length, 0) : undefined),
+    refetchInterval: 60_000,
   });
 };
 

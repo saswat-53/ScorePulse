@@ -124,3 +124,42 @@ test('a bad window or league is a 400, not an empty list', async () => {
 test('fixtures need a signed-in user', async () => {
   expect((await get('/fixtures?from=2026-10-01T00:00:00Z&to=2026-10-02T00:00:00Z', false)).status).toBe(401);
 });
+
+test('upcoming is every match not started, soonest first, a page at a time', async () => {
+  const kickoffs = next14.matches.filter((m) => m.status === 'TIMED' || m.status === 'SCHEDULED').map((m) => Date.parse(m.utcDate)).sort();
+  const clock = new Date(kickoffs[0] - 60_000);
+  const app = createApp(() => testDb.db, () => clock);
+  const get2 = async (q: string) =>
+    (await (await app.request(`/fixtures?scope=upcoming${q}`, { headers: { Authorization: 'Bearer token-user_a' } }, env)).json()) as { fixtures: FixtureJson[]; hasMore: boolean };
+
+  const first = await get2('&limit=3');
+  const second = await get2('&limit=3&offset=3');
+
+  expect(first.fixtures).toHaveLength(3);
+  expect(first.hasMore).toBe(true);
+  const both = [...first.fixtures, ...second.fixtures];
+  const times = both.map((f) => Date.parse(f.kickoffUtc));
+  expect(times).toEqual([...times].sort((a, b) => a - b));
+  expect(times[0]).toBeGreaterThanOrEqual(kickoffs[0]);
+  expect(new Set(both.map((f) => f.id)).size).toBe(6);
+  expect(both.every((f) => f.status === 'scheduled')).toBe(true);
+});
+
+test('results are every finished match, newest first, and the league filter applies', async () => {
+  const res = await get('/fixtures?scope=results&limit=100&league=PL');
+  const body = res.body as unknown as { fixtures: FixtureJson[]; hasMore: boolean };
+
+  expect(body.fixtures.length).toBe(finished.matches.filter((m) => m.status === 'FINISHED').length);
+  expect(body.hasMore).toBe(false);
+  const times = body.fixtures.map((f) => Date.parse(f.kickoffUtc));
+  expect(times).toEqual([...times].sort((a, b) => b - a));
+  expect(body.fixtures.every((f) => f.status === 'finished' && f.leagueId === 'PL')).toBe(true);
+  expect((await get('/fixtures?scope=results&league=PD')).body.fixtures).toEqual([]);
+});
+
+test('a bad scope or page is a 400', async () => {
+  expect((await get('/fixtures?scope=soon')).status).toBe(400);
+  expect((await get('/fixtures?scope=upcoming&limit=0')).status).toBe(400);
+  expect((await get('/fixtures?scope=upcoming&limit=101')).status).toBe(400);
+  expect((await get('/fixtures?scope=upcoming&offset=-1')).status).toBe(400);
+});

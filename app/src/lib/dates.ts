@@ -52,6 +52,16 @@ export const dayLabel = (iso: string): string => {
   return DOW[new Date(iso).getDay()];
 };
 
+/** A day heading for a grouped list: "Today", "Tomorrow", or "Wed 4 Nov". */
+export const dayHeading = (iso: string): string => {
+  const d = new Date(iso);
+  const key = dateKey(d);
+  if (key === dateKey(new Date())) return 'Today';
+  if (key === dateKey(addDays(1))) return 'Tomorrow';
+  if (key === dateKey(addDays(-1))) return 'Yesterday';
+  return `${DOW[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
+};
+
 export const minutesAgo = (iso: string): number =>
   Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
 

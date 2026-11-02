@@ -6,7 +6,7 @@ import { cors } from 'hono/cors';
 import { createMiddleware } from 'hono/factory';
 import { appConfig, favoriteTeams, fixtures, follows, pushTokens, teamMap, users } from './db/schema';
 import type { Bindings, Variables } from './env';
-import { getBrowseTree, getLeagueClubs, getMatch, getStandings, listFixtures, teamFixtures } from './browse';
+import { getBrowseTree, getLeagueClubs, getMatch, getStandings, listFixtures, listScope, teamFixtures } from './browse';
 import { isLeagueCode } from './leagues';
 import { activeFollowIds, isOver } from './follows';
 import { MAX_ACTIVE_FOLLOWS, MAX_FAVORITES } from './limits';
@@ -180,8 +180,18 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
         const from = new Date(c.req.query('from') ?? '');
         const to = new Date(c.req.query('to') ?? '');
         const league = c.req.query('league');
-        if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return c.json({ error: 'invalid_window' }, 400);
+        const scope = c.req.query('scope');
         if (league !== undefined && !isLeagueCode(league)) return c.json({ error: 'invalid_league' }, 400);
+        // `scope=upcoming|results` is a page of everything ahead or everything played, instead of one window.
+        if (scope !== undefined) {
+          const limit = Number(c.req.query('limit') ?? 30);
+          const offset = Number(c.req.query('offset') ?? 0);
+          if (scope !== 'upcoming' && scope !== 'results') return c.json({ error: 'invalid_scope' }, 400);
+          if (!Number.isInteger(limit) || limit < 1 || limit > 100 || !Number.isInteger(offset) || offset < 0) return c.json({ error: 'invalid_page' }, 400);
+          const db = getDb(c.env);
+          return c.json(await listScope(db, { scope, now: now(), league, limit, offset }, await getPollStatus(db, now())));
+        }
+        if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return c.json({ error: 'invalid_window' }, 400);
         const db = getDb(c.env);
         const status = await getPollStatus(db, now());
         return c.json({ fixtures: await listFixtures(db, { from, to, league }, status) });

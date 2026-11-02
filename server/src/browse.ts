@@ -41,14 +41,16 @@ const teamJson = (t: typeof teamMap.$inferSelect) => ({
   crestUrl: t.crestUrl,
 });
 
-const selectFixtures = (db: PollDb, where: (SQL | undefined)[]) =>
-  db
+const selectFixtures = (db: PollDb, where: (SQL | undefined)[], page?: { newestFirst?: boolean; limit: number; offset: number }) => {
+  const query = db
     .select({ fixture: fixtures, home, away, favorite: hasFavorite.as('favorite'), followed: hasFollow.as('followed') })
     .from(fixtures)
     .innerJoin(home, eq(home.apiFootballId, fixtures.homeTeamId))
     .innerJoin(away, eq(away.apiFootballId, fixtures.awayTeamId))
     .where(and(...where))
-    .orderBy(asc(fixtures.kickoff), asc(fixtures.id));
+    .orderBy(...(page?.newestFirst ? [desc(fixtures.kickoff), desc(fixtures.id)] : [asc(fixtures.kickoff), asc(fixtures.id)]));
+  return page ? query.limit(page.limit).offset(page.offset) : query;
+};
 
 type FixtureRow = Awaited<ReturnType<typeof selectFixtures>>[number];
 
@@ -91,6 +93,23 @@ export async function listFixtures(
   if (query.league) where.push(eq(fixtures.leagueId, API_FOOTBALL_LEAGUE[query.league]));
   if (query.inPlayOnly) where.push(inArray(fixtures.status, IN_PLAY_STATUSES));
   return (await selectFixtures(db, where)).map((row) => toFixture(row, status));
+}
+
+// The home page's and the Fixtures tab's lists, not tied to one day. `upcoming`: matches not started, from three hours
+// ago on (so one just due to kick off still shows), soonest first. `results`: finished matches, newest first. A page at a
+// time (`limit`, `offset`); one more row than asked for tells the caller whether there is a next page.
+export async function listScope(
+  db: PollDb,
+  query: { scope: 'upcoming' | 'results'; now: Date; league?: LeagueCode; limit: number; offset: number },
+  status: UpdateStatus,
+) {
+  const upcoming = query.scope === 'upcoming';
+  const where: (SQL | undefined)[] = upcoming
+    ? [eq(fixtures.status, 'NS'), gte(fixtures.kickoff, new Date(query.now.getTime() - 3 * 3_600_000))]
+    : [inArray(fixtures.status, ['FT', 'AET', 'PEN', 'AWD'])];
+  if (query.league) where.push(eq(fixtures.leagueId, API_FOOTBALL_LEAGUE[query.league]));
+  const rows = await selectFixtures(db, where, { newestFirst: !upcoming, limit: query.limit + 1, offset: query.offset });
+  return { fixtures: rows.slice(0, query.limit).map((row) => toFixture(row, status)), hasMore: rows.length > query.limit };
 }
 
 // One team's fixtures in date order (oldest first), home and away, optionally in one competition. Null for a team that is

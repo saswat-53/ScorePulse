@@ -1,30 +1,41 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useFixtures } from '@/api/hooks';
-import { DayStrip } from '@/components/fixtures/day-strip';
+import { useFixturesScope } from '@/api/hooks';
+import { groupByDay } from '@/components/fixtures/day-groups';
 import { FixtureRow } from '@/components/fixtures/fixture-row';
 import { GroupHeader } from '@/components/fixtures/group-header';
+import { LeagueChips } from '@/components/fixtures/league-chips';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { LEAGUES } from '@/domain/mock';
-import { dateKey, dayChips } from '@/lib/dates';
+import type { LeagueId } from '@/domain/types';
+import { dayHeading } from '@/lib/dates';
 import { useSession } from '@/state/session';
 
 type Mode = 'fixtures' | 'results';
 
-// Fixtures cover the next 14 days, results the past week (ScoreplusPlan scope).
-const FIXTURE_DAYS = dayChips(0, 13);
-const RESULT_DAYS = dayChips(-7, -1);
+const isLeague = (v: unknown): v is LeagueId => LEAGUES.some((l) => l.id === v);
 
+// Fixtures: everything still to come, soonest first. Results: everything played, newest first. One league or all.
+// Home's "See All" opens this with its league already chosen.
 export default function Fixtures() {
-  const [mode, setMode] = useState<Mode>('fixtures');
-  const [fixtureDay, setFixtureDay] = useState(dateKey(new Date()));
-  const [resultDay, setResultDay] = useState(RESULT_DAYS[RESULT_DAYS.length - 1].key);
+  const params = useLocalSearchParams<{ league?: string; mode?: string }>();
+  const [mode, setMode] = useState<Mode>(params.mode === 'results' ? 'results' : 'fixtures');
+  const [league, setLeague] = useState<LeagueId | 'all'>(isLeague(params.league) ? params.league : 'all');
   const { profile } = useSession();
 
-  const day = mode === 'fixtures' ? fixtureDay : resultDay;
-  const { data = [], isLoading } = useFixtures(day);
+  // Another "See All" tap arrives with new params while this tab is already mounted: follow it.
+  const [seen, setSeen] = useState(`${params.league}|${params.mode}`);
+  if (seen !== `${params.league}|${params.mode}`) {
+    setSeen(`${params.league}|${params.mode}`);
+    setLeague(isLeague(params.league) ? params.league : 'all');
+    setMode(params.mode === 'results' ? 'results' : 'fixtures');
+  }
+
+  const list = useFixturesScope(mode === 'fixtures' ? 'upcoming' : 'results', league === 'all' ? undefined : league);
+  const fixtures = list.data?.pages.flatMap((p) => p.fixtures) ?? [];
   const mine = (id: number) => profile.favoriteTeamIds.includes(id);
 
   return (
@@ -33,7 +44,7 @@ export default function Fixtures() {
         <Text className="text-[28px] font-extrabold text-white">Fixtures</Text>
       </View>
 
-      <View className="mx-4 mb-3.5 mt-3">
+      <View className="mx-4 mb-2 mt-3">
         <Segmented
           value={mode}
           onChange={setMode}
@@ -44,31 +55,32 @@ export default function Fixtures() {
         />
       </View>
 
-      <DayStrip
-        days={mode === 'fixtures' ? FIXTURE_DAYS : RESULT_DAYS}
-        value={day}
-        onChange={mode === 'fixtures' ? setFixtureDay : setResultDay}
-      />
+      <LeagueChips value={league} onChange={setLeague} />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-        {LEAGUES.map((l) => {
-          const rows = data.filter((f) => f.leagueId === l.id);
-          if (rows.length === 0) return null;
-          return (
-            <View key={l.id}>
-              <GroupHeader title={l.name} />
-              {rows.map((f) => (
-                <FixtureRow key={f.id} fixture={f} highlight={mine(f.home.id) || mine(f.away.id)} />
-              ))}
-            </View>
-          );
-        })}
-        {!isLoading && data.length === 0 ? (
+        {groupByDay(fixtures).map((g) => (
+          <View key={g.key}>
+            <GroupHeader title={dayHeading(g.kickoffUtc)} />
+            {g.fixtures.map((f) => (
+              <FixtureRow key={f.id} fixture={f} showDate={mode === 'results'} highlight={mine(f.home.id) || mine(f.away.id)} />
+            ))}
+          </View>
+        ))}
+        {fixtures.length === 0 ? (
           <Text className="mt-10 text-center text-[13px] text-muted">
-            {mode === 'fixtures' ? 'No fixtures on this day.' : 'No results on this day.'}
+            {list.isLoading ? 'Loading…' : mode === 'fixtures' ? 'No upcoming fixtures.' : 'No results yet.'}
           </Text>
         ) : null}
-        {mode === 'results' && data.length > 0 ? (
+        {list.hasNextPage ? (
+          <Pressable
+            onPress={() => list.fetchNextPage()}
+            disabled={list.isFetchingNextPage}
+            accessibilityRole="button"
+            className="mt-5 h-11 items-center justify-center rounded-2xl border border-border bg-surface">
+            <Text className="text-[13px] font-semibold text-white">{list.isFetchingNextPage ? 'Loading…' : 'Load more'}</Text>
+          </Pressable>
+        ) : null}
+        {mode === 'results' && fixtures.length > 0 ? (
           <Text className="mt-4 text-center text-[11px] text-muted">Final scores are saved each night.</Text>
         ) : null}
       </ScrollView>

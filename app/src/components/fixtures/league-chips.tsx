@@ -30,7 +30,9 @@ export function LeagueChips({ value, onChange, includeAll = true, only }: Props)
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 20 }}
-      className="grow-0 border-b border-neon/10">
+      // On the web a horizontal scroll area shrinks to nothing when another scroll area shares its column.
+      style={{ flexGrow: 0, flexShrink: 0 }}
+      className="border-b border-neon/10">
       {includeAll ? <LeagueTab label="All" active={value === 'all'} onPress={() => onChange('all')} /> : null}
       {LEAGUES.filter((l) => !only || only.includes(l.id)).map((l) => (
         <LeagueTab key={l.id} label={l.shortName} active={value === l.id} onPress={() => onChange(l.id)} />
