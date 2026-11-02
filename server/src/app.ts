@@ -1,4 +1,5 @@
 import { createClerkClient, verifyToken } from '@clerk/backend';
+import * as Sentry from '@sentry/cloudflare';
 import { and, asc, eq, ilike, or } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -88,6 +89,12 @@ const realClerk = (env: Bindings): ClerkUsers => createClerkClient({ secretKey: 
 export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = () => new Date(), clerk: (env: Bindings) => ClerkUsers = realClerk) {
   return (
     new Hono<AppEnv>()
+      // Hono catches an error a route throws and answers 500 itself, so Sentry's wrapper never sees it; report it here.
+      .onError((err, c) => {
+        Sentry.captureException(err);
+        return c.text('Internal Server Error', 500);
+      })
+
       // The web build, which only runs on a developer's machine, asks permission before each call (CORS). The shipped
       // app is native and sends no origin, so only local development origins are allowed, never another website.
       .use(
@@ -376,12 +383,6 @@ export function createApp(getDb: (env: Bindings) => PollDb, now: () => Date = ()
           .delete(pushTokens)
           .where(and(eq(pushTokens.userId, c.get('userId')), eq(pushTokens.token, token)));
         return c.body(null, 204);
-      })
-
-      // Phase 1 only: a deliberate error to confirm Sentry receives server exceptions.
-      // Behind auth so strangers cannot burn the Sentry event quota. Remove before launch.
-      .get('/debug/sentry', requireAuth, () => {
-        throw new Error('ScorePulse server test error (Phase 1 Sentry check)');
       })
   );
 }

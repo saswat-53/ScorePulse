@@ -37,7 +37,8 @@
       "@clerk/expo",
       "expo-secure-store",
       "expo-image",
-      "expo-notifications"
+      "expo-notifications",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,

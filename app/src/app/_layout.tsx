@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import { UpdateRequiredView } from '@/components/update-required-view';
 import { useVersionGate } from '@/lib/app-version';
+import { Sentry } from '@/lib/sentry';
 import { SessionProvider } from '@/state/session';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
@@ -28,7 +29,7 @@ function Routes() {
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#050B18' } }} />;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
@@ -40,3 +41,5 @@ export default function RootLayout() {
     </ClerkProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

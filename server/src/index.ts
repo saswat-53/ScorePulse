@@ -14,8 +14,11 @@ const app = createApp((env) => getDb(env.DATABASE_URL));
 
 export default Sentry.withSentry(
   (env: Bindings) => ({
-    dsn: env.SENTRY_DSN,
+    // No DSN on a developer's machine (DEV_AUTH_BYPASS is only ever set in .dev.vars), so local errors stay out of Sentry.
+    dsn: env.DEV_AUTH_BYPASS === 'true' ? undefined : env.SENTRY_DSN,
     tracesSampleRate: 0.1,
+    // No IP address or other user identity goes out with a report (#18).
+    dataCollection: { userInfo: false },
   }),
   {
     fetch: app.fetch,
