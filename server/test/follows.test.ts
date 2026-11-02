@@ -62,6 +62,20 @@ test('following the same match twice is accepted and uses one slot', async () =>
   expect((await follow('user_a', c.id)).status).toBe(409);
 });
 
+test('following, unfollowing and following the same match again uses one slot, not one per tap', async () => {
+  const [a, b, c] = await matches(3);
+
+  for (let i = 0; i < 3; i++) {
+    await follow('user_a', a.id);
+    await unfollow('user_a', a.id);
+  }
+  await follow('user_a', a.id);
+
+  expect(await followedIds('user_a')).toEqual([a.id]);
+  expect((await follow('user_a', b.id)).status).toBe(200); // a second, different match still fits
+  expect((await follow('user_a', c.id)).status).toBe(409);
+});
+
 test('a 3rd active follow is rejected with a clear error and the first 2 stay', async () => {
   const [a, b, c] = await matches(3);
   await follow('user_a', a.id);

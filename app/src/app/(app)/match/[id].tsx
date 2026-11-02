@@ -12,6 +12,7 @@ import { Overview } from '@/components/match/overview';
 import { LimitedBanner, PausedBanner } from '@/components/match/paused-banner';
 import { Stats } from '@/components/match/stats';
 import { Timeline } from '@/components/match/timeline';
+import { WaitingCard } from '@/components/match/waiting-card';
 import { Screen } from '@/components/ui/screen';
 import { MAX_ACTIVE_FOLLOWS } from '@/domain/types';
 import { useSession } from '@/state/session';
@@ -57,6 +58,8 @@ export default function MatchScreen() {
   const finished = match.status === 'finished';
   const active: MatchTab = tab ?? (liveTracked && !finished ? 'timeline' : 'overview');
   const showFollowCard = !liveTracked && !finished;
+  // Live-tracked but nothing stored yet: no poll has landed since the follow, so say what is being waited for.
+  const awaitingFirstPoll = liveTracked && !finished && match.events.length === 0 && !match.lineups && !match.stats;
 
   return (
     <Screen bottom>
@@ -84,6 +87,8 @@ export default function MatchScreen() {
               <NotLiveCard onFollow={onToggleFollow} disabled={followDisabled} />
               <LockedTimeline />
             </>
+          ) : awaitingFirstPoll ? (
+            <WaitingCard match={match} />
           ) : (
             <Timeline match={match} />
           ))}
@@ -91,6 +96,8 @@ export default function MatchScreen() {
         {(active === 'lineups' || active === 'stats') &&
           (showFollowCard ? (
             <NotLiveCard onFollow={onToggleFollow} disabled={followDisabled} />
+          ) : awaitingFirstPoll ? (
+            <WaitingCard match={match} />
           ) : active === 'lineups' ? (
             <Lineups match={match} />
           ) : (
