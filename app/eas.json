@@ -1,0 +1,21 @@
+{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "credentialsSource": "local",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://scorepulse-api.saswat53.workers.dev",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_c21vb3RoLXBvbnktODYxMC5jbGVyay5hY2NvdW50cy5kZXYk",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://7bb3060b15b8002cbaa6147b18398786@o4512361512108032.ingest.de.sentry.io/4512361624305744",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+      }
+    }
+  }
+}
