@@ -3,6 +3,7 @@ import { fixtureEvents, fixtureLineups, fixtures, fixtureStats } from '../db/sch
 import { parseLineups, parseStats, type LineupsResponse, type StatisticsResponse } from '../lineups-stats';
 import { runBatch, type PollDb, type Statement } from './db';
 import { eventRow, isAlertable, type ApiEvent } from './handle-poll';
+import { RateLimited } from './rate-limit';
 import { planLinks, type LinkCandidate, type LiveMatch } from './link';
 import { hasFavorite, hasFollow } from './run-poller';
 import { HALFTIME, IN_PLAY, MAX_LATE_START_MINUTES, MAX_MATCH_HOURS, NOT_STARTED } from './status';
@@ -130,14 +131,22 @@ export function pickLinkLookups(rows: Candidate[], now: Date, plan: { low: boole
 export async function fetchLinks(deps: { db: PollDb; provider: ExtrasProvider }, lookups: LinkLookup[], now: Date) {
   const { db, provider } = deps;
   const linked = new Map<number, number>();
-  if (lookups.length === 0) return linked;
   const writes: Statement[] = [];
+  let made = 0;
+  let refused = false;
 
   for (const { date, fixtures: wanted } of lookups) {
     let links: { fixtureId: number; apiFootballId: number }[] = [];
     try {
+      made++;
       links = planLinks(wanted, (await provider.fetchFixturesOn(date)).response).links;
     } catch (error) {
+      // Refused for rate limit: the day was not looked up, so it costs no try and no request, and the run stops.
+      if (error instanceof RateLimited) {
+        made--;
+        refused = true;
+        break;
+      }
       console.error(`lookup of ${date}: ${error instanceof Error ? error.message : error}`);
     }
     const found = new Set(links.map((l) => l.fixtureId));
@@ -156,9 +165,11 @@ export async function fetchLinks(deps: { db: PollDb; provider: ExtrasProvider },
       writes.push(db.update(fixtures).set({ linkAttempts: sql`${fixtures.linkAttempts} + 1` }).where(inArray(fixtures.id, missed)));
     }
   }
-  writes.push(recordExtraRequests(db, now, lookups.length));
-  await runBatch(db, writes);
-  return linked;
+  if (made > 0) {
+    writes.push(recordExtraRequests(db, now, made));
+    await runBatch(db, writes);
+  }
+  return { linked, refused };
 }
 
 // What to fetch now, most useful first: lineups (favorites first), the match completed by id, then final statistics,
@@ -212,10 +223,12 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
   const { db, provider } = deps;
   const writes: Statement[] = [];
   let alertsOwed = false;
+  let made = 0;
 
   for (const { kind, fixture } of jobs) {
     const id = fixture.apiFootballId;
     try {
+      made++;
       if (kind === 'final') {
         const item = (await provider.fetchFixture(id)).response[0];
         if (!item) throw new Error('not found');
@@ -241,6 +254,11 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
         writes.push(upsertStats(db, fixture.id, stats, kind === 'stats-ft' ? 'FT' : 'HT', now));
       }
     } catch (error) {
+      // Refused for rate limit: nothing was asked, so no try and no request are spent, and the run stops here.
+      if (error instanceof RateLimited) {
+        made--;
+        break;
+      }
       console.error(`${kind} for fixture ${fixture.id}: ${error instanceof Error ? error.message : error}`);
       const column =
         kind === 'lineups'
@@ -253,8 +271,10 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
       writes.push(db.update(fixtures).set(column).where(eq(fixtures.id, fixture.id)));
     }
   }
-  writes.push(recordExtraRequests(db, now, jobs.length));
-  await runBatch(db, writes);
+  if (made > 0) {
+    writes.push(recordExtraRequests(db, now, made));
+    await runBatch(db, writes);
+  }
   return alertsOwed;
 }
 

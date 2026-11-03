@@ -4,6 +4,7 @@ import lineupsJson from '../fixtures/api-football/lineups-everton-brighton-2024-
 import statisticsJson from '../fixtures/api-football/statistics-everton-brighton-2024-25.json';
 import { favoriteTeams, fixtureLineups, fixtures, fixtureStats, follows, pollState, users } from '../src/db/schema';
 import { getPollStatus } from '../src/poller/quota';
+import { RateLimited } from '../src/poller/rate-limit';
 import { runPoller } from '../src/poller/run-poller';
 import { createTestDb } from './db';
 import { fakePush, insertFixture, MATCH_WITH_3_GOALS, pollOf, recordedMatch } from './poller-helpers';
@@ -371,4 +372,49 @@ test('a lookup that fails is counted against the quota and the tries, and does n
 
   expect(await used(at(-70))).toBe(1);
   expect((await attempts(fixture.id)).linkAttempts).toBe(1);
+});
+
+// API-Football refuses a request over its per-minute limit with a 200 and an error in the body. That is not an empty
+// answer: the match was not asked about, so it costs no try and no quota, and the rest of the run waits for the next beat.
+const refused = () => {
+  throw new RateLimited('fixtures/lineups?fixture=1');
+};
+
+test('a lineups request refused for rate limit costs no try and no quota, and the rest of the run stops', async () => {
+  const fixture = await followed('NS');
+  const other = await insertFixture(testDb.db, recordedMatch(1635511), { kickoff: KICKOFF, status: 'NS' });
+  await testDb.db.insert(follows).values({ userId: 'user_a', fixtureId: other.id });
+  const provider = { ...fakeProvider(), fetchLineups: async (id: number) => (provider.asked.push(id), refused()), asked: [] as number[] };
+
+  await run(provider, at(-30));
+
+  expect(provider.asked).toHaveLength(1); // the second match was not tried against a limit that had just refused
+  expect((await attempts(fixture.id)).lineupsAttempts).toBe(0);
+  expect((await attempts(other.id)).lineupsAttempts).toBe(0);
+  expect(await used(at(-30))).toBe(0);
+
+  const next = fakeProvider();
+  await run(next, at(-25)); // the next beat asks again
+  expect(next.calls.lineups.length).toBeGreaterThan(0);
+});
+
+test('a lookup refused for rate limit costs no try and no quota', async () => {
+  const fixture = await unlinked();
+  const provider = { ...fakeProvider(), fetchFixturesOn: async () => refused() };
+
+  await run(provider, at(-70));
+
+  expect((await attempts(fixture.id)).linkAttempts).toBe(0);
+  expect(await used(at(-70))).toBe(0);
+});
+
+test('a live poll refused for rate limit is skipped: nothing is recorded, no extras are asked for, and the run does not fail', async () => {
+  const fixture = await followed('1H');
+  const provider = { ...fakeProvider(), fetchLive: async () => refused() };
+
+  await run(provider, at(10));
+
+  expect(await used(at(10))).toBe(0);
+  expect((await attempts(fixture.id)).lastPolledAt).toBeNull();
+  expect(provider.calls.lineups).toHaveLength(0);
 });
