@@ -9,8 +9,22 @@ const BASE = 'https://v3.football.api-sports.io';
 // `fixtures?live=` takes ids joined by a dash and rejects a single one (answering 200 with an error and no matches).
 export const liveLeagues = (leagueIds: number[]) => (leagueIds.length === 1 ? `${leagueIds[0]}-${leagueIds[0]}` : leagueIds.join('-'));
 
-export function apiFootball(apiKey: string): LiveProvider {
-  const get = async (path: string) => {
+// A request refused for rate limit is tried once more after this pause, in the same run. Why the Worker's first request of
+// a minute is often refused is not known; the pause shows in the logs whether the refusal is brief.
+const RETRY_AFTER_REFUSAL_MS = 20_000;
+
+export function apiFootball(apiKey: string, options: { retryMs?: number } = {}): LiveProvider {
+  const retryMs = options.retryMs ?? RETRY_AFTER_REFUSAL_MS;
+  const get = async (path: string): Promise<unknown> => {
+    try {
+      return await getOnce(path);
+    } catch (error) {
+      if (!(error instanceof RateLimited)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, retryMs));
+      return getOnce(path);
+    }
+  };
+  const getOnce = async (path: string) => {
     const res = await fetch(`${BASE}/${path}`, { headers: { 'x-apisports-key': apiKey } });
     if (!res.ok) throw new Error(`API-Football answered ${res.status}`);
     const body = (await res.json()) as { errors?: object };

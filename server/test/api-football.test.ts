@@ -14,7 +14,7 @@ test('an answer with an error in its body is logged, since the 200 hides it', as
   const fail = vi.spyOn(console, 'error').mockImplementation((m: string) => void logged.push(m));
   vi.stubGlobal('fetch', async () => ({ ok: true, headers: new Headers(), json: async () => ({ errors: { rateLimit: 'Too many requests' }, response: [] }) }));
 
-  await expect(apiFootball('key').fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
+  await expect(apiFootball('key', { retryMs: 0 }).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
 
   expect(logged.join()).toMatch(/fixtures\?live=2-2.*rateLimit/);
   fail.mockRestore();
@@ -63,10 +63,42 @@ test('a refusal logs the same counts, and a missing header shows as a question m
   const headers = new Headers({ 'x-ratelimit-requests-remaining': '70' });
   vi.stubGlobal('fetch', async () => ({ ok: true, headers, json: async () => ({ errors: { rateLimit: 'x' }, response: [] }) }));
 
-  await expect(apiFootball('key').fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
+  await expect(apiFootball('key', { retryMs: 0 }).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
 
-  expect(logged).toEqual(['API-Football fixtures?live=2-2: 70 left today, ? left this minute']);
+  // The request and its retry, each logged.
+  expect(logged).toEqual(Array(2).fill('API-Football fixtures?live=2-2: 70 left today, ? left this minute'));
   log.mockRestore();
   err.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+// A refusal for rate limit is retried once after a pause, inside the same run; two in a row end the run (RateLimited).
+test('a request refused for rate limit is tried once more after a pause, and the second answer is used', async () => {
+  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const answers = [{ errors: { rateLimit: 'x' }, response: [] }, { errors: [], response: [{ fixture: { id: 7 } }] }];
+  const fetchMock = vi.fn(async () => ({ ok: true, headers: new Headers(), json: async () => answers.shift() }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  const res = await apiFootball('key', { retryMs: 0 }).fetchLive([2, 39]);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(res.response).toHaveLength(1);
+  err.mockRestore();
+  log.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+test('two refusals in a row end in RateLimited, after exactly two requests', async () => {
+  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const fetchMock = vi.fn(async () => ({ ok: true, headers: new Headers(), json: async () => ({ errors: { rateLimit: 'x' }, response: [] }) }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(apiFootball('key', { retryMs: 0 }).fetchLive([2, 39])).rejects.toBeInstanceOf(RateLimited);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  err.mockRestore();
+  log.mockRestore();
   vi.unstubAllGlobals();
 });
