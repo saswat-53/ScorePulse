@@ -15,6 +15,18 @@ const OVERRIDES: Record<number, number> = {
   5721: 327, // FK Bodø/Glimt / Bodo/Glimt
   529: 94, // Stade Rennais FC 1901 / Rennes
   674: 197, // PSV / PSV Eindhoven
+  // Champions League clubs from outside the five leagues. They are not in the recorded 2024 list (it has the five
+  // leagues only), so their ids come from API-Football's team search. Without a link, football-data.org matches
+  // involving them are skipped by the sync and never reach the Fixtures screen.
+  100: 497, // AS Roma
+  113: 492, // SSC Napoli / Napoli
+  503: 212, // FC Porto
+  1899: 575, // PAE AEK / AEK Athens FC
+  2016: 1026, // LASK Linz / Lask Linz
+  5720: 759, // Viking FK / Viking
+  7397: 895, // Como 1907 / Como
+  10233: 13976, // Sabah FK / Sabah FA (Azerbaijan)
+  535: 1298, // Le Mans FC / Le Mans
 };
 
 const url = readFileSync('.dev.vars', 'utf8').split('\n').find((l) => l.startsWith('DATABASE_URL'))?.split('=').slice(1).join('=').trim().replace(/^["']|["']$/g, '');
