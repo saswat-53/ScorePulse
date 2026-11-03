@@ -163,12 +163,14 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8p
   .btn.big { padding: 15px 28px; font-size: 1.05rem; }
 
   /* one small phone is pinned at the top while the words scroll up beneath it */
-  .story-inner { display: flex; flex-direction: column; }
-  .sticky { order: -1; position: sticky; top: var(--top-h); z-index: 2; --h: clamp(300px, 46svh, 400px); height: var(--h); margin-inline: calc(var(--gutter) * -1); background: var(--night); perspective: none; opacity: calc(1 - var(--release, 0)); }
+  .story-inner { --h: clamp(300px, 46svh, 400px); display: flex; flex-direction: column; }
+  .sticky { order: -1; position: sticky; top: var(--top-h); z-index: 2; --h: clamp(300px, 46svh, 400px); height: var(--h); margin-inline: calc(var(--gutter) * -1); background: var(--night); perspective: none; }
+  /* room for the phone to rest in when it lets go, so it never lands on the last words */
+  .story-inner::after { content: ''; height: var(--h, 0); flex: none; }
   .sticky .rings { inset: 4% 0; }
   .big { --pw: calc((var(--h) - 28px) / 1.95); }
-  .step { min-height: 56svh; justify-content: flex-start; padding: 28px 0 0; }
-  .step:last-child { min-height: 64svh; }
+  .step { min-height: 0; justify-content: flex-start; padding: 44px 0 52px; }
+  .step:last-child { padding-bottom: 36px; }
   .step--hero { min-height: 0; padding-bottom: 24px; }
   .step--hero h1 { font-size: clamp(2.7rem, 12.5vw, 4.6rem); }
   .step h2 { font-size: 1.85rem; }

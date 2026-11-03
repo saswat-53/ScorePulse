@@ -47,10 +47,6 @@ function tour() {
   let current = -1;
   const update = () => {
     const y = line();
-    // On a phone the pinned phone lets go at the end of the story. Fade it as it leaves instead of letting the bar slice it.
-    const bar = document.querySelector('.top').offsetHeight;
-    const gone = matchMedia('(max-width: 900px)').matches ? (bar - pinned.getBoundingClientRect().top) / (pinned.offsetHeight * 0.45) : 0;
-    root.style.setProperty('--release', Math.min(1, Math.max(0, gone)).toFixed(3));
     let i = 0;
     steps.forEach((s, k) => {
       if (s.getBoundingClientRect().top <= y) i = k;
