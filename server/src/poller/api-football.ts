@@ -14,6 +14,10 @@ export function apiFootball(apiKey: string): LiveProvider {
     const res = await fetch(`${BASE}/${path}`, { headers: { 'x-apisports-key': apiKey } });
     if (!res.ok) throw new Error(`API-Football answered ${res.status}`);
     const body = (await res.json()) as { errors?: object };
+    // What is left of the day and of the minute, on every request, refused ones included: comparing a refusal with the
+    // line before it shows whether API-Football counts a refused request against the day's 100.
+    const left = (name: string) => res.headers.get(name) ?? '?';
+    console.log(`API-Football ${path}: ${left('x-ratelimit-requests-remaining')} left today, ${left('x-ratelimit-remaining')} left this minute`);
     // A refused request still answers 200, with the reason in `errors` (an empty list when all is well) and no matches.
     // The callers read that as "nothing here", so the reason is logged where it can be found.
     if (body?.errors && Object.keys(body.errors).length > 0) {
