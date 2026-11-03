@@ -30,32 +30,49 @@ async function loadDownload() {
   }
 }
 
-// The big phone swaps its screen as each step scrolls into the middle of the page.
+// One phone for the whole story: it swaps its screen and leans as each step scrolls into the reading area. The alerts
+// belong to the first screen only, so they switch off once the page moves on.
 function tour() {
   const root = document.querySelector('[data-tour]');
   const stack = root?.querySelector('[data-stack]');
   if (!root || !stack) return;
   const steps = [...root.querySelectorAll('.step')];
   const shots = [...stack.querySelectorAll('img')];
-  const tilts = [-3, 3, -2];
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        const i = steps.indexOf(e.target);
-        steps.forEach((s, k) => s.classList.toggle('is-on', k === i));
-        shots.forEach((img, k) => img.classList.toggle('on', k === i));
-        stack.style.setProperty('--tilt', `${tilts[i] ?? 0}deg`);
-      }
-    },
-    { rootMargin: '-45% 0px -45% 0px' },
-  );
-  steps.forEach((s) => io.observe(s));
+  const tilts = [0, -3, 3, -2];
+  // The step in charge is the last one whose top has passed the reading line. Reading the scroll position, not entry
+  // events, means a reload halfway down or a jump to the end still picks the right screen.
+  const line = () => innerHeight * (matchMedia('(max-width: 900px)').matches ? 0.66 : 0.55);
+  let current = -1;
+  const update = () => {
+    const y = line();
+    let i = 0;
+    steps.forEach((s, k) => {
+      if (s.getBoundingClientRect().top <= y) i = k;
+    });
+    if (i === current) return;
+    current = i;
+    steps.forEach((s, k) => s.classList.toggle('is-on', k === i));
+    shots.forEach((img, k) => img.classList.toggle('on', k === i));
+    stack.style.setProperty('--tilt', `${tilts[i] ?? 0}deg`);
+    root.classList.toggle('is-hero', i === 0);
+  };
+  let queued = false;
+  const onScroll = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      update();
+    });
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  update();
 }
 
-// The hero phone leans toward the pointer.
+// On a screen with a pointer, the phone leans toward it.
 function lean() {
-  const stage = document.querySelector('.stage');
+  const stage = document.querySelector('.sticky');
   const bezel = stage?.querySelector('.bezel');
   if (!stage || !bezel || matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches) return;
   stage.addEventListener('pointermove', (e) => {
