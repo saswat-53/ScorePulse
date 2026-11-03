@@ -9,8 +9,11 @@ export const SUSPENDED = 'SUSP';
 export const CANCELLED = 'CANC';
 export const AWARDED = 'AWD';
 
-// A match not started this long after kickoff is postponed or delayed, so it is not polled.
+// A match not started this long after kickoff is postponed or delayed, so its lineups are no longer asked for.
 export const MAX_LATE_START_MINUTES = 30;
+// A tracked match still marked not started keeps being polled this long after kickoff: it may be in play with the poll
+// that would have said so missed or refused, and a postponed one is told apart by the status the provider reports.
+export const POLL_LATE_START_MINUTES = 90;
 // Halftime lasts 15 minutes; polling resumes once it has likely ended.
 export const HALFTIME_MINUTES = 14;
 // `live=` stops listing a match at full time. Absent after this long, it is over (a 90-minute match with halftime ends by about 105).

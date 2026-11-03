@@ -142,13 +142,13 @@ test('polling resumes for the second half once halftime has had time to end', as
   expect(provider.requests.length).toBe(1);
 });
 
-test('a match still not started 30 minutes after kickoff is not polled (postponed or delayed)', async () => {
+test('a match still not started 95 minutes after kickoff is not polled (postponed or delayed)', async () => {
   const { db } = testDb;
   const fixture = await insertFixture(db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: 'NS' });
   await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   const provider = fakeProvider();
 
-  await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(40));
+  await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(95));
 
   expect(provider.requests.length).toBe(0);
 });
@@ -183,4 +183,18 @@ test('a match missing from the live response before 100 minutes is not written o
 
   const [stored] = await db.select().from(fixtures).where(eq(fixtures.id, fixture.id));
   expect(stored.status).not.toBe('FT');
+});
+
+test('a followed match still marked not started is polled up to 90 minutes after kickoff, so a poll that missed its start recovers', async () => {
+  const { db } = testDb;
+  const match = recordedMatch(MATCH_WITH_3_GOALS);
+  const fixture = await insertFixture(db, match, { kickoff: KICKOFF, status: 'NS' });
+  await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
+  const provider = { requests: 0, ...noExtras, fetchLive: async () => (provider.requests++, pollOf(match)) };
+
+  await runPoller({ db, push: fakePush(), provider }, minutesAfterKickoff(40));
+
+  expect(provider.requests).toBe(1);
+  const [stored] = await db.select().from(fixtures).where(eq(fixtures.id, fixture.id));
+  expect(stored.status).not.toBe('NS');
 });

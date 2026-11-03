@@ -12,7 +12,7 @@ import {
   HALFTIME,
   HALFTIME_MINUTES,
   IN_PLAY,
-  MAX_LATE_START_MINUTES,
+  POLL_LATE_START_MINUTES,
   MAX_MATCH_HOURS,
   NOT_STARTED,
 } from './status';
@@ -71,7 +71,7 @@ const dueFixturesQuery = (db: PollDb, now: Date) =>
         lte(fixtures.kickoff, now),
         or(
           inArray(fixtures.status, IN_PLAY),
-          and(eq(fixtures.status, NOT_STARTED), gt(fixtures.kickoff, minutesBefore(now, MAX_LATE_START_MINUTES))),
+          and(eq(fixtures.status, NOT_STARTED), gt(fixtures.kickoff, minutesBefore(now, POLL_LATE_START_MINUTES))),
           and(eq(fixtures.status, HALFTIME), lte(fixtures.updatedAt, minutesBefore(now, HALFTIME_MINUTES))),
         ),
         or(hasFavorite, hasFollow),

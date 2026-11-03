@@ -12,7 +12,11 @@ export function apiFootball(apiKey: string): LiveProvider {
   const get = async (path: string) => {
     const res = await fetch(`${BASE}/${path}`, { headers: { 'x-apisports-key': apiKey } });
     if (!res.ok) throw new Error(`API-Football answered ${res.status}`);
-    return res.json();
+    const body = (await res.json()) as { errors?: object };
+    // A refused request still answers 200, with the reason in `errors` (an empty list when all is well) and no matches.
+    // The callers read that as "nothing here", so the reason is logged where it can be found.
+    if (body?.errors && Object.keys(body.errors).length > 0) console.error(`API-Football ${path}: ${JSON.stringify(body.errors)}`);
+    return body;
   };
   return {
     // One request for all live matches of the given leagues: `live=39-140` (ids joined by a dash).
