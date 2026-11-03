@@ -42,6 +42,11 @@ export const fixtures = pgTable('fixtures', {
   minute: integer('minute'),
   // Fetches that came back empty (#11), so a match whose lineups or stats never arrive is not asked for forever.
   lineupsAttempts: integer('lineups_attempts').notNull().default(0),
+  // When the last lineups request ran, so the tries stay a quarter of an hour apart even if the first ones come late.
+  lineupsTriedAt: timestamp('lineups_tried_at', { withTimezone: true }),
+  // Lookups of the API-Football id (by date and league) that did not find this match, so a match that is not listed is
+  // not searched for on every beat.
+  linkAttempts: integer('link_attempts').notNull().default(0),
   statsHtAttempts: integer('stats_ht_attempts').notNull().default(0),
   statsFtAttempts: integer('stats_ft_attempts').notNull().default(0),
   // The one fetch by id after full time (#24), which fills in what the last poll missed. Empty or failed answers count.

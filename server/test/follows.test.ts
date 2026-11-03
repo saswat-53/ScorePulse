@@ -209,7 +209,7 @@ test('following a match in play makes it polled, and the first poll stores the e
 });
 
 test('a follow costs no provider request of its own: only the poll that follows it spends one', async () => {
-  const [fixture] = await matches(1, { kickoff: minutesFromNow(-50), status: '2H' });
+  const [fixture] = await matches(1, { kickoff: minutesFromNow(-50), status: '2H', lineupsAttempts: 4 });
   const provider = recordingProvider();
 
   await follow('user_a', fixture.id);

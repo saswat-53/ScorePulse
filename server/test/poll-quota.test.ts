@@ -26,9 +26,10 @@ function fakeProvider() {
   };
 }
 
-// A match in play that a user follows (follow only, no favorite).
+// A match in play that a user follows (follow only, no favorite). Its lineup tries are used up, so the only requests are
+// the live polls these tests count.
 async function followedMatchInPlay() {
-  const fixture = await insertFixture(testDb.db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '2H' });
+  const fixture = await insertFixture(testDb.db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '2H', lineupsAttempts: 4 });
   await testDb.db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
 }
 
@@ -74,7 +75,7 @@ test('a cron run a few seconds early still polls on the 5-minute beat', async ()
 });
 
 test('once 70 of the 100 requests are used, the interval widens to 10 minutes and the state is paused', async () => {
-  await insertFixture(testDb.db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '2H' });
+  await insertFixture(testDb.db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: '2H', lineupsAttempts: 4 });
   await testDb.db.insert(favoriteTeams).values({ userId: 'user_a', teamId: recordedMatch(MATCH_WITH_3_GOALS).teams.home.id });
   await spendRequests(70, at(20), at(20));
   const provider = fakeProvider();

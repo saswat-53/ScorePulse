@@ -42,6 +42,7 @@ function provider(opts: { response?: object; fail?: boolean } = {}) {
       return (opts.response ?? byId()) as never;
     },
     fetchStatistics: async () => (calls.statistics++, { response: [] }),
+    fetchFixturesOn: async () => ({ response: [] }),
     fetchLineups: async () => (calls.lineups++, { response: [] }),
   };
 }

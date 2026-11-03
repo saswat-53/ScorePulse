@@ -1,7 +1,7 @@
 import { and, eq, gt, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { favoriteTeams, fixtureEvents, fixtures, follows } from '../db/schema';
 import { runBatch, type PollDb } from './db';
-import { extrasQuery, fetchExtras, pickJobs, type ExtrasProvider } from './extras';
+import { extrasQuery, fetchExtras, fetchLinks, pickJobs, pickLinkLookups, type ExtrasProvider } from './extras';
 import { planLinks } from './link';
 import { deliverAlerts } from './alerts';
 import { handlePoll, type PollResponse, type TrackedFixture } from './handle-poll';
@@ -104,6 +104,8 @@ export async function runPoller(
   const plan = planPoll(stateRows[0], now);
 
   let alertsOwed = owedRows[0].count > 0 || sendableRows[0].count > 0; // left over from an earlier run
+  // Fixtures the live poll linked this run: they are in play, so they need no lookup.
+  const linkedByPoll = new Set<number>();
   const due = plan.canPoll ? candidates.filter((f) => !plan.favoritesOnly || f.favorite) : [];
   if (due.length > 0) {
     const live = await deps.provider.fetchLive([...new Set(due.map((f) => f.leagueId))]);
@@ -117,6 +119,7 @@ export async function runPoller(
       console.warn(`fixtures not linked to a live match: none found for [${notLinked}], ambiguous for [${plan.ambiguous}]`);
     }
     const linkedTo = new Map(plan.links.map((l) => [l.fixtureId, l.apiFootballId]));
+    linkedTo.forEach((_, id) => linkedByPoll.add(id));
     const tracked: TrackedFixture[] = due.flatMap((f) => {
       const apiFootballId = f.apiFootballId ?? linkedTo.get(f.id) ?? null;
       return apiFootballId === null ? [] : [{ ...f, apiFootballId }];
@@ -148,7 +151,12 @@ export async function runPoller(
   }
 
   // Lineups and statistics come after the live poll, from what is left of the day's quota.
-  const jobs = pickJobs(extraRows, now, { low: plan.low, remaining: plan.remaining - (due.length > 0 ? 1 : 0) });
+  // A followed match with no id is looked up first, so its lineups can be asked for in this same run.
+  const remaining = plan.remaining - (due.length > 0 ? 1 : 0);
+  const lookups = pickLinkLookups(extraRows.filter((f) => !linkedByPoll.has(f.id)), now, { low: plan.low, remaining });
+  const linked = await fetchLinks(deps, lookups, now);
+  const rows = extraRows.map((f) => (linked.has(f.id) ? { ...f, apiFootballId: linked.get(f.id)! } : f));
+  const jobs = pickJobs(rows, now, { low: plan.low, remaining: remaining - lookups.length });
   alertsOwed ||= await fetchExtras(deps, jobs, now);
 
   // Goals and corrections the poll owes, or an earlier run left unsent: write them as pending rows, then send (#13).

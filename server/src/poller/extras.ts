@@ -1,15 +1,24 @@
-import { and, eq, gt, lte, or, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import { fixtureEvents, fixtureLineups, fixtures, fixtureStats } from '../db/schema';
 import { parseLineups, parseStats, type LineupsResponse, type StatisticsResponse } from '../lineups-stats';
 import { runBatch, type PollDb, type Statement } from './db';
 import { eventRow, isAlertable, type ApiEvent } from './handle-poll';
+import { planLinks, type LinkCandidate, type LiveMatch } from './link';
 import { hasFavorite, hasFollow } from './run-poller';
-import { HALFTIME, MAX_LATE_START_MINUTES, MAX_MATCH_HOURS, NOT_STARTED } from './status';
+import { HALFTIME, IN_PLAY, MAX_LATE_START_MINUTES, MAX_MATCH_HOURS, NOT_STARTED } from './status';
 import { recordExtraRequests } from './quota';
 
-// Lineups usually appear 20 to 40 minutes before kickoff. Asking from 35 minutes out, on the 5-minute beat, finds them soon.
-export const LINEUP_LEAD_MINUTES = 35;
-// Lineups and statistics are fetched at most this many times per match and phase, empty answers included.
+// Lineups are asked for at 60, 45 and 30 minutes before kickoff, and once more at 10 if they are still missing. A try
+// waits for its minute and for LINEUP_GAP_MINUTES after the one before, so tries that start late are not packed into
+// consecutive beats. The gap is a minute short of 15 because a run can start a little early.
+export const LINEUP_TRY_MINUTES = [60, 45, 30, 10];
+export const LINEUP_GAP_MINUTES = 14;
+// A followed match with no API-Football id is looked up (by date) this long before kickoff, so the id is
+// there when the first lineups try is due.
+export const LINK_LEAD_MINUTES = 70;
+// Lookups that do not find a match, at most, before it is left alone.
+export const MAX_LINK_TRIES = 2;
+// Statistics and the completion fetch are tried at most this many times per match and phase, empty answers included.
 export const MAX_TRIES = 3;
 // Extra requests in one run, so a busy beat cannot spend a big part of the day at once.
 export const MAX_EXTRA_PER_RUN = 3;
@@ -26,7 +35,11 @@ export type FixtureResponse = {
   response: { fixture: { id: number }; events?: ApiEvent[]; lineups?: LineupsResponse['response']; statistics?: StatisticsResponse['response'] }[];
 };
 
+// `fixtures?date=<day>`: what the by-date lookup returns, as far as the link reads it.
+export type FixturesOnResponse = { response: LiveMatch[] };
+
 export type ExtrasProvider = {
+  fetchFixturesOn(date: string): Promise<FixturesOnResponse>;
   fetchFixture(apiFootballId: number): Promise<FixtureResponse>;
   fetchLineups(apiFootballId: number): Promise<LineupsResponse>;
   fetchStatistics(apiFootballId: number): Promise<StatisticsResponse>;
@@ -45,7 +58,12 @@ export const extrasQuery = (db: PollDb, now: Date) =>
       apiFootballId: fixtures.apiFootballId,
       status: fixtures.status,
       kickoff: fixtures.kickoff,
+      leagueId: fixtures.leagueId,
+      homeTeamId: fixtures.homeTeamId,
+      awayTeamId: fixtures.awayTeamId,
       lineupsAttempts: fixtures.lineupsAttempts,
+      lineupsTriedAt: fixtures.lineupsTriedAt,
+      linkAttempts: fixtures.linkAttempts,
       statsHtAttempts: fixtures.statsHtAttempts,
       statsFtAttempts: fixtures.statsFtAttempts,
       completedAt: fixtures.completedAt,
@@ -60,7 +78,7 @@ export const extrasQuery = (db: PollDb, now: Date) =>
     .where(
       and(
         gt(fixtures.kickoff, new Date(now.getTime() - MAX_MATCH_HOURS * 3_600_000)),
-        lte(fixtures.kickoff, new Date(now.getTime() + LINEUP_LEAD_MINUTES * 60_000)),
+        lte(fixtures.kickoff, new Date(now.getTime() + LINK_LEAD_MINUTES * 60_000)),
         or(hasFavorite, hasFollow),
       ),
     );
@@ -69,6 +87,79 @@ type Candidate = Awaited<ReturnType<typeof extrasQuery>>[number];
 // What a fetch needs to know about its match. The archive (#23) has fewer columns than the poller's candidates.
 type JobFixture = Pick<Candidate, 'id' | 'kickoff' | 'firstPolledAt' | 'hasLineups'> & { apiFootballId: number };
 export type Job = { kind: 'lineups' | 'final' | 'stats-ht' | 'stats-ft'; fixture: JobFixture };
+
+// The next lineups try is due when its minute before kickoff has come and the one before it is a quarter of an hour old.
+const lineupsTryDue = (f: Pick<Candidate, 'kickoff' | 'lineupsAttempts' | 'lineupsTriedAt'>, now: Date) => {
+  const dueAt = LINEUP_TRY_MINUTES[f.lineupsAttempts];
+  if (dueAt === undefined) return false;
+  const minutesToKickoff = (f.kickoff.getTime() - now.getTime()) / 60_000;
+  const sinceLast = f.lineupsTriedAt ? (now.getTime() - f.lineupsTriedAt.getTime()) / 60_000 : Infinity;
+  return minutesToKickoff <= dueAt && sinceLast >= LINEUP_GAP_MINUTES;
+};
+
+// One lookup per UTC day, shared by every followed match of that day that has no id yet (whatever its league).
+export type LinkLookup = { date: string; fixtures: LinkCandidate[] };
+
+// The lookups to make now. Low quota keeps only a favorite's matches (ADR 0016).
+export function pickLinkLookups(rows: Candidate[], now: Date, plan: { low: boolean; remaining: number }): LinkLookup[] {
+  const budget = Math.min(MAX_EXTRA_PER_RUN, plan.remaining);
+  if (budget <= 0) return [];
+  const groups = new Map<string, LinkLookup>();
+  for (const f of rows) {
+    const minutesToKickoff = (f.kickoff.getTime() - now.getTime()) / 60_000;
+    if (
+      f.apiFootballId !== null ||
+      f.status !== NOT_STARTED ||
+      f.linkAttempts >= MAX_LINK_TRIES ||
+      minutesToKickoff > LINK_LEAD_MINUTES ||
+      minutesToKickoff <= -MAX_LATE_START_MINUTES ||
+      (plan.low && !f.favorite)
+    ) {
+      continue;
+    }
+    const date = f.kickoff.toISOString().slice(0, 10);
+    const group = groups.get(date) ?? { date, fixtures: [] };
+    group.fixtures.push(f);
+    groups.set(date, group);
+  }
+  return [...groups.values()].slice(0, budget);
+}
+
+// Makes the lookups, one request each, and links every match they list (the exact-match rule of #22). A match a lookup
+// does not list, or a lookup that fails, costs the match one of its tries. Returns the new ids by fixture.
+export async function fetchLinks(deps: { db: PollDb; provider: ExtrasProvider }, lookups: LinkLookup[], now: Date) {
+  const { db, provider } = deps;
+  const linked = new Map<number, number>();
+  if (lookups.length === 0) return linked;
+  const writes: Statement[] = [];
+
+  for (const { date, fixtures: wanted } of lookups) {
+    let links: { fixtureId: number; apiFootballId: number }[] = [];
+    try {
+      links = planLinks(wanted, (await provider.fetchFixturesOn(date)).response).links;
+    } catch (error) {
+      console.error(`lookup of ${date}: ${error instanceof Error ? error.message : error}`);
+    }
+    const found = new Set(links.map((l) => l.fixtureId));
+    for (const l of links) {
+      linked.set(l.fixtureId, l.apiFootballId);
+      // The `not exists` keeps the id unique if another fixture already holds it.
+      writes.push(
+        db
+          .update(fixtures)
+          .set({ apiFootballId: l.apiFootballId })
+          .where(and(eq(fixtures.id, l.fixtureId), sql`not exists (select 1 from fixtures other where other.api_football_id = ${l.apiFootballId})`)),
+      );
+    }
+    const missed = wanted.filter((f) => !found.has(f.id)).map((f) => f.id);
+    if (missed.length) {
+      writes.push(db.update(fixtures).set({ linkAttempts: sql`${fixtures.linkAttempts} + 1` }).where(inArray(fixtures.id, missed)));
+    }
+  }
+  writes.push(recordExtraRequests(db, now, lookups.length));
+  await runBatch(db, writes);
+  return linked;
+}
 
 // What to fetch now, most useful first: lineups (favorites first), the match completed by id, then final statistics,
 // then halftime ones.
@@ -82,10 +173,10 @@ export function pickJobs(rows: Candidate[], now: Date, plan: { low: boolean; rem
   const lineups = tracked
     .filter(
       (f) =>
-        f.status === NOT_STARTED &&
+        // Not started, or already in play with the lineups missed (a match first tracked after kickoff).
+        ((f.status === NOT_STARTED && minutesToKickoff(f) > -MAX_LATE_START_MINUTES) || [...IN_PLAY, HALFTIME].includes(f.status)) &&
         !f.hasLineups &&
-        minutesToKickoff(f) > -MAX_LATE_START_MINUTES &&
-        f.lineupsAttempts < MAX_TRIES &&
+        lineupsTryDue(f, now) &&
         (!plan.low || (f.favorite && f.lineupsAttempts === 0)),
     )
     .sort((a, b) => Number(b.favorite) - Number(a.favorite) || a.kickoff.getTime() - b.kickoff.getTime())
@@ -153,7 +244,7 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
       console.error(`${kind} for fixture ${fixture.id}: ${error instanceof Error ? error.message : error}`);
       const column =
         kind === 'lineups'
-          ? { lineupsAttempts: sql`${fixtures.lineupsAttempts} + 1` }
+          ? { lineupsAttempts: sql`${fixtures.lineupsAttempts} + 1`, lineupsTriedAt: now }
           : kind === 'final'
             ? { completionAttempts: sql`${fixtures.completionAttempts} + 1` }
             : kind === 'stats-ft'

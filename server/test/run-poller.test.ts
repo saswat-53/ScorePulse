@@ -96,7 +96,7 @@ test('a poll that brings a new goal makes two Neon requests: one to read, one to
   const first = recordedMatch(MATCH_WITH_3_GOALS);
   const second = recordedMatch(MATCH_WITH_OWN_GOAL);
   for (const match of [first, second]) {
-    const fixture = await insertFixture(db, match, { kickoff: KICKOFF, status: '2H' });
+    const fixture = await insertFixture(db, match, { kickoff: KICKOFF, status: '2H', lineupsAttempts: 4 });
     await db.insert(follows).values({ userId: 'user_a', fixtureId: fixture.id });
   }
   const provider = {

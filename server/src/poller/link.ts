@@ -7,7 +7,7 @@
 const KICKOFF_WINDOW_MS = 2 * 3_600_000;
 
 export type LinkCandidate = { id: number; leagueId: number; homeTeamId: number; awayTeamId: number; kickoff: Date };
-type LiveMatch = { fixture: { id: number; date?: string }; league?: { id: number }; teams?: { home: { id: number }; away: { id: number } } };
+export type LiveMatch = { fixture: { id: number; date?: string }; league?: { id: number }; teams?: { home: { id: number }; away: { id: number } } };
 
 export function planLinks(candidates: LinkCandidate[], live: LiveMatch[]) {
   const fits = (f: LinkCandidate, m: LiveMatch) =>

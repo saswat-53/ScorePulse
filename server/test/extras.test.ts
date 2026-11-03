@@ -22,10 +22,17 @@ beforeEach(async () => {
 });
 afterEach(() => testDb.close());
 
-function fakeProvider(opts: { lineups?: object; statistics?: object; fail?: boolean } = {}) {
-  const calls = { live: 0, lineups: [] as number[], statistics: [] as number[] };
+function fakeProvider(opts: { lineups?: object; statistics?: object; fail?: boolean; listed?: boolean; alsoListed?: number[] } = {}) {
+  const calls = { live: 0, lineups: [] as number[], statistics: [] as number[], lookups: [] as string[] };
   return {
     calls,
+    // Every match of one UTC day (the by-date lookup that gives a fixture its API-Football id). The free plan cannot
+    // filter it by league or team: those need a season it does not have.
+    fetchFixturesOn: async (date: string) => {
+      calls.lookups.push(date);
+      const matches = opts.listed === false ? [] : [MATCH_WITH_3_GOALS, ...(opts.alsoListed ?? [])];
+      return { response: matches.map((id) => { const m = recordedMatch(id); return { ...m, fixture: { ...m.fixture, date: KICKOFF.toISOString() } }; }) };
+    },
     fetchLive: async () => (calls.live++, pollOf(recordedMatch(MATCH_WITH_3_GOALS))),
     // The match is found by id but brings no statistics, so the separate final-statistics request follows.
     fetchFixture: async (id: number) => ({ response: [{ fixture: { id }, events: [] }] }),
@@ -99,15 +106,68 @@ test('asks for the lineups once: a stored lineup is not fetched again', async ()
   expect(provider.calls.lineups).toHaveLength(1);
 });
 
-test('lineups not announced yet are asked for again on the next beat, three tries at most', async () => {
+test('does not ask for lineups more than an hour before kickoff', async () => {
+  await followed('NS');
+  const provider = fakeProvider();
+
+  await run(provider, at(-65));
+
+  expect(provider.calls.lineups).toHaveLength(0);
+});
+
+test('lineups not announced yet are asked for at 60, 45 and 30 minutes before kickoff, then once more at 10', async () => {
   const fixture = await followed('NS');
   const provider = fakeProvider({ lineups: EMPTY });
 
-  for (const minute of [-35, -30, -25, -20, -15]) await run(provider, at(minute));
+  const asked: number[] = [];
+  for (let minute = -65; minute <= -5; minute += 5) {
+    const before = provider.calls.lineups.length;
+    await run(provider, at(minute));
+    if (provider.calls.lineups.length > before) asked.push(minute);
+  }
 
-  expect(provider.calls.lineups).toHaveLength(3);
-  expect((await attempts(fixture.id)).lineupsAttempts).toBe(3);
-  expect(await used(at(-10))).toBe(3);
+  expect(asked).toEqual([-60, -45, -30, -10]);
+  expect((await attempts(fixture.id)).lineupsAttempts).toBe(4);
+  expect(await used(at(-5))).toBe(4);
+});
+
+test('tries that start late stay a quarter of an hour apart', async () => {
+  await followed('NS');
+  const provider = fakeProvider({ lineups: EMPTY });
+
+  const asked: number[] = [];
+  for (const minute of [-20, -15, -10, -5]) {
+    const before = provider.calls.lineups.length;
+    await run(provider, at(minute));
+    if (provider.calls.lineups.length > before) asked.push(minute);
+  }
+
+  expect(asked).toEqual([-20, -5]);
+});
+
+test('a lineup that arrives on the second try is stored and asked for no more', async () => {
+  await followed('NS');
+  const provider = fakeProvider({ lineups: EMPTY });
+  await run(provider, at(-60));
+  const found = fakeProvider();
+
+  await run(found, at(-45));
+  await run(found, at(-30));
+  await run(found, at(-10));
+
+  expect(found.calls.lineups).toHaveLength(1);
+  expect(await testDb.db.select().from(fixtureLineups)).toHaveLength(2);
+});
+
+test('a match that kicked off without lineups gets them fetched while it is in play, then no more', async () => {
+  await followed('1H');
+  const provider = fakeProvider();
+
+  await run(provider, at(10));
+  await run(provider, at(30));
+
+  expect(provider.calls.lineups).toHaveLength(1);
+  expect(await testDb.db.select().from(fixtureLineups)).toHaveLength(2);
 });
 
 test('a failed lineups request is counted against the quota and the tries, and does not stop the run', async () => {
@@ -237,4 +297,78 @@ test('extras never push the day past the 100-request limit', async () => {
 
   expect(provider.calls.lineups).toHaveLength(2);
   expect(await used(at(-30))).toBe(100);
+});
+
+// A fixture from the football-data.org snapshot has no API-Football id until something links it (#22). A followed match
+// is looked up by date and league ahead of kickoff, so its lineups can be asked for in time.
+const unlinked = (status = 'NS') => followed(status, { apiFootballId: null });
+const idOf = async (id: number) => (await attempts(id)).apiFootballId;
+
+test('links a followed match without an API-Football id 70 minutes before kickoff, with one lookup for the day', async () => {
+  const fixture = await unlinked();
+  const provider = fakeProvider();
+
+  await run(provider, at(-70));
+
+  expect(provider.calls.lookups).toEqual(['2026-10-29']);
+  expect(await idOf(fixture.id)).toBe(MATCH_WITH_3_GOALS);
+  expect(provider.calls.lineups).toHaveLength(0); // too early for lineups
+  expect(await used(at(-70))).toBe(1);
+});
+
+test('asks for the lineups in the same run that links the match, when it is time', async () => {
+  const fixture = await unlinked();
+  const provider = fakeProvider();
+
+  await run(provider, at(-30));
+
+  expect(provider.calls.lookups).toHaveLength(1);
+  expect(provider.calls.lineups).toEqual([MATCH_WITH_3_GOALS]);
+  expect(await testDb.db.select().from(fixtureLineups)).toHaveLength(2);
+  expect(await idOf(fixture.id)).toBe(MATCH_WITH_3_GOALS);
+  expect(await used(at(-30))).toBe(2);
+});
+
+test('looks a day up once for all its followed matches, and never again once linked', async () => {
+  await unlinked();
+  const second = await insertFixture(testDb.db, recordedMatch(1635511), { kickoff: KICKOFF, status: 'NS', apiFootballId: null });
+  await testDb.db.insert(follows).values({ userId: 'user_a', fixtureId: second.id });
+  const provider = fakeProvider({ alsoListed: [1635511] });
+
+  await run(provider, at(-70));
+  await run(provider, at(-65));
+
+  expect(provider.calls.lookups).toHaveLength(1);
+  expect(await idOf(second.id)).toBe(1635511);
+  expect(await used(at(-65))).toBe(1);
+});
+
+test('does not look up a match nobody follows', async () => {
+  await insertFixture(testDb.db, recordedMatch(MATCH_WITH_3_GOALS), { kickoff: KICKOFF, status: 'NS', apiFootballId: null });
+  const provider = fakeProvider();
+
+  await run(provider, at(-30));
+
+  expect(provider.calls.lookups).toHaveLength(0);
+});
+
+test('a match the lookup does not list is searched for twice at most', async () => {
+  const fixture = await unlinked();
+  const provider = fakeProvider({ listed: false });
+
+  for (const minute of [-70, -65, -60, -55, -50]) await run(provider, at(minute));
+
+  expect(provider.calls.lookups).toHaveLength(2);
+  expect((await attempts(fixture.id)).linkAttempts).toBe(2);
+  expect(await idOf(fixture.id)).toBeNull();
+});
+
+test('a lookup that fails is counted against the quota and the tries, and does not stop the run', async () => {
+  const fixture = await unlinked();
+  const provider = { ...fakeProvider(), fetchFixturesOn: async () => { throw new Error('API-Football answered 500'); } };
+
+  await run(provider, at(-70));
+
+  expect(await used(at(-70))).toBe(1);
+  expect((await attempts(fixture.id)).linkAttempts).toBe(1);
 });
