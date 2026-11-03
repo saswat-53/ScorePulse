@@ -21,6 +21,7 @@ const nextQuery = (db: PollDb) =>
     .select({
       id: fixtures.id,
       apiFootballId: fixtures.apiFootballId,
+      status: fixtures.status,
       kickoff: fixtures.kickoff,
       firstPolledAt: fixtures.firstPolledAt,
       hasLineups: exists('fixture_lineups').as('has_lineups'),

@@ -209,3 +209,29 @@ test('the request is for this match, by its API-Football id', async () => {
 
   expect(p.calls.fixture).toEqual([VAR_MATCH]);
 });
+
+// A poll that never stored the second half (refused or failed) leaves the match at halftime or in play. `live=` no
+// longer lists it, so no poll will ever move it on: the by-id fetch closes it, with its final status and score, but
+// silently, since by then the result is long known (2026-11-03: a Champions League match stayed at 1-0 for hours).
+test('a followed match stuck at halftime is closed by the fetch by id, with the final status and score and no alert', async () => {
+  const fixture = await finishedMatch({ status: 'HT', homeGoals: 1, awayGoals: 0 });
+  const p = provider();
+
+  const push = await run(p, at(160));
+
+  expect(p.calls.fixture).toEqual([fixture.apiFootballId]);
+  const stored = await row(fixture.id);
+  expect(stored).toMatchObject({ status: match.fixture.status.short, homeGoals: match.goals.home, awayGoals: match.goals.away });
+  expect(stored.completedAt).toBeInstanceOf(Date);
+  expect(await events()).toHaveLength(allEvents.length);
+  expect(push.sent).toEqual([]);
+});
+
+test('a match still in play 2 hours after kickoff is not touched: extra time can run that long', async () => {
+  await finishedMatch({ status: '2H' });
+  const p = provider();
+
+  await run(p, at(120));
+
+  expect(p.calls.fixture).toEqual([]);
+});

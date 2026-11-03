@@ -26,6 +26,9 @@ export const MAX_EXTRA_PER_RUN = 3;
 // A match is marked FT at about 100 minutes, a little before the whistle. Final statistics wait until it is surely over.
 export const FINAL_STATS_AFTER_MINUTES = 110;
 export const FINISHED = ['FT', 'AET', 'PEN'];
+// A match still marked in play or at halftime this long after kickoff is stuck: the polls that would have moved it on
+// were refused or failed, and `live=` no longer lists it. Past the late-alert window, so closing it is always silent.
+export const STUCK_AFTER_MINUTES = 155;
 
 // What a goal found only after full time may still be news: within this long after kickoff it is alerted, after it the
 // timeline is filled in silently (the final score has long since reached everyone).
@@ -33,7 +36,7 @@ export const LATE_ALERT_MINUTES = 150;
 
 // `fixtures?id=<one match>`: the match with its events, and, when the plan has them, its lineups and statistics.
 export type FixtureResponse = {
-  response: { fixture: { id: number }; events?: RawApiEvent[]; lineups?: LineupsResponse['response']; statistics?: StatisticsResponse['response'] }[];
+  response: { fixture: { id: number; status?: { short: string } }; goals?: { home: number | null; away: number | null }; events?: RawApiEvent[]; lineups?: LineupsResponse['response']; statistics?: StatisticsResponse['response'] }[];
 };
 
 // `fixtures?date=<day>`: what the by-date lookup returns, as far as the link reads it.
@@ -86,7 +89,7 @@ export const extrasQuery = (db: PollDb, now: Date) =>
 
 type Candidate = Awaited<ReturnType<typeof extrasQuery>>[number];
 // What a fetch needs to know about its match. The archive (#23) has fewer columns than the poller's candidates.
-type JobFixture = Pick<Candidate, 'id' | 'kickoff' | 'firstPolledAt' | 'hasLineups'> & { apiFootballId: number };
+type JobFixture = Pick<Candidate, 'id' | 'kickoff' | 'firstPolledAt' | 'hasLineups' | 'status'> & { apiFootballId: number };
 export type Job = { kind: 'lineups' | 'final' | 'stats-ht' | 'stats-ft'; fixture: JobFixture };
 
 // The next lineups try is due when its minute before kickoff has come and the one before it is a quarter of an hour old.
@@ -194,7 +197,8 @@ export function pickJobs(rows: Candidate[], now: Date, plan: { low: boolean; rem
     .map((fixture): Job => ({ kind: 'lineups', fixture }));
   if (plan.low) return lineups.slice(0, budget);
 
-  const over = (f: Candidate) => FINISHED.includes(f.status) && -minutesToKickoff(f) >= FINAL_STATS_AFTER_MINUTES;
+  const stuck = (f: Candidate) => [...IN_PLAY, HALFTIME].includes(f.status) && -minutesToKickoff(f) >= STUCK_AFTER_MINUTES;
+  const over = (f: Candidate) => (FINISHED.includes(f.status) && -minutesToKickoff(f) >= FINAL_STATS_AFTER_MINUTES) || stuck(f);
   // One fetch by id once the match is over fills in what the last poll missed (#24), and brings the final lineups and
   // statistics when the plan returns them.
   const completion = tracked
@@ -243,7 +247,15 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
         if (lineups.length && !fixture.hasLineups) writes.push(upsertLineups(db, fixture.id, lineups, now));
         const stats = parseStats({ response: item.statistics ?? [] });
         if (stats.length) writes.push(upsertStats(db, fixture.id, stats, 'FT', now));
-        writes.push(db.update(fixtures).set({ completedAt: now }).where(eq(fixtures.id, fixture.id)));
+        // A match the polls left in play or at halftime takes its final status and score from this answer, silently.
+        const finalStatus = item.fixture.status?.short;
+        const closes = finalStatus !== undefined && FINISHED.includes(finalStatus) && !FINISHED.includes(fixture.status);
+        writes.push(
+          db
+            .update(fixtures)
+            .set({ completedAt: now, ...(closes && { status: finalStatus, homeGoals: item.goals?.home ?? null, awayGoals: item.goals?.away ?? null, updatedAt: now }) })
+            .where(eq(fixtures.id, fixture.id)),
+        );
       } else if (kind === 'lineups') {
         const lineups = parseLineups(await provider.fetchLineups(id));
         if (lineups.length === 0) throw new Error('not announced');
