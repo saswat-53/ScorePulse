@@ -52,6 +52,10 @@ Thumbs.db
 # Local scratch: saved provider responses can be huge (live=all is ~4 MB)
 /scratch/
 
+# Personal notes and one-off helper scripts
+/docs/PROJECT-OVERVIEW.md
+/scripts/first-apk-wizard.sh
+
 # Installed agent skills (reinstall from skills-lock.json)
 .agents/
 .claude/skills/*
