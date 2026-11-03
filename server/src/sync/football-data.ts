@@ -8,7 +8,8 @@ export type Competition = (typeof COMPETITIONS)[number];
 export function footballData(apiKey: string) {
   async function get<T>(path: string): Promise<T> {
     const res = await fetch(`https://api.football-data.org/v4/${path}`, { headers: { 'X-Auth-Token': apiKey } });
-    if (!res.ok) throw new Error(`football-data.org answered ${res.status} for ${path}`);
+    // The body says why (a bad filter, a quota, a plan limit); without it Sentry only shows the status.
+    if (!res.ok) throw new Error(`football-data.org answered ${res.status} for ${path}: ${(await res.text()).slice(0, 300)}`);
     return res.json();
   }
   return {
