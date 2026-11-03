@@ -155,18 +155,20 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8p
 @media (max-width: 900px) {
   body { font-size: 1rem; line-height: 1.55; }
   h2 { font-size: clamp(1.9rem, 8vw, 2.6rem); margin-bottom: 12px; }
-  .top { padding-block: 14px; }
+  /* the bar stays put and the pinned phone stops right beneath it */
+  :root { --top-h: 56px; }
+  .top { position: sticky; top: 0; z-index: 3; height: var(--top-h); padding-block: 0; background: var(--night); }
   .brand { font-size: 1.5rem; }
   .btn { padding: 13px 24px; }
   .btn.big { padding: 15px 28px; font-size: 1.05rem; }
 
   /* one small phone is pinned at the top while the words scroll up beneath it */
   .story-inner { display: flex; flex-direction: column; }
-  .sticky { order: -1; position: sticky; top: 0; z-index: 2; --h: clamp(300px, 46vh, 400px); height: var(--h); margin-inline: calc(var(--gutter) * -1); background: var(--night); perspective: none; }
+  .sticky { order: -1; position: sticky; top: var(--top-h); z-index: 2; --h: clamp(300px, 46svh, 400px); height: var(--h); margin-inline: calc(var(--gutter) * -1); background: var(--night); perspective: none; opacity: calc(1 - var(--release, 0)); }
   .sticky .rings { inset: 4% 0; }
   .big { --pw: calc((var(--h) - 28px) / 1.95); }
-  .step { min-height: 56vh; justify-content: flex-start; padding: 28px 0 0; }
-  .step:last-child { min-height: 64vh; }
+  .step { min-height: 56svh; justify-content: flex-start; padding: 28px 0 0; }
+  .step:last-child { min-height: 64svh; }
   .step--hero { min-height: 0; padding-bottom: 24px; }
   .step--hero h1 { font-size: clamp(2.7rem, 12.5vw, 4.6rem); }
   .step h2 { font-size: 1.85rem; }
@@ -181,7 +183,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8p
   .plain { padding-block: 56px; }
   .plain dl { grid-template-columns: 1fr; gap: 24px; }
   .plain dt { font-size: 1.4rem; }
-  .get { padding-block: 72px; }
+  .get { padding-block: 72px; scroll-margin-top: var(--top-h); }
   .get h2 { font-size: clamp(2.2rem, 10vw, 3.2rem); }
 }
 

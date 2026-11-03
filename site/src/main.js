@@ -41,10 +41,16 @@ function tour() {
   const tilts = [0, -3, 3, -2];
   // The step in charge is the last one whose top has passed the reading line. Reading the scroll position, not entry
   // events, means a reload halfway down or a jump to the end still picks the right screen.
-  const line = () => innerHeight * (matchMedia('(max-width: 900px)').matches ? 0.66 : 0.55);
+  // On a phone the line hangs below the pinned phone, so the browser's address bar sliding in and out can't move it.
+  const pinned = root.querySelector('.sticky');
+  const line = () => (matchMedia('(max-width: 900px)').matches ? pinned.getBoundingClientRect().bottom + 140 : innerHeight * 0.55);
   let current = -1;
   const update = () => {
     const y = line();
+    // On a phone the pinned phone lets go at the end of the story. Fade it as it leaves instead of letting the bar slice it.
+    const bar = document.querySelector('.top').offsetHeight;
+    const gone = matchMedia('(max-width: 900px)').matches ? (bar - pinned.getBoundingClientRect().top) / (pinned.offsetHeight * 0.45) : 0;
+    root.style.setProperty('--release', Math.min(1, Math.max(0, gone)).toFixed(3));
     let i = 0;
     steps.forEach((s, k) => {
       if (s.getBoundingClientRect().top <= y) i = k;
