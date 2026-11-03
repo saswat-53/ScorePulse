@@ -2,7 +2,7 @@ import { and, eq, gt, inArray, lte, or, sql } from 'drizzle-orm';
 import { fixtureEvents, fixtureLineups, fixtures, fixtureStats } from '../db/schema';
 import { parseLineups, parseStats, type LineupsResponse, type StatisticsResponse } from '../lineups-stats';
 import { runBatch, type PollDb, type Statement } from './db';
-import { eventRow, isAlertable, type ApiEvent } from './handle-poll';
+import { complete, eventRow, isAlertable, type RawApiEvent } from './handle-poll';
 import { RateLimited } from './rate-limit';
 import { planLinks, type LinkCandidate, type LiveMatch } from './link';
 import { hasFavorite, hasFollow } from './run-poller';
@@ -33,7 +33,7 @@ export const LATE_ALERT_MINUTES = 150;
 
 // `fixtures?id=<one match>`: the match with its events, and, when the plan has them, its lineups and statistics.
 export type FixtureResponse = {
-  response: { fixture: { id: number }; events?: ApiEvent[]; lineups?: LineupsResponse['response']; statistics?: StatisticsResponse['response'] }[];
+  response: { fixture: { id: number }; events?: RawApiEvent[]; lineups?: LineupsResponse['response']; statistics?: StatisticsResponse['response'] }[];
 };
 
 // `fixtures?date=<day>`: what the by-date lookup returns, as far as the link reads it.
@@ -235,7 +235,7 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
         // A goal, card or substitution the last poll never saw happened after it, so it is news if the match has only
         // just ended and the poller was following it. Older than that, or never followed live, it is stored quietly.
         const news = fixture.firstPolledAt !== null && now.getTime() - fixture.kickoff.getTime() <= LATE_ALERT_MINUTES * 60_000;
-        const rows = (item.events ?? []).map((e) => eventRow(fixture.id, e, news && isAlertable(e)));
+        const rows = complete(item.events ?? []).map((e) => eventRow(fixture.id, e, news && isAlertable(e)));
         if (rows.length) writes.push(db.insert(fixtureEvents).values(rows).onConflictDoNothing());
         alertsOwed ||= rows.some((r) => r.alertState === 'due');
 

@@ -12,6 +12,8 @@ export type ApiEvent = {
   type: string;
   detail: string;
 };
+// An event as the provider sends it: `detail` is null while the event is listed but not filled in yet.
+export type RawApiEvent = Omit<ApiEvent, 'detail'> & { detail: string | null };
 export type PollResponse = {
   response: {
     fixture: { id: number; date?: string; status?: { short: string; elapsed?: number | null } };
@@ -19,7 +21,7 @@ export type PollResponse = {
     league?: { id: number };
     teams?: { home: { id: number }; away: { id: number } };
     goals?: { home: number | null; away: number | null };
-    events?: ApiEvent[];
+    events?: RawApiEvent[];
   }[];
 };
 
@@ -44,7 +46,7 @@ export async function handlePoll(
   const fixtureByApiId = new Map(tracked.map((f) => [f.apiFootballId, f]));
   const known = live.response.flatMap((match) => {
     const fixture = fixtureByApiId.get(match.fixture.id);
-    return fixture ? [{ match, fixture, events: match.events ?? [] }] : [];
+    return fixture ? [{ match, fixture, events: complete(match.events ?? []) }] : [];
   });
 
   // `live=` stops listing a match at full time. One that was seen live and is gone 100 minutes after kickoff is over.
@@ -198,6 +200,11 @@ export const GOAL_DETAILS = new Set(['Normal Goal', 'Penalty', 'Own Goal']);
 // A kickoff alert is only for a match seen within this many minutes of the start.
 const KICKOFF_ALERT_MAX_MINUTE = 10;
 const FINISHED = ['FT', 'AET', 'PEN'];
+
+// An event with no detail yet is not stored: the column cannot hold it, and a blank row would be left beside the real
+// one when the detail arrives. The next poll takes it.
+export const complete = (events: RawApiEvent[]): ApiEvent[] =>
+  events.filter((e): e is ApiEvent => typeof e.detail === 'string' && e.detail !== '');
 
 const isCard = (e: ApiEvent) => e.type === 'Card';
 const isSubstitution = (e: ApiEvent) => e.type === 'subst';

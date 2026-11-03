@@ -142,3 +142,30 @@ test('each stored event keeps the player and the assist the API named, for the t
   expect(at(38)).toMatchObject({ playerName: 'Aleksandr Kovalenko', assistName: null }); // goal without one
   expect(at(4)).toMatchObject({ playerName: 'Aleksandr Kovalenko', assistName: null }); // yellow card
 });
+
+// API-Football can list an event before its detail is filled in (null). The column is NOT NULL, and one bad row fails
+// the whole poll batch, so every other event of the poll was lost too (seen on a Champions League match, 2026-11-03).
+test('an event whose detail is not filled in yet waits, and the rest of the poll is kept', async () => {
+  const { db, push } = await setup();
+  const match = recordedMatch(MATCH_WITH_3_GOALS);
+  await insertFixture(db, match);
+  const incomplete = { response: [{ ...match, events: match.events.map((e, i) => (i === 0 ? { ...e, detail: null } : e)) }] };
+
+  await pollOnce({ db, push }, incomplete, [MATCH_WITH_3_GOALS]);
+
+  expect(await db.select().from(fixtureEvents)).toHaveLength(match.events.length - 1);
+});
+
+test('the event is stored once its detail arrives, with no blank copy left behind', async () => {
+  const { db, push } = await setup();
+  const match = recordedMatch(MATCH_WITH_3_GOALS);
+  await insertFixture(db, match);
+  const incomplete = { response: [{ ...match, events: match.events.map((e, i) => (i === 0 ? { ...e, detail: null } : e)) }] };
+
+  await pollOnce({ db, push }, incomplete, [MATCH_WITH_3_GOALS]);
+  await pollOnce({ db, push }, pollOf(match), [MATCH_WITH_3_GOALS]);
+
+  const stored = await db.select().from(fixtureEvents);
+  expect(stored).toHaveLength(match.events.length);
+  expect(stored.every((e) => e.detail !== '')).toBe(true);
+});
