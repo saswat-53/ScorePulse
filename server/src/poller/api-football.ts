@@ -56,11 +56,18 @@ export function apiFootball(apiKey: string, options: Options = {}): LiveProvider
   const getOnce = async (path: string) => {
     await pace();
     const headers = { 'x-apisports-key': apiKey };
-    let res: Response | null = base === BASE ? await fetch(`${BASE}/${path}`, { headers }) : await fetch(`${base}/${path}`, { headers }).catch(() => null);
+    let failure = '';
+    let res: Response | null =
+      base === BASE
+        ? await fetch(`${BASE}/${path}`, { headers })
+        : await fetch(`${base}/${path}`, { headers }).catch((error) => {
+            failure = String(error);
+            return null;
+          });
     // An answer without the relay's `x-relay` mark is the hosting platform's own (down, over its limits, misdeployed): the
     // request goes to API-Football directly, so a relay that is down costs the refusals it avoids and nothing more.
     if (!res || (base !== BASE && !res.headers.has('x-relay'))) {
-      console.warn(`relay did not answer for ${path}: asking API-Football directly`);
+      console.warn(`relay did not answer for ${path} (${res ? `status ${res.status}` : failure}): asking API-Football directly`);
       res = await fetch(`${BASE}/${path}`, { headers });
     }
     // A refusal for rate limit usually comes as a 200 (below), but sometimes as a real 429: the same refusal.

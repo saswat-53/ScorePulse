@@ -162,6 +162,7 @@ test('a relay that is down, or answers with a platform page, falls back to API-F
     expect(res.response).toHaveLength(1);
   }
   expect(warn).toHaveBeenCalledTimes(2);
+  expect(warn.mock.calls.map((c) => c[0])).toEqual([expect.stringContaining('Error: down'), expect.stringContaining('status 503')]);
   log.mockRestore();
   warn.mockRestore();
   vi.unstubAllGlobals();
