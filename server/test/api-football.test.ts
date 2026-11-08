@@ -92,6 +92,32 @@ test('a request refused for rate limit is tried once more after a pause, and the
   vi.unstubAllGlobals();
 });
 
+test('an HTTP 429 is a rate-limit refusal too: tried once more, and the second answer is used', async () => {
+  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const answers = [{ ok: false, status: 429 }, { ok: true, status: 200, headers: new Headers(), json: async () => ({ errors: [], response: [{ fixture: { id: 7 } }] }) }];
+  const fetchMock = vi.fn(async () => answers.shift());
+  vi.stubGlobal('fetch', fetchMock);
+
+  const res = await apiFootball('key', quick()).fetchLive([2, 39]);
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(res.response).toHaveLength(1);
+  err.mockRestore();
+  log.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+test('two HTTP 429s in a row end in RateLimited, not a plain error', async () => {
+  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  vi.stubGlobal('fetch', async () => ({ ok: false, status: 429 }));
+
+  await expect(apiFootball('key', quick()).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
+
+  err.mockRestore();
+  vi.unstubAllGlobals();
+});
+
 test('two refusals in a row end in RateLimited, after exactly two requests', async () => {
   const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);

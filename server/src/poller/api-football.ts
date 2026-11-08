@@ -53,6 +53,11 @@ export function apiFootball(apiKey: string, options: Options = {}): LiveProvider
   const getOnce = async (path: string) => {
     await pace();
     const res = await fetch(`${BASE}/${path}`, { headers: { 'x-apisports-key': apiKey } });
+    // A refusal for rate limit usually comes as a 200 (below), but sometimes as a real 429: the same refusal.
+    if (res.status === 429) {
+      console.error(`API-Football ${path}: answered 429`);
+      throw new RateLimited(path);
+    }
     if (!res.ok) throw new Error(`API-Football answered ${res.status}`);
     const body = (await res.json()) as { errors?: object };
     // What is left of the day and of the minute, on every request, refused ones included: comparing a refusal with the
