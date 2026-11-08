@@ -170,8 +170,18 @@ export async function runPoller(
     if (!refused) {
       const rows = extraRows.map((f) => (linked.has(f.id) ? { ...f, apiFootballId: linked.get(f.id)! } : f));
       const jobs = pickJobs(rows, now, { low: plan.low, remaining: remaining - lookups.length });
+      // What the run decided about lineups and statistics, so a match that never gets them shows why: each candidate as
+      // fixture:status:id:lineups (L, or - for none):lineups tries.
+      if (rows.length) {
+        const seen = rows.map((f) => `${f.id}:${f.status}:${f.apiFootballId ?? 'noid'}:${f.hasLineups ? 'L' : '-'}:${f.lineupsAttempts}`);
+        console.log(`extras: candidates [${seen}], jobs [${jobs.map((j) => `${j.kind}:${j.fixture.id}`)}], ${remaining - lookups.length} requests left${plan.low ? ', low quota' : ''}`);
+      }
       alertsOwed ||= await fetchExtras(deps, jobs, now);
+    } else {
+      console.log('extras: skipped, the lookup was refused for rate limit');
     }
+  } else {
+    console.log('extras: skipped, the live poll was refused for rate limit');
   }
 
   // Goals and corrections the poll owes, or an earlier run left unsent: write them as pending rows, then send (#13).

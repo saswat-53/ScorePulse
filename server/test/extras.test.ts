@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { eq } from 'drizzle-orm';
 import lineupsJson from '../fixtures/api-football/lineups-everton-brighton-2024-25.json';
 import statisticsJson from '../fixtures/api-football/statistics-everton-brighton-2024-25.json';
@@ -417,4 +417,14 @@ test('a live poll refused for rate limit is skipped: nothing is recorded, no ext
   expect(await used(at(10))).toBe(0);
   expect((await attempts(fixture.id)).lastPolledAt).toBeNull();
   expect(provider.calls.lineups).toHaveLength(0);
+});
+
+test('a run logs what it decided about extras: each candidate and the jobs picked', async () => {
+  const fixture = await followed('1H');
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+  await run(fakeProvider(), at(10));
+
+  expect(log).toHaveBeenCalledWith(`extras: candidates [${fixture.id}:1H:${fixture.apiFootballId}:-:0], jobs [lineups:${fixture.id}], 99 requests left`);
+  log.mockRestore();
 });
