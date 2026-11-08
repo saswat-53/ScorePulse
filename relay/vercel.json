@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/fixtures", "destination": "/api/relay?__path=fixtures" },
+    { "source": "/api/fixtures/:kind", "destination": "/api/relay?__path=fixtures/:kind" }
+  ]
+}

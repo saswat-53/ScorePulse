@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { handle } from '../../relay/api/[...path]';
+import { handle } from '../../relay/api/relay';
 
 type Call = { url: string; key: string | null };
 
@@ -19,10 +19,16 @@ test('relay: forwards an allowed path, query and key, and returns the rate-limit
   expect(res.headers.get('x-relay')).toBe('1');
 });
 
-test('relay: drops the ...path parameter Vercel adds to the query', async () => {
+test('relay: takes the path from the __path parameter the rewrite adds, and does not forward it', async () => {
   const calls: Call[] = [];
-  await handle(new Request('https://relay.example/api/fixtures/lineups?fixture=7&...path=fixtures%2Flineups', { headers: { 'x-apisports-key': 'k' } }), upstream(calls));
-  expect(calls[0].url).toBe('https://v3.football.api-sports.io/fixtures/lineups?fixture=7');
+  for (const kind of ['fixtures', 'fixtures/lineups', 'fixtures/statistics']) {
+    await handle(new Request(`https://relay.example/api/relay?fixture=7&__path=${encodeURIComponent(kind)}&kind=${kind.split('/')[1] ?? ''}`, { headers: { 'x-apisports-key': 'k' } }), upstream(calls));
+  }
+  expect(calls.map((c) => c.url)).toEqual([
+    'https://v3.football.api-sports.io/fixtures?fixture=7',
+    'https://v3.football.api-sports.io/fixtures/lineups?fixture=7',
+    'https://v3.football.api-sports.io/fixtures/statistics?fixture=7',
+  ]);
 });
 
 test('relay: refuses other paths, other methods and a missing key without calling API-Football', async () => {

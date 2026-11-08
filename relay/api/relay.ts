@@ -8,12 +8,16 @@ const ALLOWED = new Set(['/fixtures', '/fixtures/lineups', '/fixtures/statistics
 
 export async function handle(req: Request, upstream: typeof fetch = fetch): Promise<Response> {
   const url = new URL(req.url);
-  const path = url.pathname.replace(/^\/api(?=\/)/, '');
+  // vercel.json routes /api/fixtures, /api/fixtures/lineups and /api/fixtures/statistics here with the path in `__path`: a
+  // catch-all file did not match the nested ones.
+  const routed = url.searchParams.get('__path');
+  url.searchParams.delete('__path');
+  // The rewrite's `:kind` also lands in the query, and API-Football rejects it as an unknown field.
+  if (routed) url.searchParams.delete('kind');
+  const path = routed ? `/${routed}` : url.pathname.replace(/^\/api(?=\/)/, '');
   if (req.method !== 'GET' || !ALLOWED.has(path)) return new Response('not found', { status: 404, headers: { 'x-relay': '1' } });
   const key = req.headers.get('x-apisports-key');
   if (!key) return new Response('missing key', { status: 401, headers: { 'x-relay': '1' } });
-  // Vercel's catch-all route adds the matched path to the query as `...path` (the catch-all's own name), which API-Football rejects as an unknown field.
-  url.searchParams.delete('...path');
   const res = await upstream(`${UPSTREAM}${path}${url.search}`, { headers: { 'x-apisports-key': key } });
   // The status, the body and the rate-limit headers come back as they were, so the Worker logs what API-Football said.
   // `x-relay` tells the Worker the answer is API-Football's, not the hosting platform's own error page.
