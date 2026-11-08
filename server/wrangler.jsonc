@@ -22,5 +22,9 @@
   },
 
   // Non-secret config. Secrets (DATABASE_URL, CLERK_SECRET_KEY, ...) are set with `wrangler secret put`.
-  "vars": {}
+  "vars": {
+    // API-Football requests go through the relay (relay/, on Vercel): from the Worker's own Cloudflare address they were
+    // refused for rate limit in most runs (#26). Remove this line to call API-Football directly again.
+    "API_FOOTBALL_BASE_URL": "https://scorepulse-relay.vercel.app/api"
+  }
 }

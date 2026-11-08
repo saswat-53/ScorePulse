@@ -14,12 +14,15 @@ test('a single league is written as two ids, which the live filter accepts', () 
 
 test('an answer with an error in its body is logged, since the 200 hides it', async () => {
   const logged: string[] = [];
-  const fail = vi.spyOn(console, 'error').mockImplementation((m: string) => void logged.push(m));
+  const fail = vi.spyOn(console, 'warn').mockImplementation((m: string) => void logged.push(m));
+  const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
   vi.stubGlobal('fetch', async () => ({ ok: true, headers: new Headers(), json: async () => ({ errors: { rateLimit: 'Too many requests' }, response: [] }) }));
 
   await expect(apiFootball('key', quick()).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
 
   expect(logged.join()).toMatch(/fixtures\?live=2-2.*rateLimit/);
+  expect(error).not.toHaveBeenCalled();
+  error.mockRestore();
   fail.mockRestore();
   vi.unstubAllGlobals();
 });
@@ -62,7 +65,7 @@ test('every request logs what is left of the day and the minute, so a refusal ca
 test('a refusal logs the same counts, and a missing header shows as a question mark', async () => {
   const logged: string[] = [];
   const log = vi.spyOn(console, 'log').mockImplementation((m: string) => void logged.push(m));
-  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const err = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const headers = new Headers({ 'x-ratelimit-requests-remaining': '70' });
   vi.stubGlobal('fetch', async () => ({ ok: true, headers, json: async () => ({ errors: { rateLimit: 'x' }, response: [] }) }));
 
@@ -77,7 +80,7 @@ test('a refusal logs the same counts, and a missing header shows as a question m
 
 // A refusal for rate limit is retried once after a pause, inside the same run; two in a row end the run (RateLimited).
 test('a request refused for rate limit is tried once more after a pause, and the second answer is used', async () => {
-  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const err = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
   const answers = [{ errors: { rateLimit: 'x' }, response: [] }, { errors: [], response: [{ fixture: { id: 7 } }] }];
   const fetchMock = vi.fn(async () => ({ ok: true, headers: new Headers(), json: async () => answers.shift() }));
@@ -93,7 +96,7 @@ test('a request refused for rate limit is tried once more after a pause, and the
 });
 
 test('an HTTP 429 is a rate-limit refusal too: tried once more, and the second answer is used', async () => {
-  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const err = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
   const answers = [{ ok: false, status: 429 }, { ok: true, status: 200, headers: new Headers(), json: async () => ({ errors: [], response: [{ fixture: { id: 7 } }] }) }];
   const fetchMock = vi.fn(async () => answers.shift());
@@ -109,7 +112,7 @@ test('an HTTP 429 is a rate-limit refusal too: tried once more, and the second a
 });
 
 test('two HTTP 429s in a row end in RateLimited, not a plain error', async () => {
-  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const err = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   vi.stubGlobal('fetch', async () => ({ ok: false, status: 429 }));
 
   await expect(apiFootball('key', quick()).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
@@ -118,8 +121,66 @@ test('two HTTP 429s in a row end in RateLimited, not a plain error', async () =>
   vi.unstubAllGlobals();
 });
 
+test('requests go to the base URL given, with the same path', async () => {
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const fetchMock = vi.fn(async (_url: string) => ({ ok: true, headers: new Headers({ 'x-relay': '1' }), json: async () => ({ errors: [], response: [] }) }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await apiFootball('key', quick({ baseUrl: 'https://relay.example/' })).fetchLive([2, 39]);
+  await apiFootball('key', quick({ baseUrl: '' })).fetchLive([2, 39]);
+
+  expect(fetchMock.mock.calls.map((c) => c[0])).toEqual(['https://relay.example/fixtures?live=2-39', 'https://v3.football.api-sports.io/fixtures?live=2-39']);
+  log.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+const relayed = (status = 200) => ({ ok: status < 400, status, headers: new Headers({ 'x-relay': '1' }), json: async () => ({ errors: [], response: [{ fixture: { id: 7 } }] }) });
+
+test('a relay that answers is used, and API-Football is not asked directly', async () => {
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const fetchMock = vi.fn(async (_url: string) => relayed());
+  vi.stubGlobal('fetch', fetchMock);
+
+  const res = await apiFootball('key', quick({ baseUrl: 'https://relay.example/api' })).fetchLive([2, 39]);
+
+  expect(fetchMock).toHaveBeenCalledOnce();
+  expect(res.response).toHaveLength(1);
+  log.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+test('a relay that is down, or answers with a platform page, falls back to API-Football directly', async () => {
+  const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  for (const relayAnswer of [() => Promise.reject(new Error('down')), async () => ({ ok: false, status: 503, headers: new Headers(), json: async () => ({}) })]) {
+    const fetchMock = vi.fn(async (url: string) => (url.startsWith('https://relay.example') ? relayAnswer() : relayed()));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await apiFootball('key', quick({ baseUrl: 'https://relay.example/api' })).fetchLive([2, 39]);
+
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual(['https://relay.example/api/fixtures?live=2-39', 'https://v3.football.api-sports.io/fixtures?live=2-39']);
+    expect(res.response).toHaveLength(1);
+  }
+  expect(warn).toHaveBeenCalledTimes(2);
+  log.mockRestore();
+  warn.mockRestore();
+  vi.unstubAllGlobals();
+});
+
+test('a refusal that comes through the relay is a refusal, not a reason to ask directly', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  const fetchMock = vi.fn(async (_url: string) => ({ ok: false, status: 429, headers: new Headers({ 'x-relay': '1' }) }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await expect(apiFootball('key', quick({ baseUrl: 'https://relay.example/api' })).fetchLive([2])).rejects.toBeInstanceOf(RateLimited);
+
+  expect(fetchMock.mock.calls.every((c) => c[0].startsWith('https://relay.example'))).toBe(true);
+  warn.mockRestore();
+  vi.unstubAllGlobals();
+});
+
 test('two refusals in a row end in RateLimited, after exactly two requests', async () => {
-  const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const err = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
   const fetchMock = vi.fn(async () => ({ ok: true, headers: new Headers(), json: async () => ({ errors: { rateLimit: 'x' }, response: [] }) }));
   vi.stubGlobal('fetch', fetchMock);

@@ -27,9 +27,12 @@ export function msUntilSettled(at: Date): number {
   return 0;
 }
 
-type Options = { retryMs?: number; gapMs?: number; sleep?: (ms: number) => Promise<unknown>; now?: () => Date };
+type Options = { baseUrl?: string; retryMs?: number; gapMs?: number; sleep?: (ms: number) => Promise<unknown>; now?: () => Date };
 
 export function apiFootball(apiKey: string, options: Options = {}): LiveProvider {
+  // Requests from the Worker's shared Cloudflare address are often refused for rate limit whatever the plan has left (#26), so
+  // they can go through a relay (relay/) that forwards them from another address. It takes the same paths, under /api.
+  const base = (options.baseUrl || BASE).replace(/\/+$/, '');
   const retryMs = options.retryMs ?? RETRY_AFTER_REFUSAL_MS;
   const gapMs = options.gapMs ?? GAP_BETWEEN_REQUESTS_MS;
   const sleep = options.sleep ?? ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
@@ -52,10 +55,17 @@ export function apiFootball(apiKey: string, options: Options = {}): LiveProvider
   };
   const getOnce = async (path: string) => {
     await pace();
-    const res = await fetch(`${BASE}/${path}`, { headers: { 'x-apisports-key': apiKey } });
+    const headers = { 'x-apisports-key': apiKey };
+    let res: Response | null = base === BASE ? await fetch(`${BASE}/${path}`, { headers }) : await fetch(`${base}/${path}`, { headers }).catch(() => null);
+    // An answer without the relay's `x-relay` mark is the hosting platform's own (down, over its limits, misdeployed): the
+    // request goes to API-Football directly, so a relay that is down costs the refusals it avoids and nothing more.
+    if (!res || (base !== BASE && !res.headers.has('x-relay'))) {
+      console.warn(`relay did not answer for ${path}: asking API-Football directly`);
+      res = await fetch(`${BASE}/${path}`, { headers });
+    }
     // A refusal for rate limit usually comes as a 200 (below), but sometimes as a real 429: the same refusal.
     if (res.status === 429) {
-      console.error(`API-Football ${path}: answered 429`);
+      console.warn(`API-Football ${path}: answered 429`);
       throw new RateLimited(path);
     }
     if (!res.ok) throw new Error(`API-Football answered ${res.status}`);
@@ -67,8 +77,10 @@ export function apiFootball(apiKey: string, options: Options = {}): LiveProvider
     // A refused request still answers 200, with the reason in `errors` (an empty list when all is well) and no matches.
     // The callers read that as "nothing here", so the reason is logged where it can be found.
     if (body?.errors && Object.keys(body.errors).length > 0) {
-      console.error(`API-Football ${path}: ${JSON.stringify(body.errors)}`);
-      if ('rateLimit' in body.errors) throw new RateLimited(path);
+      // A refusal for rate limit is expected and handled (one retry, then the next beat asks again): a warning, not an error.
+      const refused = 'rateLimit' in body.errors;
+      (refused ? console.warn : console.error)(`API-Football ${path}: ${JSON.stringify(body.errors)}`);
+      if (refused) throw new RateLimited(path);
     }
     return body;
   };

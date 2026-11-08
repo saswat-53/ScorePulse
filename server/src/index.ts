@@ -34,7 +34,7 @@ export default Sentry.withSentry(
       }
       // The rest of the early morning, when nothing is live: fetch the details of one finished match (#23).
       if (route.job === 'archive') {
-        await runArchive({ db, provider: apiFootball(env.API_FOOTBALL_KEY) }, now);
+        await runArchive({ db, provider: apiFootball(env.API_FOOTBALL_KEY, { baseUrl: env.API_FOOTBALL_BASE_URL }) }, now);
         return;
       }
       // The poller's crons only fire in the matchday windows; the poller itself decides whether a run is due.
@@ -42,7 +42,7 @@ export default Sentry.withSentry(
         {
           db,
           push: expoPush(),
-          provider: apiFootball(env.API_FOOTBALL_KEY),
+          provider: apiFootball(env.API_FOOTBALL_KEY, { baseUrl: env.API_FOOTBALL_BASE_URL }),
           fallback: { fetchLiveScores: () => footballData(env.FOOTBALL_DATA_KEY).liveScores() },
         },
         now,

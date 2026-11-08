@@ -5,6 +5,8 @@ export type Bindings = {
   CLERK_PUBLISHABLE_KEY: string;
   SENTRY_DSN: string;
   API_FOOTBALL_KEY: string;
+  // Where API-Football requests go: the relay's address (relay/), or unset for api-football's own.
+  API_FOOTBALL_BASE_URL?: string;
   FOOTBALL_DATA_KEY: string;
   // Signs Clerk's webhooks (the `whsec_...` value of the endpoint in the Clerk dashboard).
   CLERK_WEBHOOK_SECRET?: string;
