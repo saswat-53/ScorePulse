@@ -30,6 +30,10 @@ export const FINISHED = ['FT', 'AET', 'PEN'];
 // were refused or failed, and `live=` no longer lists it. Past the late-alert window, so closing it is always silent.
 export const STUCK_AFTER_MINUTES = 155;
 
+// An answer that is empty because the provider has nothing yet (lineups before they are announced, statistics before the
+// whistle): it costs a try like any failed one, but it is expected, so it is logged as a warning, not an error.
+class NotYet extends Error {}
+
 // What a goal found only after full time may still be news: within this long after kickoff it is alerted, after it the
 // timeline is filled in silently (the final score has long since reached everyone).
 export const LATE_ALERT_MINUTES = 150;
@@ -258,11 +262,11 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
         );
       } else if (kind === 'lineups') {
         const lineups = parseLineups(await provider.fetchLineups(id));
-        if (lineups.length === 0) throw new Error('not announced');
+        if (lineups.length === 0) throw new NotYet('not announced yet');
         writes.push(upsertLineups(db, fixture.id, lineups, now));
       } else {
         const stats = parseStats(await provider.fetchStatistics(id));
-        if (stats.length === 0) throw new Error('no statistics');
+        if (stats.length === 0) throw new NotYet('no statistics yet');
         writes.push(upsertStats(db, fixture.id, stats, kind === 'stats-ft' ? 'FT' : 'HT', now));
       }
     } catch (error) {
@@ -271,7 +275,11 @@ export async function fetchExtras(deps: { db: PollDb; provider: ExtrasProvider }
         made--;
         break;
       }
-      console.error(`${kind} for fixture ${fixture.id}: ${error instanceof Error ? error.message : error}`);
+      // Which request, for which match, and when: enough to tell a provider that has nothing yet from one that failed.
+      const minutes = Math.round((fixture.kickoff.getTime() - now.getTime()) / 60_000);
+      const when = minutes >= 0 ? `${minutes} min before kickoff` : `${-minutes} min after kickoff`;
+      const what = `${kind} for fixture ${fixture.id} (API-Football ${id}, ${fixture.status}, ${when}): ${error instanceof Error ? error.message : error}`;
+      (error instanceof NotYet ? console.warn : console.error)(what);
       const column =
         kind === 'lineups'
           ? { lineupsAttempts: sql`${fixtures.lineupsAttempts} + 1`, lineupsTriedAt: now }

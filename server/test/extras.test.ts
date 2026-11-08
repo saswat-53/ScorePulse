@@ -428,3 +428,31 @@ test('a run logs what it decided about extras: each candidate and the jobs picke
   expect(log).toHaveBeenCalledWith(`extras: candidates [${fixture.id}:1H:${fixture.apiFootballId}:-:0], jobs [lineups:${fixture.id}], 99 requests left`);
   log.mockRestore();
 });
+
+test('lineups not announced yet are a warning that names the request, the match and the time, and still cost a try', async () => {
+  const fixture = await followed('NS');
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+  await run(fakeProvider({ lineups: EMPTY }), at(-30));
+
+  expect(warn).toHaveBeenCalledWith(`lineups for fixture ${fixture.id} (API-Football ${MATCH_WITH_3_GOALS}, NS, 30 min before kickoff): not announced yet`);
+  expect(error).not.toHaveBeenCalled();
+  expect((await attempts(fixture.id)).lineupsAttempts).toBe(1);
+  warn.mockRestore();
+  error.mockRestore();
+});
+
+test('a failed extras request is an error that names the request, the match and what went wrong', async () => {
+  const fixture = await followed('1H');
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+  await run(fakeProvider({ fail: true }), at(12));
+
+  expect(error).toHaveBeenCalledWith(`lineups for fixture ${fixture.id} (API-Football ${MATCH_WITH_3_GOALS}, 1H, 12 min after kickoff): API-Football answered 500`);
+  expect(warn).not.toHaveBeenCalled();
+  warn.mockRestore();
+  error.mockRestore();
+});
+
