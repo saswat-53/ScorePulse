@@ -6,6 +6,7 @@ import { RoundButton } from '@/components/ui/round-button';
 import { LEAGUES } from '@/domain/mock';
 import type { MatchDetail } from '@/domain/types';
 import { dayLabel, formatTime } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 interface Props {
   match: MatchDetail;
@@ -56,10 +57,10 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
         <View className="items-center">
           {started ? (
             <>
-              <Text className="text-[38px] font-extrabold italic text-white">
+              <Text style={TABULAR} className="text-[38px] font-extrabold italic text-white">
                 {match.score.home} - {match.score.away}
               </Text>
-              <Text
+              <Text style={TABULAR}
                 className={`text-[13px] font-bold ${
                   live ? (match.paused ? 'text-warn' : 'text-live') : 'text-muted'
                 }`}>
@@ -72,7 +73,7 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
             </>
           ) : (
             <>
-              <Text className="text-[28px] font-extrabold text-white">{formatTime(match.kickoffUtc)}</Text>
+              <Text style={TABULAR} className="text-[28px] font-extrabold text-white">{formatTime(match.kickoffUtc)}</Text>
               <Text className="text-xs font-semibold text-muted">{dayLabel(match.kickoffUtc)}</Text>
             </>
           )}

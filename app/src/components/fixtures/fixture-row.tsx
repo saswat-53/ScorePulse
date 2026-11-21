@@ -5,12 +5,13 @@ import { Crest } from '@/components/ui/crest';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import type { Fixture } from '@/domain/types';
 import { dayLabel, formatTime, shortDate } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   if (f.status === 'finished') {
     return (
       <>
-        <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
+        <Text style={TABULAR} className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
         <Text className="text-[11px] font-semibold tracking-wide text-muted">{showDate ? `FT · ${shortDate(f.kickoffUtc)}` : 'FT'}</Text>
       </>
     );
@@ -18,8 +19,8 @@ function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   if (f.status === 'live' || f.status === 'halftime') {
     return (
       <>
-        <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
-        <Text className={`text-[11px] font-bold ${f.paused ? 'text-warn' : 'text-live'}`}>
+        <Text style={TABULAR} className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
+        <Text style={TABULAR} className={`text-[11px] font-bold ${f.paused ? 'text-warn' : 'text-live'}`}>
           {f.status === 'halftime' ? 'HT' : f.minute === null ? 'LIVE' : `${f.minute}'`}
         </Text>
       </>
@@ -27,7 +28,7 @@ function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   }
   return (
     <>
-      <Text className="text-[15px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
+      <Text style={TABULAR} className="text-[15px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
       <Text className="text-[11px] font-medium text-muted">{dayLabel(f.kickoffUtc)}</Text>
     </>
   );

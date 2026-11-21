@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Crest } from '@/components/ui/crest';
 import type { Fixture } from '@/domain/types';
 import { dayLabel, formatTime } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 /** Upcoming fixtures grouped in one card: kickoff on the left, then the home crest and name, VS in the middle, and the away name and crest at the right edge. */
 export function UpcomingList({ fixtures }: { fixtures: Fixture[] }) {
@@ -17,7 +18,7 @@ export function UpcomingList({ fixtures }: { fixtures: Fixture[] }) {
           accessibilityLabel={`${f.home.name} versus ${f.away.name}`}
           className={`active:opacity-70 h-14 flex-row items-center px-3.5 ${i < fixtures.length - 1 ? 'border-b border-neon/10' : ''}`}>
           <View className="w-[58px]">
-            <Text className="text-[13px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
+            <Text style={TABULAR} className="text-[13px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
             <Text className="text-[11px] text-muted">{dayLabel(f.kickoffUtc)}</Text>
           </View>
           <View className="flex-1 flex-row items-center gap-1.5">

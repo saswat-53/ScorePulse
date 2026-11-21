@@ -2,6 +2,7 @@ import { Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import type { MatchDetail, MatchEvent } from '@/domain/types';
+import { TABULAR } from '@/components/ui/tabular';
 
 function EventIcon({ e }: { e: MatchEvent }) {
   if (e.type === 'goal') {
@@ -87,7 +88,7 @@ export function Timeline({ match }: { match: MatchDetail }) {
         <View
           key={e.id}
           className={`flex-row items-center gap-2.5 px-3 py-3 ${i < events.length - 1 ? 'border-b border-neon/10' : ''}`}>
-          <Text className="w-[30px] text-right text-[13px] font-semibold text-soft">{e.minute}&apos;</Text>
+          <Text style={TABULAR} className="w-[30px] text-right text-[13px] font-semibold text-soft">{e.minute}&apos;</Text>
           <View className="h-[30px] w-[30px] items-center justify-center bg-surface">
             <EventIcon e={e} />
           </View>

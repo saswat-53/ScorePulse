@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { useManualRefresh } from '@/hooks/use-manual-refresh';
 import type { LeagueId } from '@/domain/types';
 import { useSession } from '@/state/session';
+import { TABULAR } from '@/components/ui/tabular';
 
 const COLS = ['P', 'W', 'D', 'L'] as const;
 
@@ -34,15 +35,15 @@ export default function Standings() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#19E3FF" />}>
         <View className="mt-3.5 overflow-hidden rounded-2xl border border-neon/25 bg-surface">
           <View className="flex-row items-center border-b border-neon/10 py-2.5 pl-4 pr-3">
-            <Text maxFontSizeMultiplier={1.3} className="w-[22px] text-[11px] font-semibold text-muted">#</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[22px] text-[11px] font-semibold text-muted">#</Text>
             <Text className="flex-1 text-[11px] font-semibold text-muted">Club</Text>
             {COLS.map((c) => (
-              <Text key={c} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[11px] font-semibold text-muted">
+              <Text style={TABULAR} key={c} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[11px] font-semibold text-muted">
                 {c}
               </Text>
             ))}
-            <Text maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[11px] font-semibold text-muted">GD</Text>
-            <Text maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[11px] font-semibold text-white">Pts</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[11px] font-semibold text-muted">GD</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[11px] font-semibold text-white">Pts</Text>
           </View>
 
           {data?.rows.map((r) => {
@@ -59,21 +60,21 @@ export default function Standings() {
                     r.zone === 'champions-league' ? 'bg-neon' : 'bg-transparent'
                   }`}
                 />
-                <Text maxFontSizeMultiplier={1.3} className="w-[22px] text-[13px] font-semibold text-muted">{r.position}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[22px] text-[13px] font-semibold text-muted">{r.position}</Text>
                 <View className="flex-1 flex-row items-center gap-2">
                   <Crest team={r.team} size={24} />
                   <Text numberOfLines={1} className={`flex-1 text-[13px] font-semibold ${mine ? 'text-neon' : 'text-white'}`}>
                     {r.team.shortName}
                   </Text>
                 </View>
-                <Text maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.played}</Text>
-                <Text maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.won}</Text>
-                <Text maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.drawn}</Text>
-                <Text maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.lost}</Text>
-                <Text maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[13px] text-soft">
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.played}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.won}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.drawn}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.lost}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[13px] text-soft">
                   {r.goalDifference > 0 ? `+${r.goalDifference}` : r.goalDifference}
                 </Text>
-                <Text maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[13px] font-extrabold text-white">{r.points}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[13px] font-extrabold text-white">{r.points}</Text>
               </Pressable>
             );
           })}

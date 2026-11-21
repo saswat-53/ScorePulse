@@ -6,6 +6,7 @@ import { Crest } from '@/components/ui/crest';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import type { Fixture, Team } from '@/domain/types';
+import { TABULAR } from '@/components/ui/tabular';
 
 function Side({ team }: { team: Team }) {
   return (
@@ -33,12 +34,12 @@ export const LiveCard = memo(function LiveCard({ fixture, highlight }: { fixture
       style={highlight ? GLOW : GLOW_SOFT}>
       <View className={`h-[46px] w-9 items-center justify-center rounded-lg border ${toneBg}`}>
         <Text maxFontSizeMultiplier={1.2} className={`text-[10px] font-extrabold ${tone}`}>LIVE</Text>
-        <Text maxFontSizeMultiplier={1.2} className={`text-xs font-bold ${tone}`}>
+        <Text style={TABULAR} maxFontSizeMultiplier={1.2} className={`text-xs font-bold ${tone}`}>
           {fixture.status === 'halftime' ? 'HT' : fixture.minute === null ? 'LIVE' : `${fixture.minute}'`}
         </Text>
       </View>
       <Side team={fixture.home} />
-      <Text className="min-w-[64px] text-center text-2xl font-extrabold text-white">
+      <Text style={TABULAR} className="min-w-[64px] text-center text-2xl font-extrabold text-white">
         {fixture.score.home} - {fixture.score.away}
       </Text>
       <Side team={fixture.away} />
