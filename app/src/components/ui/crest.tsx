@@ -45,6 +45,7 @@ export function Crest({ team, size = 28 }: { team: Team; size?: number }) {
       <Text
         numberOfLines={1}
         adjustsFontSizeToFit
+        allowFontScaling={false}
         minimumFontScale={0.85}
         className="font-bold text-white"
         style={{ fontSize: Math.max(9, size * 0.3) }}>

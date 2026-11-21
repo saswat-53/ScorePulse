@@ -77,11 +77,11 @@ export function Lineups({ match }: { match: MatchDetail }) {
             <View
               className="h-[26px] w-[26px] items-center justify-center rounded-full"
               style={{ backgroundColor: p.bg }}>
-              <Text className="text-[11px] font-extrabold" style={{ color: p.fg }}>
+              <Text maxFontSizeMultiplier={1.2} className="text-[11px] font-extrabold" style={{ color: p.fg }}>
                 {p.number}
               </Text>
             </View>
-            <Text className="text-[11px] font-semibold text-white">{p.name}</Text>
+            <Text maxFontSizeMultiplier={1.2} className="text-[11px] font-semibold text-white">{p.name}</Text>
           </View>
         ))}
       </View>

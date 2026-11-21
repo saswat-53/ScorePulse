@@ -43,6 +43,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: '#8FA3C0',
         tabBarStyle: { backgroundColor: '#071027', borderTopColor: 'rgba(25,227,255,0.18)', height: 60 + bottom, paddingTop: 6, paddingBottom: bottom },
         tabBarLabelStyle: { fontSize: 11 },
+        // A fixed-height bar with 11px labels: scaling them with the system font size would overflow it.
+        tabBarAllowFontScaling: false,
         sceneStyle: { backgroundColor: '#050B18' },
       }}>
       <Tabs.Screen name="index" options={tab('Home', 'home')} />

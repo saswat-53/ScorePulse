@@ -5,6 +5,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { useTeams } from '@/api/hooks';
 import { ClubRow } from '@/components/clubs/club-row';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
@@ -66,7 +67,7 @@ export default function ChooseClubs() {
     void markNotificationPromptDone();
   };
   const [limitHit, setLimitHit] = useState(false);
-  const { data: results = [] } = useTeams(query);
+  const { data: results = [], isError, refetch } = useTeams(query);
 
   const picked = chosen.map((t) => t.id);
   const available = results.filter((t) => !picked.includes(t.id));
@@ -125,6 +126,9 @@ export default function ChooseClubs() {
         keyExtractor={(t) => String(t.id)}
         renderItem={({ item }) => <ClubRow team={item} selected={false} onToggle={onToggle} />}
         ListHeaderComponent={header}
+        ListEmptyComponent={
+          isError ? <ErrorNotice message="Could not search clubs." onRetry={() => void refetch()} className="mt-4" /> : null
+        }
         ListFooterComponent={
           picked.length > 0 && promptDone === false ? (
             <NotificationPrompt onDone={closePrompt} />

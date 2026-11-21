@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { useFixturesScope, useLive } from '@/api/hooks';
 import { groupByDay } from '@/components/fixtures/day-groups';
@@ -12,6 +12,7 @@ import { UpdateBanner } from '@/components/fixtures/update-banner';
 import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import { Wordmark } from '@/components/ui/wordmark';
+import { useManualRefresh } from '@/hooks/use-manual-refresh';
 import type { LeagueId } from '@/domain/types';
 import { dayHeading } from '@/lib/dates';
 import { useSession } from '@/state/session';
@@ -22,6 +23,7 @@ export default function Home() {
   const id = league === 'all' ? undefined : league;
   const live = useLive(id);
   const next = useFixturesScope('upcoming', id, 10);
+  const { refreshing, onRefresh } = useManualRefresh(() => Promise.all([live.refetch(), next.refetch()]));
 
   // The next ten matches, whichever day they fall on.
   const upcoming = next.data?.pages[0]?.fixtures ?? [];
@@ -37,7 +39,9 @@ export default function Home() {
       <LeagueChips value={league} onChange={setLeague} />
       <UpdateBanner />
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#19E3FF" />}>
         <View className="mt-4 flex-row items-center justify-between">
           <Text className="text-base font-bold text-neon">Live Matches</Text>
           {live.data && live.data.length > 0 ? (
