@@ -9,6 +9,7 @@ import { LeagueChips } from '@/components/fixtures/league-chips';
 import { LiveCard } from '@/components/fixtures/live-card';
 import { UpcomingList } from '@/components/fixtures/upcoming-list';
 import { UpdateBanner } from '@/components/fixtures/update-banner';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import { Wordmark } from '@/components/ui/wordmark';
 import type { LeagueId } from '@/domain/types';
@@ -45,6 +46,8 @@ export default function Home() {
         </View>
         {live.data?.length ? (
           live.data.map((f) => <LiveCard key={f.id} fixture={f} highlight={mine(f)} />)
+        ) : live.isError ? (
+          <ErrorNotice message="Could not load live matches." onRetry={() => void live.refetch()} className="mt-3" />
         ) : (
           <Text className="mt-3 text-[13px] text-muted">No live matches right now.</Text>
         )}
@@ -54,7 +57,7 @@ export default function Home() {
           <Pressable
             onPress={() => router.push({ pathname: '/fixtures', params: { mode: 'fixtures', ...(id ? { league: id } : {}) } } as Href)}
             accessibilityRole="link"
-            className="h-11 justify-center">
+            className="h-11 justify-center active:opacity-70">
             <Text className="text-xs font-semibold text-soft">See All</Text>
           </Pressable>
         </View>
@@ -65,6 +68,8 @@ export default function Home() {
               <UpcomingList fixtures={g.fixtures} />
             </View>
           ))
+        ) : next.isError ? (
+          <ErrorNotice message="Could not load fixtures." onRetry={() => void next.refetch()} className="mt-3" />
         ) : (
           <Text className="mt-3 text-[13px] text-muted">{next.isLoading ? 'Loading…' : 'No upcoming fixtures.'}</Text>
         )}

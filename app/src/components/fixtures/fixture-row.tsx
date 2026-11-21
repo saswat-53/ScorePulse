@@ -41,7 +41,7 @@ export function FixtureRow({ fixture, highlight = false, showDate = false }: { f
       onPress={() => router.push(`/match/${fixture.id}` as Href)}
       accessibilityRole="button"
       accessibilityLabel={`${fixture.home.name} versus ${fixture.away.name}`}
-      className={`mt-2 flex-row items-center rounded-2xl border bg-surface px-3 py-2.5 ${
+      className={`active:opacity-70 mt-2 flex-row items-center rounded-2xl border bg-surface px-3 py-2.5 ${
         highlight ? 'border-neon/70' : live ? 'border-neon/40' : 'border-neon/15'
       }`}
       style={highlight ? GLOW : live ? GLOW_SOFT : undefined}>

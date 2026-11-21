@@ -7,6 +7,7 @@ import { LeagueChips } from '@/components/fixtures/league-chips';
 import { FixtureRow } from '@/components/fixtures/fixture-row';
 import { GroupHeader } from '@/components/fixtures/group-header';
 import { Crest } from '@/components/ui/crest';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { RoundButton } from '@/components/ui/round-button';
 import { Screen } from '@/components/ui/screen';
 import type { LeagueId } from '@/domain/types';
@@ -16,7 +17,7 @@ import { useSession } from '@/state/session';
 /** A team's whole season: every fixture and result stored for it, newest first, by month. Tap one for the match. */
 export default function TeamPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, isLoading } = useTeamFixtures(Number(id));
+  const { data, isLoading, isError, refetch } = useTeamFixtures(Number(id));
   const { profile } = useSession();
   const [league, setLeague] = useState<LeagueId | 'all'>('all');
 
@@ -35,7 +36,11 @@ export default function TeamPage() {
         <View className="px-3">
           <RoundButton icon="back" label="Back" onPress={() => router.back()} />
         </View>
-        <Text className="mt-24 text-center text-sm text-muted">This team could not be found.</Text>
+        {isError ? (
+          <ErrorNotice message="Could not load this team." onRetry={() => void refetch()} className="mt-24" />
+        ) : (
+          <Text className="mt-24 text-center text-sm text-muted">This team could not be found.</Text>
+        )}
       </Screen>
     );
   }

@@ -2,6 +2,7 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useBrowse } from '@/api/hooks';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Icon } from '@/components/ui/icon';
 import { RoundButton } from '@/components/ui/round-button';
 import { Screen } from '@/components/ui/screen';
@@ -12,7 +13,7 @@ function LeagueRow({ league, pick }: { league: BrowseLeague; pick: boolean }) {
     <Pressable
       onPress={() => router.push(`/browse/${league.id}${pick ? '?pick=1' : ''}` as Href)}
       accessibilityRole="button"
-      className="mt-2 h-[52px] flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4">
+      className="mt-2 h-[52px] flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4 active:opacity-70">
       <Text className="flex-1 text-[15px] font-semibold text-white">{league.name}</Text>
       <Icon name="chevron-right" size={18} color="#8FA3C0" />
     </Pressable>
@@ -26,7 +27,7 @@ const Section = ({ title }: { title: string }) => (
 /** World, then country, then league: the way in to every club. `pick`: opened from the club picker, so a club is chosen, not opened. */
 export default function Browse() {
   const { pick } = useLocalSearchParams<{ pick?: string }>();
-  const { data, isLoading } = useBrowse();
+  const { data, isLoading, refetch } = useBrowse();
 
   return (
     <Screen>
@@ -49,7 +50,7 @@ export default function Browse() {
               {c.leagues.map((l) => <LeagueRow key={l.id} league={l} pick={!!pick} />)}
             </View>
           ))}
-          {!data ? <Text className="mt-10 text-center text-[13px] text-muted">Could not load the list. Try again.</Text> : null}
+          {!data ? <ErrorNotice message="Could not load the list." onRetry={() => void refetch()} /> : null}
         </ScrollView>
       )}
     </Screen>

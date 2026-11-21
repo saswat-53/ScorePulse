@@ -7,6 +7,7 @@ import { groupByDay } from '@/components/fixtures/day-groups';
 import { FixtureRow } from '@/components/fixtures/fixture-row';
 import { GroupHeader } from '@/components/fixtures/group-header';
 import { LeagueChips } from '@/components/fixtures/league-chips';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { LEAGUES } from '@/domain/mock';
@@ -66,7 +67,9 @@ export default function Fixtures() {
             ))}
           </View>
         ))}
-        {fixtures.length === 0 ? (
+        {fixtures.length === 0 && list.isError ? (
+          <ErrorNotice message="Could not load matches. Check your connection." onRetry={() => void list.refetch()} />
+        ) : fixtures.length === 0 ? (
           <Text className="mt-10 text-center text-[13px] text-muted">
             {list.isLoading ? 'Loading…' : mode === 'fixtures' ? 'No upcoming fixtures.' : 'No results yet.'}
           </Text>
@@ -76,7 +79,7 @@ export default function Fixtures() {
             onPress={() => list.fetchNextPage()}
             disabled={list.isFetchingNextPage}
             accessibilityRole="button"
-            className="mt-5 h-11 items-center justify-center rounded-2xl border border-border bg-surface">
+            className="mt-5 h-11 items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70">
             <Text className="text-[13px] font-semibold text-white">{list.isFetchingNextPage ? 'Loading…' : 'Load more'}</Text>
           </Pressable>
         ) : null}

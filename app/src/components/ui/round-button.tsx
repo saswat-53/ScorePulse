@@ -19,7 +19,7 @@ export function RoundButton({ icon, label, onPress, active, disabled }: RoundBut
       accessibilityState={{ disabled: !!disabled }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className={`h-11 w-11 items-center justify-center rounded-full border ${
+      className={`active:opacity-70 h-11 w-11 items-center justify-center rounded-full border ${
         active ? 'border-neon bg-neon/15' : 'border-neon/30 bg-surface'
       } ${disabled ? 'opacity-40' : ''}`}>
       <Icon name={icon} size={20} color={active ? '#19E3FF' : '#FFFFFF'} />

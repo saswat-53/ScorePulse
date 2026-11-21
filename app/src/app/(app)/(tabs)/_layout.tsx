@@ -28,7 +28,7 @@ export default function TabsLayout() {
     return (
       <View className="flex-1 items-center justify-center gap-4 bg-bg px-8">
         <Text className="text-center text-base text-white">Could not load your clubs.</Text>
-        <Pressable onPress={retryFavorites} accessibilityRole="button" className="h-12 items-center justify-center rounded-xl bg-neon px-8">
+        <Pressable onPress={retryFavorites} accessibilityRole="button" className="h-12 items-center justify-center rounded-xl bg-neon px-8 active:opacity-70">
           <Text className="text-sm font-extrabold text-bg">Try again</Text>
         </Pressable>
       </View>

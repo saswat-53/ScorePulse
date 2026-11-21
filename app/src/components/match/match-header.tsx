@@ -49,7 +49,7 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
           onPress={() => router.push(`/team/${match.home.id}` as Href)}
           accessibilityRole="button"
           accessibilityLabel={`${match.home.name}: season`}
-          className="w-[104px] items-center gap-1.5">
+          className="w-[104px] items-center gap-1.5 active:opacity-70">
           <Crest team={match.home} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.home.shortName}</Text>
         </Pressable>
@@ -81,7 +81,7 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
           onPress={() => router.push(`/team/${match.away.id}` as Href)}
           accessibilityRole="button"
           accessibilityLabel={`${match.away.name}: season`}
-          className="w-[104px] items-center gap-1.5">
+          className="w-[104px] items-center gap-1.5 active:opacity-70">
           <Crest team={match.away} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.away.shortName}</Text>
         </Pressable>

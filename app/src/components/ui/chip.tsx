@@ -12,7 +12,7 @@ export function Chip({ label, active, onPress }: ChipProps) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: !!active }}
-      className={`h-10 items-center justify-center rounded-full border px-4 ${
+      className={`active:opacity-70 h-10 items-center justify-center rounded-full border px-4 ${
         active ? 'border-neon bg-neon' : 'border-border bg-surface'
       }`}>
       <Text className={`text-[13px] font-semibold ${active ? 'text-bg' : 'text-soft'}`}>{label}</Text>

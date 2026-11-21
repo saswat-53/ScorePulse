@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useStandings } from '@/api/hooks';
 import { LeagueChips } from '@/components/fixtures/league-chips';
 import { Crest } from '@/components/ui/crest';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import type { LeagueId } from '@/domain/types';
 import { useSession } from '@/state/session';
@@ -13,7 +14,7 @@ const COLS = ['P', 'W', 'D', 'L'] as const;
 
 export default function Standings() {
   const [league, setLeague] = useState<LeagueId>('PL');
-  const { data } = useStandings(league);
+  const { data, isError, refetch } = useStandings(league);
   const { profile } = useSession();
 
   return (
@@ -48,7 +49,7 @@ export default function Standings() {
                 onPress={() => r.team.id > 0 && router.push(`/team/${r.team.id}` as Href)}
                 accessibilityRole="button"
                 accessibilityLabel={`${r.team.name}, position ${r.position}`}
-                className={`h-[46px] flex-row items-center border-b border-neon/5 pl-4 pr-3 ${mine ? 'bg-neon/10' : ''}`}>
+                className={`active:opacity-70 h-[46px] flex-row items-center border-b border-neon/5 pl-4 pr-3 ${mine ? 'bg-neon/10' : ''}`}>
                 <View
                   className={`absolute bottom-2 left-0 top-2 w-[3px] rounded-sm ${
                     r.zone === 'champions-league' ? 'bg-neon' : 'bg-transparent'
@@ -74,6 +75,9 @@ export default function Standings() {
           })}
         </View>
 
+        {!data && isError ? (
+          <ErrorNotice message="Could not load the table." onRetry={() => void refetch()} className="mt-4" />
+        ) : null}
         {data && data.rows.length === 0 ? (
           <Text className="mt-4 px-1 text-center text-[13px] text-muted">No table yet. It appears once the daily update has run.</Text>
         ) : null}

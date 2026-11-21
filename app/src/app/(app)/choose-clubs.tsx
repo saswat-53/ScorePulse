@@ -37,14 +37,14 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
         <Pressable
           onPress={onDone}
           accessibilityRole="button"
-          className="h-12 flex-1 items-center justify-center rounded-xl border border-border bg-surface-2">
+          className="h-12 flex-1 items-center justify-center rounded-xl border border-border bg-surface-2 active:opacity-70">
           <Text className="text-sm font-semibold text-white">Not Now</Text>
         </Pressable>
         <Pressable
           onPress={enable}
           disabled={asking}
           accessibilityRole="button"
-          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon"
+          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon active:opacity-70"
           style={GLOW_SOFT}>
           <Text className="text-sm font-extrabold text-bg">Enable</Text>
         </Pressable>
@@ -95,7 +95,7 @@ export default function ChooseClubs() {
       <Pressable
         onPress={() => router.push('/browse?pick=1' as Href)}
         accessibilityRole="button"
-        className="mt-3 h-12 flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4">
+        className="mt-3 h-12 flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4 active:opacity-70">
         <Text className="flex-1 text-sm font-semibold text-white">Browse by country and league</Text>
         <Icon name="chevron-right" size={18} color="#8FA3C0" />
       </Pressable>

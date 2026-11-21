@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { useLeagueClubs } from '@/api/hooks';
 import { ClubRow } from '@/components/clubs/club-row';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Crest } from '@/components/ui/crest';
 import { Icon } from '@/components/ui/icon';
 import { RoundButton } from '@/components/ui/round-button';
@@ -14,7 +15,7 @@ import { useSession } from '@/state/session';
 /** A league's clubs. Opened from the club picker (`pick`) a club is chosen as a favorite; otherwise it opens the team's page. */
 export default function LeagueClubs() {
   const { league, pick } = useLocalSearchParams<{ league: LeagueId; pick?: string }>();
-  const { data, isLoading } = useLeagueClubs(league);
+  const { data, isLoading, isError, refetch } = useLeagueClubs(league);
   const { favoriteTeams, toggleFavorite } = useSession();
   const [limitHit, setLimitHit] = useState(false);
   const chosen = favoriteTeams.map((t) => t.id);
@@ -40,8 +41,9 @@ export default function LeagueClubs() {
       ) : (
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
           {limitHit ? (
-            <Text className="mt-3 text-xs text-warn">You can pick up to {MAX_FAVORITES} clubs. Remove one first.</Text>
+            <Text accessibilityRole="alert" accessibilityLiveRegion="polite" className="mt-3 text-xs text-warn">You can pick up to {MAX_FAVORITES} clubs. Remove one first.</Text>
           ) : null}
+          {!data && isError ? <ErrorNotice message="Could not load the clubs." onRetry={() => void refetch()} /> : null}
           {data?.teams.map((team) =>
             pick ? (
               <ClubRow key={team.id} team={team} selected={chosen.includes(team.id)} onToggle={onToggle} />
@@ -51,7 +53,7 @@ export default function LeagueClubs() {
                 onPress={() => router.push(`/team/${team.id}` as Href)}
                 accessibilityRole="button"
                 accessibilityLabel={`${team.name}: season`}
-                className="mt-2 h-[52px] flex-row items-center gap-3 rounded-2xl border border-border bg-surface pl-3 pr-3">
+                className="mt-2 h-[52px] flex-row items-center gap-3 rounded-2xl border border-border bg-surface pl-3 pr-3 active:opacity-70">
                 <Crest team={team} size={34} />
                 <Text numberOfLines={1} className="flex-1 text-[15px] font-semibold text-white">
                   {team.name}

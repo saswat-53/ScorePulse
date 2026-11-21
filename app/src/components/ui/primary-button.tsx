@@ -16,7 +16,7 @@ export function PrimaryButton({ label, onPress, icon, disabled }: Props) {
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      className={`h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
+      className={`active:opacity-70 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
         disabled ? 'bg-surface-2' : 'bg-neon'
       }`}
       style={disabled ? undefined : GLOW_BUTTON}>

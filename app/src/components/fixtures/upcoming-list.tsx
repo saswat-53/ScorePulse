@@ -15,7 +15,7 @@ export function UpcomingList({ fixtures }: { fixtures: Fixture[] }) {
           onPress={() => router.push(`/match/${f.id}` as Href)}
           accessibilityRole="button"
           accessibilityLabel={`${f.home.name} versus ${f.away.name}`}
-          className={`h-14 flex-row items-center px-3.5 ${i < fixtures.length - 1 ? 'border-b border-neon/10' : ''}`}>
+          className={`active:opacity-70 h-14 flex-row items-center px-3.5 ${i < fixtures.length - 1 ? 'border-b border-neon/10' : ''}`}>
           <View className="w-[58px]">
             <Text className="text-[13px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
             <Text className="text-[11px] text-muted">{dayLabel(f.kickoffUtc)}</Text>

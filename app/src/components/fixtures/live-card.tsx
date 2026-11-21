@@ -27,7 +27,7 @@ export const LiveCard = memo(function LiveCard({ fixture, highlight }: { fixture
       onPress={() => router.push(`/match/${fixture.id}` as Href)}
       accessibilityRole="button"
       accessibilityLabel={`${fixture.home.name} versus ${fixture.away.name}, live`}
-      className={`mt-2.5 flex-row items-center rounded-2xl border bg-surface py-3 pl-2.5 pr-2 ${
+      className={`active:opacity-70 mt-2.5 flex-row items-center rounded-2xl border bg-surface py-3 pl-2.5 pr-2 ${
         highlight ? 'border-neon/70' : 'border-neon/40'
       }`}
       style={highlight ? GLOW : GLOW_SOFT}>
