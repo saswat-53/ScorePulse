@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -80 1720 920" width="1720" height="920" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker><marker id="ahs" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker></defs>
+<rect x="-40" y="-80" width="1720" height="920" fill="#ffffff"/>
+<rect x="0" y="190" width="300" height="450" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="620" y="0" width="400" height="130" rx="10" fill="#ffe3e3" stroke="#e03131" stroke-width="2"/>
+<rect x="620" y="190" width="400" height="450" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1340" y="190" width="300" height="200" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="1340" y="480" width="300" height="130" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="620" y="700" width="400" height="100" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<polyline points="150,190 150,65 620,65" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="620,95 210,95 210,190" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="300,355 620,355" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="620,475 300,475" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1020,300 1340,300" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1340,345 1020,345" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="720,130 720,190" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<polyline points="920,190 920,130" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<polyline points="1020,535 1340,535" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<rect x="252.32" y="43" width="265.36" height="19" fill="#ffffff"/>
+<text x="385" y="56.7" font-size="12" fill="#495057" text-anchor="middle">1  email, then the code from the email</text>
+<rect x="356.24" y="73" width="117.52000000000001" height="19" fill="#ffffff"/>
+<text x="415" y="86.7" font-size="12" fill="#495057" text-anchor="middle">2  session token</text>
+<rect x="360.91999999999996" y="333" width="198.16000000000003" height="19" fill="#ffffff"/>
+<text x="460" y="346.7" font-size="12" fill="#495057" text-anchor="middle">3  GET /live  + Bearer token</text>
+<rect x="407.96" y="453" width="104.08000000000001" height="19" fill="#ffffff"/>
+<text x="460" y="466.7" font-size="12" fill="#495057" text-anchor="middle">6  JSON answer</text>
+<rect x="1117.88" y="278" width="124.24000000000001" height="19" fill="#ffffff"/>
+<text x="1180" y="291.7" font-size="12" fill="#495057" text-anchor="middle">4  SQL over HTTPS</text>
+<rect x="1151.48" y="323" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="1180" y="336.7" font-size="12" fill="#495057" text-anchor="middle">5  rows</text>
+<rect x="561" y="150" width="151.12" height="19" fill="#ffffff"/>
+<text x="636.56" y="163.7" font-size="12" fill="#495057" text-anchor="middle">webhook: user.deleted</text>
+<rect x="928" y="150.5" width="164.56" height="19" fill="#ffffff"/>
+<text x="1010.28" y="164.2" font-size="12" fill="#495057" text-anchor="middle">deleteUser (DELETE /me)</text>
+<rect x="1154.84" y="513" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="1180" y="526.7" font-size="12" fill="#495057" text-anchor="middle">errors</text>
+<text x="16" y="221.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Phone app</tspan></text>
+<text x="16" y="247.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">Expo / React Native</tspan><tspan x="16" dy="17.5">&#160;</tspan><tspan x="16" dy="17.5">Sign-in screen (Clerk email code)</tspan><tspan x="16" dy="17.5">Clerk keeps the session token</tspan><tspan x="16" dy="17.5">&#160;</tspan><tspan x="16" dy="17.5">api/index.ts:  call(token, path)</tspan><tspan x="16" dy="17.5">Adds the token to every call</tspan><tspan x="16" dy="17.5">Base URL: EXPO_PUBLIC_API_URL</tspan><tspan x="16" dy="17.5">&#160;</tspan><tspan x="16" dy="17.5">React Query asks again every 60 s</tspan><tspan x="16" dy="17.5">First call is /me: creates the</tspan><tspan x="16" dy="17.5">user's row on first sign-in</tspan></text>
+<text x="636" y="31.099999999999998" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="636" dy="0">Clerk (sign-in service)</tspan></text>
+<text x="636" y="57.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="636" dy="0">Sends the email code, checks it</tspan><tspan x="636" dy="17.5">Issues the session token</tspan><tspan x="636" dy="17.5">Owns the user id (user_...)</tspan></text>
+<text x="636" y="221.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="636" dy="0">Worker: the Hono API</tspan></text>
+<text x="636" y="247.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="636" dy="0">Cloudflare Worker, server/src/app.ts</tspan><tspan x="636" dy="17.5">&#160;</tspan><tspan x="636" dy="17.5">Every request passes, in order:</tspan><tspan x="636" dy="17.5">  a. CORS (only localhost web builds)</tspan><tspan x="636" dy="17.5">  b. requireAuth reads 'Bearer &lt;token&gt;'</tspan><tspan x="636" dy="17.5">  c. token verified, gives the userId</tspan><tspan x="636" dy="17.5">  d. the route handler runs</tspan><tspan x="636" dy="17.5">  e. Drizzle builds the SQL</tspan><tspan x="636" dy="17.5">  f. JSON answer (or 400, 401, 404)</tspan><tspan x="636" dy="17.5">&#160;</tspan><tspan x="636" dy="17.5">No token needed:</tspan><tspan x="636" dy="17.5">  /health  /config  /status</tspan><tspan x="636" dy="17.5">Token needed:</tspan><tspan x="636" dy="17.5">  /me  /live  /fixtures  /matches/:id</tspan><tspan x="636" dy="17.5">  /standings  /teams  /browse</tspan><tspan x="636" dy="17.5">  /favorites  /follows  /settings  /devices</tspan><tspan x="636" dy="17.5">Signed by Svix instead:  /webhooks/clerk</tspan></text>
+<text x="1356" y="221.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1356" dy="0">Neon Postgres</tspan></text>
+<text x="1356" y="247.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1356" dy="0">The tables from diagram 1</tspan><tspan x="1356" dy="17.5">HTTP driver: one fetch per query</tspan><tspan x="1356" dy="17.5">No connection kept between requests</tspan><tspan x="1356" dy="17.5">Each query is one Worker subrequest</tspan></text>
+<text x="1356" y="511.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1356" dy="0">Sentry</tspan></text>
+<text x="1356" y="537.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1356" dy="0">Gets errors a route throws</tspan><tspan x="1356" dy="17.5">10% of requests are traced</tspan><tspan x="1356" dy="17.5">No IP or user identity sent</tspan></text>
+<text x="636" y="731.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="636" dy="0">Not a request: cron</tspan></text>
+<text x="636" y="757.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="636" dy="0">Scheduled runs call the same Worker's</tspan><tspan x="636" dy="17.5">scheduled(). See diagram 3.</tspan></text>
+<text x="0" y="-22.900000000000002" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">Request path: what happens when the app opens a screen</tspan></text>
+<text x="0" y="713.3" font-size="14" fill="#495057" text-anchor="start"><tspan x="0" dy="0">Numbers 1 to 6 follow one normal request, in order.</tspan><tspan x="0" dy="17.5">Solid arrow: part of a normal request.</tspan><tspan x="0" dy="17.5">Dashed arrow: happens only at certain times</tspan><tspan x="0" dy="17.5">(a deleted account, an error).</tspan></text>
+</svg>

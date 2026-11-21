@@ -60,3 +60,9 @@ Thumbs.db
 .agents/
 .claude/skills/*
 !.claude/skills/vercel-react-native-skills/
+
+# Obsidian: per-machine state stays local; app.json travels
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json

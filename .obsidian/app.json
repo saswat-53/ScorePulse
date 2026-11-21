@@ -1,0 +1,15 @@
+{
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "showUnsupportedFiles": false,
+  "userIgnoreFilters": [
+    "node_modules/",
+    ".git/",
+    ".vercel/",
+    "dist/",
+    ".expo/",
+    ".agents/",
+    ".claude/"
+  ]
+}

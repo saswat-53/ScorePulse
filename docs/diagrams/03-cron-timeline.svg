@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 1694.44 1042.5" width="1694.44" height="1042.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker><marker id="ahs" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker></defs>
+<rect x="-40" y="-40" width="1694.44" height="1042.5" fill="#ffffff"/>
+<rect x="0" y="120" width="230" height="56" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="0" y="220" width="230" height="56" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="0" y="320" width="230" height="56" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="596" y="120" width="23" height="56" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="619" y="120" width="200" height="56" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="1576" y="120" width="23" height="56" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="876" y="220" width="672" height="56" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1212" y="320" width="336" height="56" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="0" y="500" width="330" height="70" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="0" y="590" width="330" height="70" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="0" y="680" width="330" height="70" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="0" y="770" width="330" height="70" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="520" y="500" width="330" height="360" rx="10" fill="#fff3bf" stroke="#f08c00" stroke-width="2"/>
+<rect x="1040" y="500" width="360" height="110" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="1040" y="640" width="360" height="110" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="1040" y="780" width="360" height="110" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<polyline points="330,535 520,535" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,625 520,625" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,715 520,715" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,805 520,805" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="850,555 1040,555" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="850,695 1040,695" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="850,835 1040,835" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="903.04" y="533" width="83.92" height="19" fill="#ffffff"/>
+<text x="945" y="546.7" font-size="12" fill="#495057" text-anchor="middle">slot 0 to 4</text>
+<rect x="909.76" y="673" width="70.48" height="19" fill="#ffffff"/>
+<text x="945" y="686.7" font-size="12" fill="#495057" text-anchor="middle">one match</text>
+<rect x="879.52" y="813" width="130.96" height="19" fill="#ffffff"/>
+<text x="945" y="826.7" font-size="12" fill="#495057" text-anchor="middle">if a match is near</text>
+<text x="16" y="140.45" font-size="16" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Every day</tspan></text>
+<text x="16" y="166.55" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">two cron triggers</tspan></text>
+<text x="16" y="240.45" font-size="16" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Friday to Monday</tspan></text>
+<text x="16" y="266.55" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">one cron trigger</tspan></text>
+<text x="16" y="340.45" font-size="16" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Tuesday to Thursday</tspan></text>
+<text x="16" y="366.55" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">one cron trigger</tspan></text>
+<text x="612" y="151.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="612" dy="0">&#160;</tspan></text>
+<text x="719" y="140.45" font-size="16" fill="#1e1e1e" text-anchor="middle"><tspan x="719" dy="0">archive</tspan></text>
+<text x="719" y="166.55" font-size="14" fill="#495057" text-anchor="middle"><tspan x="719" dy="0">06:25 to 09:55</tspan></text>
+<text x="1592" y="151.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1592" dy="0">&#160;</tspan></text>
+<text x="1212" y="240.45" font-size="16" fill="#1e1e1e" text-anchor="middle"><tspan x="1212" dy="0">poller, every 5 minutes</tspan></text>
+<text x="1212" y="266.55" font-size="14" fill="#495057" text-anchor="middle"><tspan x="1212" dy="0">11:00 to 22:55</tspan></text>
+<text x="1380" y="340.45" font-size="16" fill="#1e1e1e" text-anchor="middle"><tspan x="1380" dy="0">poller, every 5 minutes</tspan></text>
+<text x="1380" y="366.55" font-size="14" fill="#495057" text-anchor="middle"><tspan x="1380" dy="0">17:00 to 22:55</tspan></text>
+<text x="16" y="528.25" font-size="15" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">*/5 11-22 * * FRI,SAT,SUN,MON</tspan></text>
+<text x="16" y="554.05" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">matchday cron, Friday to Monday</tspan></text>
+<text x="16" y="618.25" font-size="15" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">*/5 17-22 * * TUE,WED,THU</tspan></text>
+<text x="16" y="644.05" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">matchday cron, Tuesday to Thursday</tspan></text>
+<text x="16" y="708.25" font-size="15" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">*/5 6-9 * * *</tspan></text>
+<text x="16" y="734.05" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">MORNING_CRON, every day</tspan></text>
+<text x="16" y="798.25" font-size="15" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">30,35,40,45,50 23 * * *</tspan></text>
+<text x="16" y="824.05" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">NIGHT_SYNC_CRON, every day</tspan></text>
+<text x="536" y="531.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="536" dy="0">routeScheduled(cron, time)</tspan></text>
+<text x="536" y="557.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="536" dy="0">Reads the cron text and the time.</tspan><tspan x="536" dy="17.5">&#160;</tspan><tspan x="536" dy="17.5">night cron → sync</tspan><tspan x="536" dy="17.5">morning cron, before 06:25 → sync</tspan><tspan x="536" dy="17.5">morning cron, after that → archive</tspan><tspan x="536" dy="17.5">any other cron → poll</tspan><tspan x="536" dy="17.5">&#160;</tspan><tspan x="536" dy="17.5">For a sync, the minute picks the</tspan><tspan x="536" dy="17.5">league: 0, 5, 10, 15, 20 → slot 0 to 4</tspan><tspan x="536" dy="17.5">&#160;</tspan><tspan x="536" dy="17.5">schedule.ts keeps these strings equal</tspan><tspan x="536" dy="17.5">to the ones in wrangler.jsonc</tspan></text>
+<text x="1056" y="531.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">sync: runSync(slot)</tspan></text>
+<text x="1056" y="557.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">slot 0 to 4 = PL, PD, FL1, BL1, CL</tspan><tspan x="1056" dy="17.5">fixtures: 7 days back, 14 ahead</tspan><tspan x="1056" dy="17.5">plus that league's table (2 requests)</tspan></text>
+<text x="1056" y="671.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">archive: runArchive</tspan></text>
+<text x="1056" y="697.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">one finished match fetched by id</tspan><tspan x="1056" dy="17.5">stops at 50 requests used today</tspan><tspan x="1056" dy="17.5">(20 on Friday to Monday)</tspan></text>
+<text x="1056" y="811.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">poll: runPoller</tspan></text>
+<text x="1056" y="837.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">asks if any tracked match is near</tspan><tspan x="1056" dy="17.5">live scores, events, alerts</tspan><tspan x="1056" dy="17.5">next: diagram 4</tspan></text>
+<text x="0" y="17.099999999999998" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">Cron timeline: when the Worker wakes up on its own (one day, all times UTC)</tspan></text>
+<text x="253" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="253" dy="0">00</tspan></text>
+<text x="309" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="309" dy="0">01</tspan></text>
+<text x="365" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="365" dy="0">02</tspan></text>
+<text x="421" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="421" dy="0">03</tspan></text>
+<text x="477" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="477" dy="0">04</tspan></text>
+<text x="533" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="533" dy="0">05</tspan></text>
+<text x="589" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="589" dy="0">06</tspan></text>
+<text x="645" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="645" dy="0">07</tspan></text>
+<text x="701" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="701" dy="0">08</tspan></text>
+<text x="757" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="757" dy="0">09</tspan></text>
+<text x="813" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="813" dy="0">10</tspan></text>
+<text x="869" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="869" dy="0">11</tspan></text>
+<text x="925" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="925" dy="0">12</tspan></text>
+<text x="981" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="981" dy="0">13</tspan></text>
+<text x="1037" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1037" dy="0">14</tspan></text>
+<text x="1093" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1093" dy="0">15</tspan></text>
+<text x="1149" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1149" dy="0">16</tspan></text>
+<text x="1205" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1205" dy="0">17</tspan></text>
+<text x="1261" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1261" dy="0">18</tspan></text>
+<text x="1317" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1317" dy="0">19</tspan></text>
+<text x="1373" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1373" dy="0">20</tspan></text>
+<text x="1429" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1429" dy="0">21</tspan></text>
+<text x="1485" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1485" dy="0">22</tspan></text>
+<text x="1541" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1541" dy="0">23</tspan></text>
+<text x="1597" y="93.4" font-size="12" fill="#868e96" text-anchor="start"><tspan x="1597" dy="0">24</tspan></text>
+<text x="535" y="191.4" font-size="12" fill="#495057" text-anchor="start"><tspan x="535" dy="0">06:00 to 06:20: sync</tspan></text>
+<text x="1448" y="191.4" font-size="12" fill="#495057" text-anchor="start"><tspan x="1448" dy="0">23:30 to 23:50: sync</tspan></text>
+<text x="260" y="412.35" font-size="13" fill="#495057" text-anchor="start"><tspan x="260" dy="0">Empty space is quiet time: nothing runs, so no request is made and Neon is not woken by a cron.</tspan></text>
+<text x="0" y="467.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">How the Worker decides what a run does (server/src/schedule.ts)</tspan></text>
+<text x="0" y="942.35" font-size="13" fill="#495057" text-anchor="start"><tspan x="0" dy="0">A cron run is not a request: nobody waits for an answer. A run that finds nothing to do ends without calling a provider.</tspan><tspan x="0" dy="16.25">Colours: blue = sync, purple = archive, green = poll. Each arrow on the right is one job; the left shows the four triggers in wrangler.jsonc.</tspan></text>
+</svg>
