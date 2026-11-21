@@ -1,20 +1,24 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { useStandings } from '@/api/hooks';
 import { LeagueChips } from '@/components/fixtures/league-chips';
 import { Crest } from '@/components/ui/crest';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
+import { useManualRefresh } from '@/hooks/use-manual-refresh';
 import type { LeagueId } from '@/domain/types';
 import { useSession } from '@/state/session';
+import { TABULAR } from '@/components/ui/tabular';
 
 const COLS = ['P', 'W', 'D', 'L'] as const;
 
 export default function Standings() {
   const [league, setLeague] = useState<LeagueId>('PL');
-  const { data } = useStandings(league);
+  const { data, isError, refetch } = useStandings(league);
   const { profile } = useSession();
+  const { refreshing, onRefresh } = useManualRefresh(refetch);
 
   return (
     <Screen>
@@ -26,18 +30,20 @@ export default function Standings() {
         <LeagueChips value={league} onChange={(v) => v !== 'all' && setLeague(v)} includeAll={false} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#19E3FF" />}>
         <View className="mt-3.5 overflow-hidden rounded-2xl border border-neon/25 bg-surface">
           <View className="flex-row items-center border-b border-neon/10 py-2.5 pl-4 pr-3">
-            <Text className="w-[22px] text-[11px] font-semibold text-muted">#</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[22px] text-[11px] font-semibold text-muted">#</Text>
             <Text className="flex-1 text-[11px] font-semibold text-muted">Club</Text>
             {COLS.map((c) => (
-              <Text key={c} className="w-6 text-center text-[11px] font-semibold text-muted">
+              <Text style={TABULAR} key={c} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[11px] font-semibold text-muted">
                 {c}
               </Text>
             ))}
-            <Text className="w-[34px] text-center text-[11px] font-semibold text-muted">GD</Text>
-            <Text className="w-[34px] text-right text-[11px] font-semibold text-white">Pts</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[11px] font-semibold text-muted">GD</Text>
+            <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[11px] font-semibold text-white">Pts</Text>
           </View>
 
           {data?.rows.map((r) => {
@@ -48,32 +54,35 @@ export default function Standings() {
                 onPress={() => r.team.id > 0 && router.push(`/team/${r.team.id}` as Href)}
                 accessibilityRole="button"
                 accessibilityLabel={`${r.team.name}, position ${r.position}`}
-                className={`h-[46px] flex-row items-center border-b border-neon/5 pl-4 pr-3 ${mine ? 'bg-neon/10' : ''}`}>
+                className={`active:opacity-70 h-[46px] flex-row items-center border-b border-neon/5 pl-4 pr-3 ${mine ? 'bg-neon/10' : ''}`}>
                 <View
                   className={`absolute bottom-2 left-0 top-2 w-[3px] rounded-sm ${
                     r.zone === 'champions-league' ? 'bg-neon' : 'bg-transparent'
                   }`}
                 />
-                <Text className="w-[22px] text-[13px] font-semibold text-muted">{r.position}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[22px] text-[13px] font-semibold text-muted">{r.position}</Text>
                 <View className="flex-1 flex-row items-center gap-2">
                   <Crest team={r.team} size={24} />
                   <Text numberOfLines={1} className={`flex-1 text-[13px] font-semibold ${mine ? 'text-neon' : 'text-white'}`}>
                     {r.team.shortName}
                   </Text>
                 </View>
-                <Text className="w-6 text-center text-[13px] text-soft">{r.played}</Text>
-                <Text className="w-6 text-center text-[13px] text-soft">{r.won}</Text>
-                <Text className="w-6 text-center text-[13px] text-soft">{r.drawn}</Text>
-                <Text className="w-6 text-center text-[13px] text-soft">{r.lost}</Text>
-                <Text className="w-[34px] text-center text-[13px] text-soft">
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.played}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.won}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.drawn}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-6 text-center text-[13px] text-soft">{r.lost}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-center text-[13px] text-soft">
                   {r.goalDifference > 0 ? `+${r.goalDifference}` : r.goalDifference}
                 </Text>
-                <Text className="w-[34px] text-right text-[13px] font-extrabold text-white">{r.points}</Text>
+                <Text style={TABULAR} maxFontSizeMultiplier={1.3} className="w-[34px] text-right text-[13px] font-extrabold text-white">{r.points}</Text>
               </Pressable>
             );
           })}
         </View>
 
+        {!data && isError ? (
+          <ErrorNotice message="Could not load the table." onRetry={() => void refetch()} className="mt-4" />
+        ) : null}
         {data && data.rows.length === 0 ? (
           <Text className="mt-4 px-1 text-center text-[13px] text-muted">No table yet. It appears once the daily update has run.</Text>
         ) : null}

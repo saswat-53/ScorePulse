@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { useFixturesScope, useLive } from '@/api/hooks';
 import { groupByDay } from '@/components/fixtures/day-groups';
@@ -9,8 +9,10 @@ import { LeagueChips } from '@/components/fixtures/league-chips';
 import { LiveCard } from '@/components/fixtures/live-card';
 import { UpcomingList } from '@/components/fixtures/upcoming-list';
 import { UpdateBanner } from '@/components/fixtures/update-banner';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import { Wordmark } from '@/components/ui/wordmark';
+import { useManualRefresh } from '@/hooks/use-manual-refresh';
 import type { LeagueId } from '@/domain/types';
 import { dayHeading } from '@/lib/dates';
 import { useSession } from '@/state/session';
@@ -21,6 +23,7 @@ export default function Home() {
   const id = league === 'all' ? undefined : league;
   const live = useLive(id);
   const next = useFixturesScope('upcoming', id, 10);
+  const { refreshing, onRefresh } = useManualRefresh(() => Promise.all([live.refetch(), next.refetch()]));
 
   // The next ten matches, whichever day they fall on.
   const upcoming = next.data?.pages[0]?.fixtures ?? [];
@@ -36,7 +39,9 @@ export default function Home() {
       <LeagueChips value={league} onChange={setLeague} />
       <UpdateBanner />
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#19E3FF" />}>
         <View className="mt-4 flex-row items-center justify-between">
           <Text className="text-base font-bold text-neon">Live Matches</Text>
           {live.data && live.data.length > 0 ? (
@@ -45,6 +50,8 @@ export default function Home() {
         </View>
         {live.data?.length ? (
           live.data.map((f) => <LiveCard key={f.id} fixture={f} highlight={mine(f)} />)
+        ) : live.isError ? (
+          <ErrorNotice message="Could not load live matches." onRetry={() => void live.refetch()} className="mt-3" />
         ) : (
           <Text className="mt-3 text-[13px] text-muted">No live matches right now.</Text>
         )}
@@ -54,7 +61,7 @@ export default function Home() {
           <Pressable
             onPress={() => router.push({ pathname: '/fixtures', params: { mode: 'fixtures', ...(id ? { league: id } : {}) } } as Href)}
             accessibilityRole="link"
-            className="h-11 justify-center">
+            className="h-11 justify-center active:opacity-70">
             <Text className="text-xs font-semibold text-soft">See All</Text>
           </Pressable>
         </View>
@@ -65,6 +72,8 @@ export default function Home() {
               <UpcomingList fixtures={g.fixtures} />
             </View>
           ))
+        ) : next.isError ? (
+          <ErrorNotice message="Could not load fixtures." onRetry={() => void next.refetch()} className="mt-3" />
         ) : (
           <Text className="mt-3 text-[13px] text-muted">{next.isLoading ? 'Loading…' : 'No upcoming fixtures.'}</Text>
         )}

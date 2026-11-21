@@ -13,7 +13,7 @@ interface Props {
 /** Blocking screen for builds below min_app_version. No way to dismiss it. */
 export function UpdateRequiredView({ current, required, url }: Props) {
   return (
-    <View className="flex-1 items-center bg-bg px-7 pb-10 pt-[72px]">
+    <View className="flex-1 items-center bg-bg px-6 pb-10 pt-[72px]">
       <Wordmark size={30} />
 
       <View className="mt-[72px] h-[132px] w-[132px] items-center justify-center rounded-full border-2 border-neon/70 bg-neon/10">

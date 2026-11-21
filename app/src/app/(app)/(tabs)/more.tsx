@@ -63,7 +63,7 @@ export default function More() {
           <Pressable
             onPress={() => router.push('/choose-clubs' as Href)}
             accessibilityRole="button"
-            className="flex-row items-center gap-3 px-4 pt-3.5">
+            className="flex-row items-center gap-3 px-4 pt-3.5 active:opacity-70">
             <Icon name="user" size={20} color="#19E3FF" />
             <Text className="flex-1 text-[15px] font-semibold text-white">Favorite teams</Text>
             <Icon name="chevron-right" size={18} color="#8FA3C0" />
@@ -74,7 +74,10 @@ export default function More() {
                 key={t.id}
                 onPress={() => router.push(`/team/${t.id}` as Href)}
                 accessibilityRole="button"
-                accessibilityLabel={`${t.name}: season`}>
+                accessibilityLabel={`${t.name}: season`}
+                // A 24px badge: the slop makes the tap area 30 x 44 without moving the neighbours (6px apart).
+                hitSlop={{ top: 10, bottom: 10, left: 3, right: 3 }}
+                className="active:opacity-70">
                 <Crest team={t} size={24} />
               </Pressable>
             ))}
@@ -84,7 +87,7 @@ export default function More() {
         <Pressable
           onPress={() => router.push('/browse' as Href)}
           accessibilityRole="button"
-          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-neon/25 bg-surface px-4 py-3.5">
+          className="mt-3 flex-row items-center gap-3 rounded-2xl border border-neon/25 bg-surface px-4 py-3.5 active:opacity-70">
           <Icon name="search" size={20} color="#19E3FF" />
           <Text className="flex-1 text-[15px] font-semibold text-white">Browse clubs</Text>
           <Icon name="chevron-right" size={18} color="#8FA3C0" />
@@ -104,7 +107,7 @@ export default function More() {
               <Switch
                 value={profile.alerts[a.key]}
                 onValueChange={(v) => setAlert(a.key, v)}
-                trackColor={{ false: '#1B2D4D', true: '#19E3FF' }}
+                trackColor={{ false: '#5A6A83', true: '#19E3FF' }}
                 thumbColor="#FFFFFF"
                 accessibilityLabel={a.title}
               />
@@ -115,14 +118,14 @@ export default function More() {
         <Pressable
           onPress={signOut}
           accessibilityRole="button"
-          className="mt-6 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface">
+          className="mt-6 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70">
           <Text className="text-[15px] font-semibold text-white">Sign out</Text>
         </Pressable>
         <Pressable
           onPress={confirmDelete}
           disabled={deleting}
           accessibilityRole="button"
-          className={`mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl border border-danger/60 bg-danger/10 ${deleting ? 'opacity-50' : ''}`}>
+          className={`active:opacity-70 mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl border border-danger/60 bg-danger/10 ${deleting ? 'opacity-50' : ''}`}>
           <Icon name="trash" size={18} color="#FF3B47" />
           <Text className="text-[15px] font-semibold text-danger">{deleting ? 'Deleting…' : 'Delete Account'}</Text>
         </Pressable>
@@ -131,7 +134,7 @@ export default function More() {
           <Pressable
             onPress={() => router.push('/update-required' as Href)}
             accessibilityRole="button"
-            className="mt-6 items-center py-3">
+            className="mt-6 items-center py-3 active:opacity-70">
             <Text className="text-xs text-muted">Developer: preview the update-required screen</Text>
           </Pressable>
         ) : null}

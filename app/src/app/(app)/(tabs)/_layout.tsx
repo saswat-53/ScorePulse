@@ -28,7 +28,7 @@ export default function TabsLayout() {
     return (
       <View className="flex-1 items-center justify-center gap-4 bg-bg px-8">
         <Text className="text-center text-base text-white">Could not load your clubs.</Text>
-        <Pressable onPress={retryFavorites} accessibilityRole="button" className="h-12 items-center justify-center rounded-xl bg-neon px-8">
+        <Pressable onPress={retryFavorites} accessibilityRole="button" className="h-12 items-center justify-center rounded-xl bg-neon px-8 active:opacity-70">
           <Text className="text-sm font-extrabold text-bg">Try again</Text>
         </Pressable>
       </View>
@@ -43,6 +43,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: '#8FA3C0',
         tabBarStyle: { backgroundColor: '#071027', borderTopColor: 'rgba(25,227,255,0.18)', height: 60 + bottom, paddingTop: 6, paddingBottom: bottom },
         tabBarLabelStyle: { fontSize: 11 },
+        // A fixed-height bar with 11px labels: scaling them with the system font size would overflow it.
+        tabBarAllowFontScaling: false,
         sceneStyle: { backgroundColor: '#050B18' },
       }}>
       <Tabs.Screen name="index" options={tab('Home', 'home')} />

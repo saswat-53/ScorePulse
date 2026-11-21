@@ -48,6 +48,7 @@ export async function getPushToken(): Promise<string | null> {
       // Android 8+ needs a channel before anything can be shown.
       await Notifications.setNotificationChannelAsync('default', {
         name: 'Match alerts',
+        // eslint-disable-next-line import/namespace -- the enum is exported (tsc agrees); the import plugin cannot follow `export *`
         importance: Notifications.AndroidImportance.HIGH,
       });
     }

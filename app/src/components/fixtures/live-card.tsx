@@ -6,6 +6,7 @@ import { Crest } from '@/components/ui/crest';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import type { Fixture, Team } from '@/domain/types';
+import { TABULAR } from '@/components/ui/tabular';
 
 function Side({ team }: { team: Team }) {
   return (
@@ -27,18 +28,18 @@ export const LiveCard = memo(function LiveCard({ fixture, highlight }: { fixture
       onPress={() => router.push(`/match/${fixture.id}` as Href)}
       accessibilityRole="button"
       accessibilityLabel={`${fixture.home.name} versus ${fixture.away.name}, live`}
-      className={`mt-2.5 flex-row items-center rounded-2xl border bg-surface py-3 pl-2.5 pr-2 ${
+      className={`active:opacity-70 mt-2.5 flex-row items-center rounded-2xl border bg-surface py-3 pl-2.5 pr-2 ${
         highlight ? 'border-neon/70' : 'border-neon/40'
       }`}
       style={highlight ? GLOW : GLOW_SOFT}>
       <View className={`h-[46px] w-9 items-center justify-center rounded-lg border ${toneBg}`}>
-        <Text className={`text-[9px] font-extrabold ${tone}`}>LIVE</Text>
-        <Text className={`text-xs font-bold ${tone}`}>
+        <Text maxFontSizeMultiplier={1.2} className={`text-[10px] font-extrabold ${tone}`}>LIVE</Text>
+        <Text style={TABULAR} maxFontSizeMultiplier={1.2} className={`text-xs font-bold ${tone}`}>
           {fixture.status === 'halftime' ? 'HT' : fixture.minute === null ? 'LIVE' : `${fixture.minute}'`}
         </Text>
       </View>
       <Side team={fixture.home} />
-      <Text className="min-w-[64px] text-center text-2xl font-extrabold text-white">
+      <Text style={TABULAR} className="min-w-[64px] text-center text-2xl font-extrabold text-white">
         {fixture.score.home} - {fixture.score.away}
       </Text>
       <Side team={fixture.away} />

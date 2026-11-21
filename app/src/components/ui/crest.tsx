@@ -42,7 +42,13 @@ export function Crest({ team, size = 28 }: { team: Team; size?: number }) {
         borderColor: team.color,
         backgroundColor: `${team.color}33`,
       }}>
-      <Text className="font-bold text-white" style={{ fontSize: Math.max(8, size * 0.3) }}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        allowFontScaling={false}
+        minimumFontScale={0.85}
+        className="font-bold text-white"
+        style={{ fontSize: Math.max(9, size * 0.3) }}>
         {team.code}
       </Text>
     </View>

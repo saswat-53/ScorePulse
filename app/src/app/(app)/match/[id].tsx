@@ -13,13 +13,14 @@ import { LimitedBanner, PausedBanner } from '@/components/match/paused-banner';
 import { Stats } from '@/components/match/stats';
 import { Timeline } from '@/components/match/timeline';
 import { WaitingCard } from '@/components/match/waiting-card';
+import { ErrorNotice } from '@/components/ui/error-notice';
 import { Screen } from '@/components/ui/screen';
 import { MAX_ACTIVE_FOLLOWS } from '@/domain/types';
 import { useSession } from '@/state/session';
 
 export default function MatchScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: match, isLoading } = useMatch(Number(id));
+  const { data: match, isLoading, isError, refetch } = useMatch(Number(id));
   const { followedIds, canFollowMore, toggleFollow } = useSession();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<MatchTab | null>(null);
@@ -37,7 +38,11 @@ export default function MatchScreen() {
   if (!match) {
     return (
       <Screen>
-        <Text className="mt-24 text-center text-sm text-muted">This match could not be found.</Text>
+        {isError ? (
+          <ErrorNotice message="Could not load this match." onRetry={() => void refetch()} className="mt-24" />
+        ) : (
+          <Text className="mt-24 text-center text-sm text-muted">This match could not be found.</Text>
+        )}
       </Screen>
     );
   }
@@ -65,7 +70,7 @@ export default function MatchScreen() {
     <Screen bottom>
       <MatchHeader match={match} followed={followed} followDisabled={followDisabled} onToggleFollow={onToggleFollow} />
       {followDisabled || followError ? (
-        <Text className="mx-4 mt-2 text-center text-xs text-warn">
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" className="mx-4 mt-2 text-center text-xs text-warn">
           {followError ?? `You can follow ${MAX_ACTIVE_FOLLOWS} matches at once. Unfollow one first.`}
         </Text>
       ) : null}

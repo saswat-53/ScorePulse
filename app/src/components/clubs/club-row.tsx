@@ -28,7 +28,7 @@ export const ClubRow = memo(function ClubRow({ team, selected, onToggle }: ClubR
         onPress={() => onToggle(team)}
         accessibilityRole="button"
         accessibilityLabel={`${selected ? 'Remove' : 'Add'} ${team.name}`}
-        className="h-11 w-11 items-center justify-center">
+        className="h-11 w-11 items-center justify-center active:opacity-70">
         <View
           className={`h-8 w-8 items-center justify-center rounded-full ${
             selected ? 'bg-white/10' : 'border border-neon/45'

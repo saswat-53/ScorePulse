@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import type { MatchDetail } from '@/domain/types';
 import { formatTime } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 // The poller runs on the UTC 5-minute beat (ADR 0016), so the next poll is the next multiple of 5 minutes.
 const POLL_MS = 5 * 60_000;
@@ -73,8 +74,8 @@ export function WaitingCard({ match }: { match: MatchDetail }) {
         </View>
         {countdown ? (
           <View className="items-end">
-            <Text className="text-[22px] font-extrabold text-neon">{left < 1000 ? '0:00' : clock(left)}</Text>
-            <Text className="text-[10px] uppercase text-muted">next check</Text>
+            <Text style={TABULAR} className="text-[22px] font-extrabold text-neon">{left < 1000 ? '0:00' : clock(left)}</Text>
+            <Text className="text-[11px] uppercase text-muted">next check</Text>
           </View>
         ) : null}
       </View>

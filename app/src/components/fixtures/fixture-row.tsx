@@ -5,21 +5,22 @@ import { Crest } from '@/components/ui/crest';
 import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
 import type { Fixture } from '@/domain/types';
 import { dayLabel, formatTime, shortDate } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   if (f.status === 'finished') {
     return (
       <>
-        <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
-        <Text className="text-[10px] font-semibold tracking-wide text-muted">{showDate ? `FT · ${shortDate(f.kickoffUtc)}` : 'FT'}</Text>
+        <Text style={TABULAR} className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
+        <Text className="text-[11px] font-semibold tracking-wide text-muted">{showDate ? `FT · ${shortDate(f.kickoffUtc)}` : 'FT'}</Text>
       </>
     );
   }
   if (f.status === 'live' || f.status === 'halftime') {
     return (
       <>
-        <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
-        <Text className={`text-[11px] font-bold ${f.paused ? 'text-warn' : 'text-live'}`}>
+        <Text style={TABULAR} className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
+        <Text style={TABULAR} className={`text-[11px] font-bold ${f.paused ? 'text-warn' : 'text-live'}`}>
           {f.status === 'halftime' ? 'HT' : f.minute === null ? 'LIVE' : `${f.minute}'`}
         </Text>
       </>
@@ -27,8 +28,8 @@ function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   }
   return (
     <>
-      <Text className="text-[15px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
-      <Text className="text-[10px] font-medium text-muted">{dayLabel(f.kickoffUtc)}</Text>
+      <Text style={TABULAR} className="text-[15px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
+      <Text className="text-[11px] font-medium text-muted">{dayLabel(f.kickoffUtc)}</Text>
     </>
   );
 }
@@ -41,13 +42,13 @@ export function FixtureRow({ fixture, highlight = false, showDate = false }: { f
       onPress={() => router.push(`/match/${fixture.id}` as Href)}
       accessibilityRole="button"
       accessibilityLabel={`${fixture.home.name} versus ${fixture.away.name}`}
-      className={`mt-2 flex-row items-center rounded-2xl border bg-surface px-3 py-2.5 ${
+      className={`active:opacity-70 mt-2 flex-row items-center rounded-2xl border bg-surface px-3 py-2.5 ${
         highlight ? 'border-neon/70' : live ? 'border-neon/40' : 'border-neon/15'
       }`}
       style={highlight ? GLOW : live ? GLOW_SOFT : undefined}>
       {live ? (
         <View className={`mr-2 rounded-md px-1.5 py-0.5 ${fixture.paused ? 'bg-warn/20' : 'bg-live/20'}`}>
-          <Text className={`text-[9px] font-extrabold ${fixture.paused ? 'text-warn' : 'text-live'}`}>LIVE</Text>
+          <Text className={`text-[10px] font-extrabold ${fixture.paused ? 'text-warn' : 'text-live'}`}>LIVE</Text>
         </View>
       ) : null}
       <View className="flex-1 flex-row items-center gap-2">

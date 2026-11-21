@@ -6,6 +6,7 @@ import { RoundButton } from '@/components/ui/round-button';
 import { LEAGUES } from '@/domain/mock';
 import type { MatchDetail } from '@/domain/types';
 import { dayLabel, formatTime } from '@/lib/dates';
+import { TABULAR } from '@/components/ui/tabular';
 
 interface Props {
   match: MatchDetail;
@@ -49,17 +50,17 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
           onPress={() => router.push(`/team/${match.home.id}` as Href)}
           accessibilityRole="button"
           accessibilityLabel={`${match.home.name}: season`}
-          className="w-[104px] items-center gap-1.5">
+          className="w-[104px] items-center gap-1.5 active:opacity-70">
           <Crest team={match.home} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.home.shortName}</Text>
         </Pressable>
         <View className="items-center">
           {started ? (
             <>
-              <Text className="text-[38px] font-extrabold italic text-white">
+              <Text style={TABULAR} className="text-[38px] font-extrabold italic text-white">
                 {match.score.home} - {match.score.away}
               </Text>
-              <Text
+              <Text style={TABULAR}
                 className={`text-[13px] font-bold ${
                   live ? (match.paused ? 'text-warn' : 'text-live') : 'text-muted'
                 }`}>
@@ -72,7 +73,7 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
             </>
           ) : (
             <>
-              <Text className="text-[28px] font-extrabold text-white">{formatTime(match.kickoffUtc)}</Text>
+              <Text style={TABULAR} className="text-[28px] font-extrabold text-white">{formatTime(match.kickoffUtc)}</Text>
               <Text className="text-xs font-semibold text-muted">{dayLabel(match.kickoffUtc)}</Text>
             </>
           )}
@@ -81,7 +82,7 @@ export function MatchHeader({ match, followed, onToggleFollow, followDisabled }:
           onPress={() => router.push(`/team/${match.away.id}` as Href)}
           accessibilityRole="button"
           accessibilityLabel={`${match.away.name}: season`}
-          className="w-[104px] items-center gap-1.5">
+          className="w-[104px] items-center gap-1.5 active:opacity-70">
           <Crest team={match.away} size={60} />
           <Text className="text-[13px] font-bold text-white">{match.away.shortName}</Text>
         </Pressable>

@@ -17,7 +17,7 @@ function LeagueTab({ label, active, onPress }: { label: string; active: boolean;
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
-      className={`h-11 justify-center border-b-2 px-1 ${active ? 'border-neon' : 'border-transparent'}`}>
+      className={`active:opacity-70 h-11 justify-center border-b-2 px-1 ${active ? 'border-neon' : 'border-transparent'}`}>
       <Text className={`text-sm ${active ? 'font-bold text-neon' : 'font-medium text-soft'}`}>{label}</Text>
     </Pressable>
   );

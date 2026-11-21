@@ -142,20 +142,23 @@ export default function SignIn() {
 
         {auth.step === 'choose' ? (
           <>
-            <View className="h-[52px] items-center justify-center rounded-2xl bg-white/40">
-              <Text className="text-[15px] font-bold text-bg">Google sign-in coming soon</Text>
+            <View
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              className="h-[52px] items-center justify-center rounded-2xl bg-surface-2">
+              <Text className="text-[15px] font-bold text-muted">Google sign-in coming soon</Text>
             </View>
             <Pressable
               onPress={() => auth.setStep('email')}
               accessibilityRole="button"
-              className="mt-3 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface">
+              className="mt-3 h-[52px] items-center justify-center rounded-2xl border border-border bg-surface active:opacity-70">
               <Text className="text-[15px] font-semibold text-white">Continue with Email</Text>
             </Pressable>
             {DEV_LOGIN_ENABLED ? (
               <Pressable
                 onPress={() => setDevUser('tester')}
                 accessibilityRole="button"
-                className="mt-3 h-[44px] items-center justify-center rounded-2xl border border-dashed border-warn/70">
+                className="mt-3 h-[44px] items-center justify-center rounded-2xl border border-dashed border-warn/70 active:opacity-70">
                 <Text className="text-[13px] font-semibold text-warn">Dev sign-in (local only, no email code)</Text>
               </Pressable>
             ) : null}
@@ -187,13 +190,13 @@ export default function SignIn() {
                 />
               </>
             )}
-            {auth.error ? <Text className="text-[13px] text-red-400">{auth.error}</Text> : null}
+            {auth.error ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" className="text-[13px] text-red-400">{auth.error}</Text> : null}
             <PrimaryButton
               label={auth.busy ? 'Please wait…' : auth.step === 'email' ? 'Send code' : 'Verify'}
               disabled={auth.busy || (auth.step === 'email' ? !auth.email.includes('@') : auth.code.length < 6)}
               onPress={() => void (auth.step === 'email' ? auth.sendCode() : auth.verify())}
             />
-            <Pressable onPress={auth.reset} accessibilityRole="button" className="items-center py-2">
+            <Pressable onPress={auth.reset} accessibilityRole="button" className="items-center py-2 active:opacity-70">
               <Text className="text-[13px] font-semibold text-neon">Back</Text>
             </Pressable>
           </View>

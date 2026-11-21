@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import type { MatchDetail } from '@/domain/types';
+import { TABULAR } from '@/components/ui/tabular';
 
 export function Stats({ match }: { match: MatchDetail }) {
   if (!match.stats) {
@@ -17,12 +18,12 @@ export function Stats({ match }: { match: MatchDetail }) {
         return (
           <View key={s.key} className="pt-3.5">
             <View className="flex-row items-baseline justify-between">
-              <Text className="w-14 text-[13px] font-extrabold text-white">
+              <Text style={TABULAR} className="w-14 text-[13px] font-extrabold text-white">
                 {s.home}
                 {s.unit ?? ''}
               </Text>
               <Text className="text-xs font-medium text-soft">{s.label}</Text>
-              <Text className="w-14 text-right text-[13px] font-extrabold text-white">
+              <Text style={TABULAR} className="w-14 text-right text-[13px] font-extrabold text-white">
                 {s.away}
                 {s.unit ?? ''}
               </Text>

@@ -17,7 +17,7 @@ export function Segmented<T extends string>({ options, value, onChange }: Segmen
             onPress={() => onChange(o.value)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
-            className={`h-10 flex-1 items-center justify-center rounded-xl ${active ? 'bg-neon' : ''}`}>
+            className={`active:opacity-70 h-11 flex-1 items-center justify-center rounded-xl ${active ? 'bg-neon' : ''}`}>
             <Text className={`text-sm ${active ? 'font-bold text-bg' : 'font-semibold text-muted'}`}>{o.label}</Text>
           </Pressable>
         );

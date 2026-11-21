@@ -5,7 +5,8 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { useTeams } from '@/api/hooks';
 import { ClubRow } from '@/components/clubs/club-row';
-import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
+import { ErrorNotice } from '@/components/ui/error-notice';
+import { GLOW } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Screen } from '@/components/ui/screen';
@@ -37,15 +38,14 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
         <Pressable
           onPress={onDone}
           accessibilityRole="button"
-          className="h-12 flex-1 items-center justify-center rounded-xl border border-border bg-surface-2">
+          className="h-12 flex-1 items-center justify-center rounded-xl border border-border bg-surface-2 active:opacity-70">
           <Text className="text-sm font-semibold text-white">Not Now</Text>
         </Pressable>
         <Pressable
           onPress={enable}
           disabled={asking}
           accessibilityRole="button"
-          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon"
-          style={GLOW_SOFT}>
+          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon active:opacity-70">
           <Text className="text-sm font-extrabold text-bg">Enable</Text>
         </Pressable>
       </View>
@@ -66,7 +66,7 @@ export default function ChooseClubs() {
     void markNotificationPromptDone();
   };
   const [limitHit, setLimitHit] = useState(false);
-  const { data: results = [] } = useTeams(query);
+  const { data: results = [], isError, refetch } = useTeams(query);
 
   const picked = chosen.map((t) => t.id);
   const available = results.filter((t) => !picked.includes(t.id));
@@ -95,7 +95,7 @@ export default function ChooseClubs() {
       <Pressable
         onPress={() => router.push('/browse?pick=1' as Href)}
         accessibilityRole="button"
-        className="mt-3 h-12 flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4">
+        className="mt-3 h-12 flex-row items-center rounded-2xl border border-neon/25 bg-surface px-4 active:opacity-70">
         <Text className="flex-1 text-sm font-semibold text-white">Browse by country and league</Text>
         <Icon name="chevron-right" size={18} color="#8FA3C0" />
       </Pressable>
@@ -125,6 +125,9 @@ export default function ChooseClubs() {
         keyExtractor={(t) => String(t.id)}
         renderItem={({ item }) => <ClubRow team={item} selected={false} onToggle={onToggle} />}
         ListHeaderComponent={header}
+        ListEmptyComponent={
+          isError ? <ErrorNotice message="Could not search clubs." onRetry={() => void refetch()} className="mt-4" /> : null
+        }
         ListFooterComponent={
           picked.length > 0 && promptDone === false ? (
             <NotificationPrompt onDone={closePrompt} />

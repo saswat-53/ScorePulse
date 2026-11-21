@@ -20,7 +20,7 @@ export function MatchTabs({ value, onChange }: { value: MatchTab; onChange: (t: 
             onPress={() => onChange(t.value)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            className={`h-11 justify-center border-b-2 ${active ? 'border-neon' : 'border-transparent'}`}>
+            className={`active:opacity-70 h-11 justify-center border-b-2 ${active ? 'border-neon' : 'border-transparent'}`}>
             <Text className={`text-[13px] ${active ? 'font-bold text-neon' : 'text-muted'}`}>{t.label}</Text>
           </Pressable>
         );

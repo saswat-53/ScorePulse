@@ -28,7 +28,7 @@ export function UpdateBanner() {
         <Pressable
           onPress={() => Linking.openURL(config.downloadPageUrl!)}
           accessibilityRole="button"
-          className="h-11 items-center justify-center rounded-xl border border-neon bg-neon/15 px-3.5">
+          className="h-11 items-center justify-center rounded-xl border border-neon bg-neon/15 px-3.5 active:opacity-70">
           <Text className="text-[13px] font-bold text-white">Update</Text>
         </Pressable>
       ) : null}
@@ -36,7 +36,7 @@ export function UpdateBanner() {
         onPress={() => setDismissed(true)}
         accessibilityRole="button"
         accessibilityLabel="Dismiss"
-        className="h-11 w-11 items-center justify-center">
+        className="h-11 w-11 items-center justify-center active:opacity-70">
         <Icon name="close" size={18} color="#8FA3C0" />
       </Pressable>
     </View>
