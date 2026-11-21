@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 8 1736.56 1022" width="1736.56" height="1022" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker><marker id="ahs" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker></defs>
+<rect x="-40" y="8" width="1736.56" height="1022" fill="#ffffff"/>
+<rect x="0" y="90" width="300" height="512" rx="10" fill="#ffe3e3" stroke="#e03131" stroke-width="2"/>
+<rect x="430" y="90" width="300" height="110" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="430" y="224" width="300" height="110" rx="10" fill="#fff3bf" stroke="#f08c00" stroke-width="2"/>
+<rect x="430" y="358" width="300" height="110" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="430" y="492" width="300" height="110" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="860" y="90" width="340" height="512" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1330" y="90" width="300" height="110" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1330" y="224" width="300" height="110" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1330" y="358" width="300" height="110" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1330" y="492" width="300" height="110" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="860" y="680" width="340" height="110" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="1330" y="680" width="300" height="110" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="0" y="880" width="300" height="110" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="430" y="880" width="300" height="110" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<polyline points="430,145 300,145" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="430,279 300,279" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="430,413 300,413" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="430,547 300,547" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="730,413 860,413" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1330,145 1200,145" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1330,279 1200,279" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1330,413 1200,413" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1330,547 1200,547" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1030,602 1030,680" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<polyline points="1330,735 1200,735" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<polyline points="580,602 580,735 860,735" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<rect x="336.48" y="123" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="365" y="136.7" font-size="12" fill="#495057" text-anchor="middle">user_id</text>
+<rect x="336.48" y="257" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="365" y="270.7" font-size="12" fill="#495057" text-anchor="middle">user_id</text>
+<rect x="336.48" y="391" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="365" y="404.7" font-size="12" fill="#495057" text-anchor="middle">user_id</text>
+<rect x="336.48" y="525" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="365" y="538.7" font-size="12" fill="#495057" text-anchor="middle">user_id</text>
+<rect x="756.4" y="391" width="77.2" height="19" fill="#ffffff"/>
+<text x="795" y="404.7" font-size="12" fill="#495057" text-anchor="middle">fixture_id</text>
+<rect x="1226.4" y="123" width="77.2" height="19" fill="#ffffff"/>
+<text x="1265" y="136.7" font-size="12" fill="#495057" text-anchor="middle">fixture_id</text>
+<rect x="1226.4" y="257" width="77.2" height="19" fill="#ffffff"/>
+<text x="1265" y="270.7" font-size="12" fill="#495057" text-anchor="middle">fixture_id</text>
+<rect x="1226.4" y="391" width="77.2" height="19" fill="#ffffff"/>
+<text x="1265" y="404.7" font-size="12" fill="#495057" text-anchor="middle">fixture_id</text>
+<rect x="1226.4" y="525" width="77.2" height="19" fill="#ffffff"/>
+<text x="1265" y="538.7" font-size="12" fill="#495057" text-anchor="middle">fixture_id</text>
+<rect x="1038" y="631.5" width="184.72000000000003" height="19" fill="#ffffff"/>
+<text x="1130.3600000000001" y="645.2" font-size="12" fill="#495057" text-anchor="middle">home_team_id, away_team_id</text>
+<rect x="1236.48" y="713" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="1265" y="726.7" font-size="12" fill="#495057" text-anchor="middle">team_id</text>
+<rect x="640" y="708" width="57.040000000000006" height="19" fill="#ffffff"/>
+<text x="668.52" y="721.7" font-size="12" fill="#495057" text-anchor="middle">team_id</text>
+<text x="16" y="121.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">users</tspan></text>
+<text x="16" y="147.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">id  (Clerk user id, primary key)</tspan><tspan x="16" dy="17.5">timezone</tspan><tspan x="16" dy="17.5">alert_goals  (on by default)</tspan><tspan x="16" dy="17.5">alert_cards  (off)</tspan><tspan x="16" dy="17.5">alert_substitutions  (off)</tspan><tspan x="16" dy="17.5">alert_kickoff  (off)</tspan><tspan x="16" dy="17.5">alert_full_time  (on by default)</tspan><tspan x="16" dy="17.5">created_at</tspan></text>
+<text x="446" y="121.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">push_tokens</tspan></text>
+<text x="446" y="147.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">user_id → users</tspan><tspan x="446" dy="17.5">token (unique)</tspan><tspan x="446" dy="17.5">one row per phone</tspan></text>
+<text x="446" y="255.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">notification_log (outbox)</tspan></text>
+<text x="446" y="281.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">user_id, event_key (unique pair)</tspan><tspan x="446" dy="17.5">status: pending, sent, failed</tspan><tspan x="446" dy="17.5">payload, attempts, delivered_to</tspan></text>
+<text x="446" y="389.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">follows</tspan></text>
+<text x="446" y="415.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">user_id, fixture_id</tspan><tspan x="446" dy="17.5">max 2 active (database trigger)</tspan><tspan x="446" dy="17.5">makes one match live-tracked</tspan></text>
+<text x="446" y="523.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">favorite_teams</tspan></text>
+<text x="446" y="549.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">user_id, team_id</tspan><tspan x="446" dy="17.5">max 3 per user (database trigger)</tspan><tspan x="446" dy="17.5">makes the team's matches live</tspan></text>
+<text x="876" y="121.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="876" dy="0">fixtures  (one row per match)</tspan></text>
+<text x="876" y="147.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="876" dy="0">id  (primary key)</tspan><tspan x="876" dy="17.5">api_football_id  (unique)</tspan><tspan x="876" dy="17.5">football_data_id  (unique)</tspan><tspan x="876" dy="17.5">league_id</tspan><tspan x="876" dy="17.5">home_team_id, away_team_id</tspan><tspan x="876" dy="17.5">kickoff  (stored in UTC)</tspan><tspan x="876" dy="17.5">status  (NS, FT, ...)</tspan><tspan x="876" dy="17.5">home_goals, away_goals</tspan><tspan x="876" dy="17.5">source  (which provider gave the row)</tspan><tspan x="876" dy="17.5">minute</tspan><tspan x="876" dy="17.5">first_polled_at, last_polled_at</tspan><tspan x="876" dy="17.5">attempt counters  (lineups, stats, link)</tspan><tspan x="876" dy="17.5">alert-due flags  (kickoff, full time, score)</tspan><tspan x="876" dy="17.5">updated_at</tspan></text>
+<text x="1346" y="121.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1346" dy="0">fixture_events</tspan></text>
+<text x="1346" y="147.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1346" dy="0">fixture_id, minute, team, player</tspan><tspan x="1346" dy="17.5">type (goal, card, sub), detail</tspan><tspan x="1346" dy="17.5">alert_state, removed_at (VAR)</tspan></text>
+<text x="1346" y="255.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1346" dy="0">fixture_lineups</tspan></text>
+<text x="1346" y="281.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1346" dy="0">fixture_id, team_id (unique pair)</tspan><tspan x="1346" dy="17.5">formation, coach</tspan><tspan x="1346" dy="17.5">starters, substitutes (jsonb)</tspan></text>
+<text x="1346" y="389.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1346" dy="0">fixture_stats</tspan></text>
+<text x="1346" y="415.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1346" dy="0">fixture_id, team_id (unique pair)</tspan><tspan x="1346" dy="17.5">stats (jsonb): possession, shots</tspan><tspan x="1346" dy="17.5">phase: HT or FT</tspan></text>
+<text x="1346" y="523.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1346" dy="0">fixture_overwrites</tspan></text>
+<text x="1346" y="549.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1346" dy="0">fixture_id</tspan><tspan x="1346" dy="17.5">old and new home/away goals</tspan><tspan x="1346" dy="17.5">log of provider disagreements</tspan></text>
+<text x="876" y="711.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="876" dy="0">team_map</tspan></text>
+<text x="876" y="737.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="876" dy="0">football_data_id ↔ api_football_id</tspan><tspan x="876" dy="17.5">name, short_name, code</tspan><tspan x="876" dy="17.5">crest_url</tspan></text>
+<text x="1346" y="711.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1346" dy="0">standings</tspan></text>
+<text x="1346" y="737.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1346" dy="0">competition, season, team_id</tspan><tspan x="1346" dy="17.5">position, played, won/drawn/lost</tspan><tspan x="1346" dy="17.5">points, goals_for/against</tspan></text>
+<text x="16" y="911.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">poll_state</tspan></text>
+<text x="16" y="937.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">one row, id = 'global'</tspan><tspan x="16" dy="17.5">last_polled_at</tspan><tspan x="16" dy="17.5">requests_today, quota_day</tspan></text>
+<text x="446" y="911.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">app_config</tspan></text>
+<text x="446" y="937.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">key / value text settings</tspan><tspan x="446" dy="17.5">min / latest_app_version</tspan><tspan x="446" dy="17.5">download_page_url</tspan></text>
+<text x="0" y="63.2" font-size="16" fill="#495057" text-anchor="start"><tspan x="0" dy="0">People and what they chose</tspan></text>
+<text x="860" y="63.2" font-size="16" fill="#495057" text-anchor="start"><tspan x="860" dy="0">Matches and everything stored about them</tspan></text>
+<text x="1330" y="655.2" font-size="16" fill="#495057" text-anchor="start"><tspan x="1330" dy="0">Reference data: translating team ids</tspan></text>
+<text x="0" y="855.2" font-size="16" fill="#495057" text-anchor="start"><tspan x="0" dy="0">Bookkeeping (no links to other tables)</tspan></text>
+<text x="860" y="893.3" font-size="14" fill="#495057" text-anchor="start"><tspan x="860" dy="0">Solid arrow: foreign key, enforced by Postgres.</tspan><tspan x="860" dy="17.5">Dashed arrow: matching id kept by the code, not enforced.</tspan><tspan x="860" dy="17.5">Arrows point from the row that holds the id to the row it refers to.</tspan></text>
+</svg>

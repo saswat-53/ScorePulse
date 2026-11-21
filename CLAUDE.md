@@ -11,3 +11,7 @@ Default five-label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, 
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Code map
+
+Read `docs/CODEMAP.md` first to find which file does what before grepping. When you add, rename, move or change the job of a source file, update its line there in the same change.

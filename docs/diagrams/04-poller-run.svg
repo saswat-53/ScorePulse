@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 1460 1541.5" width="1460" height="1541.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker><marker id="ahs" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker></defs>
+<rect x="-40" y="-40" width="1460" height="1541.5" fill="#ffffff"/>
+<rect x="330" y="50" width="560" height="56" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="330" y="146" width="560" height="131" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="330" y="317" width="560" height="166" rx="10" fill="#fff3bf" stroke="#f08c00" stroke-width="2"/>
+<rect x="330" y="523" width="560" height="148" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="330" y="711" width="560" height="166" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="330" y="917" width="560" height="131" rx="10" fill="#e5dbff" stroke="#7048e8" stroke-width="2"/>
+<rect x="330" y="1088" width="560" height="148" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="330" y="1276" width="560" height="113" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="0" y="146" width="230" height="1243" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="1040" y="552" width="340" height="90" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="1040" y="937.5" width="340" height="90" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="1040" y="1117" width="340" height="90" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="1040" y="1287.5" width="340" height="90" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<polyline points="610,106 610,146" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,277 610,317" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,483 610,523" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,671 610,711" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,877 610,917" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,1048 610,1088" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="610,1236 610,1276" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="230,211.5 330,211.5" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,794 230,794" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,982.5 230,982.5" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,1162 230,1162" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="330,1332.5 230,1332.5" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="890,597 1040,597" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<polyline points="890,982.5 1040,982.5" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<polyline points="890,1162 1040,1162" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<polyline points="890,1332.5 1040,1332.5" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="618" y="493.5" width="137.68" height="19" fill="#ffffff"/>
+<text x="686.84" y="507.2" font-size="12" fill="#495057" text-anchor="middle">if something is due</text>
+<rect x="618" y="681.5" width="110.80000000000001" height="19" fill="#ffffff"/>
+<text x="673.4" y="695.2" font-size="12" fill="#495057" text-anchor="middle">the live answer</text>
+<rect x="618" y="887.5" width="184.72000000000003" height="19" fill="#ffffff"/>
+<text x="710.36" y="901.2" font-size="12" fill="#495057" text-anchor="middle">only if the quota is spent</text>
+<rect x="618" y="1058.5" width="178.00000000000003" height="19" fill="#ffffff"/>
+<text x="707" y="1072.2" font-size="12" fill="#495057" text-anchor="middle">unless step 3 was refused</text>
+<rect x="618" y="1246.5" width="130.96" height="19" fill="#ffffff"/>
+<text x="683.48" y="1260.2" font-size="12" fill="#495057" text-anchor="middle">if alerts are owed</text>
+<rect x="258.2" y="189.5" width="43.6" height="19" fill="#ffffff"/>
+<text x="280" y="203.2" font-size="12" fill="#495057" text-anchor="middle">reads</text>
+<rect x="254.84" y="772" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="280" y="785.7" font-size="12" fill="#495057" text-anchor="middle">writes</text>
+<rect x="254.84" y="960.5" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="280" y="974.2" font-size="12" fill="#495057" text-anchor="middle">writes</text>
+<rect x="254.84" y="1140" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="280" y="1153.7" font-size="12" fill="#495057" text-anchor="middle">writes</text>
+<rect x="254.84" y="1310.5" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="280" y="1324.2" font-size="12" fill="#495057" text-anchor="middle">writes</text>
+<rect x="929.76" y="575" width="70.48" height="19" fill="#ffffff"/>
+<text x="965" y="588.7" font-size="12" fill="#495057" text-anchor="middle">1 request</text>
+<rect x="929.76" y="960.5" width="70.48" height="19" fill="#ffffff"/>
+<text x="965" y="974.2" font-size="12" fill="#495057" text-anchor="middle">1 request</text>
+<rect x="923.04" y="1140" width="83.92" height="19" fill="#ffffff"/>
+<text x="965" y="1153.7" font-size="12" fill="#495057" text-anchor="middle">up to 3 + 3</text>
+<rect x="939.84" y="1310.5" width="50.32000000000001" height="19" fill="#ffffff"/>
+<text x="965" y="1324.2" font-size="12" fill="#495057" text-anchor="middle">pushes</text>
+<text x="610" y="83.2" font-size="16" fill="#1e1e1e" text-anchor="middle"><tspan x="610" dy="0">A cron beat fires: scheduled() calls runPoller()</tspan></text>
+<text x="346" y="177.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">1. Read the state (one Neon request)</tspan></text>
+<text x="346" y="203.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">Seven queries run as one batch, so it costs one subrequest:</tspan><tspan x="346" dy="17.5">quota used today, matches that are due, lineup and stats candidates,</tspan><tspan x="346" dy="17.5">alerts owed, alerts waiting to send, fallback state, unlinked fixtures</tspan><tspan x="346" dy="17.5">No provider request yet</tspan></text>
+<text x="346" y="348.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">2. Decide: may we ask the live feed now?</tspan></text>
+<text x="346" y="374.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">A match is due when it has kicked off, is not over, and is a</tspan><tspan x="346" dy="17.5">favorite or followed. Playing, or not started less than 90 min late,</tspan><tspan x="346" dy="17.5">or at halftime for 14 min or more (halftime is not polled)</tspan><tspan x="346" dy="17.5">Allowed when quota is left and 5 min have passed since the last poll</tspan><tspan x="346" dy="17.5">From 70 of 100 requests used: 10 min apart, favorites only</tspan><tspan x="346" dy="17.5">Nothing due, or too soon: steps 3 and 4 are skipped</tspan></text>
+<text x="346" y="554.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">3. Ask API-Football who is live (1 request)</tspan></text>
+<text x="346" y="580.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">fixtures?live=39-140-... covers the leagues of every due match</tspan><tspan x="346" dy="17.5">Sent through the relay on Vercel, at a settled second of the minute</tspan><tspan x="346" dy="17.5">Refused for rate limit: waits 20 s and tries once more</tspan><tspan x="346" dy="17.5">Still refused: nothing is recorded, the extras are skipped,</tspan><tspan x="346" dy="17.5">and the next beat asks again</tspan></text>
+<text x="346" y="742.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">4. Save what happened (one Neon batch)</tspan></text>
+<text x="346" y="768.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">Link fixtures with no API-Football id from this answer (no extra request)</tspan><tspan x="346" dy="17.5">Insert new events. The first poll of a match is backfill, later ones are news</tspan><tspan x="346" dy="17.5">Update status and score. Kickoff and full time owe an alert</tspan><tspan x="346" dy="17.5">Seen live, then missing 100 min after kickoff: the match is over</tspan><tspan x="346" dy="17.5">A goal missing from 2 polls in a row, or cancelled by VAR, is removed</tspan><tspan x="346" dy="17.5">Count the request in poll_state</tspan></text>
+<text x="346" y="948.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">5. Quota spent? Use football-data.org instead</tspan></text>
+<text x="346" y="974.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">Only when all 100 requests are used and a match is due</tspan><tspan x="346" dy="17.5">One request every 10 min: score and status only, no events</tspan><tspan x="346" dy="17.5">A score that went up owes an alert</tspan><tspan x="346" dy="17.5">If it fails too, nothing is polled and the app shows 'updates paused'</tspan></text>
+<text x="346" y="1119.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">6. Extras: lineups, statistics, completion</tspan></text>
+<text x="346" y="1145.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">Skipped if step 3 was refused for rate limit</tspan><tspan x="346" dy="17.5">Look up the id of a tracked match by date, 70 min before kickoff</tspan><tspan x="346" dy="17.5">Lineups at 60, 45, 30 and 10 min before kickoff, at least 14 min apart</tspan><tspan x="346" dy="17.5">Halftime statistics, final statistics, one fetch by id after the match</tspan><tspan x="346" dy="17.5">Each kind is capped at 3 per run. An empty answer still costs a try</tspan></text>
+<text x="346" y="1307.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="346" dy="0">7. Alerts, if any are owed</tspan></text>
+<text x="346" y="1333.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="346" dy="0">queueAlerts writes one pending row per person and event</tspan><tspan x="346" dy="17.5">sendAlerts sends the pending rows through Expo, up to 100 per request</tspan><tspan x="346" dy="17.5">A crash here is safe: the next run finds the pending rows and finishes</tspan></text>
+<text x="16" y="177.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Neon Postgres</tspan></text>
+<text x="16" y="203.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">poll_state (quota counters)</tspan><tspan x="16" dy="17.5">fixtures</tspan><tspan x="16" dy="17.5">fixture_events</tspan><tspan x="16" dy="17.5">fixture_lineups</tspan><tspan x="16" dy="17.5">fixture_stats</tspan><tspan x="16" dy="17.5">notification_log (alerts)</tspan></text>
+<text x="1056" y="583.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">API-Football (via the relay)</tspan></text>
+<text x="1056" y="609.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">100 requests a day, shared by</tspan><tspan x="1056" dy="17.5">steps 3 and 6 and the archive</tspan></text>
+<text x="1056" y="968.6" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">football-data.org</tspan></text>
+<text x="1056" y="995.3" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">10 requests a minute</tspan><tspan x="1056" dy="17.5">own quota, separate from API-Football</tspan></text>
+<text x="1056" y="1148.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">API-Football (same relay)</tspan></text>
+<text x="1056" y="1174.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">lineups, statistics, fetch by id,</tspan><tspan x="1056" dy="17.5">lookup by date</tspan></text>
+<text x="1056" y="1318.6" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1056" dy="0">Expo push service</tspan></text>
+<text x="1056" y="1345.3" font-size="14" fill="#495057" text-anchor="start"><tspan x="1056" dy="0">up to 100 messages per request,</tspan><tspan x="1056" dy="17.5">then on to the phones</tspan></text>
+<text x="0" y="17.099999999999998" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">The poller run: what happens on one 5-minute beat (server/src/poller/run-poller.ts)</tspan></text>
+<text x="0" y="1441.35" font-size="13" fill="#495057" text-anchor="start"><tspan x="0" dy="0">A step that has nothing to do is skipped, so a quiet beat is just step 1 and the run ends.</tspan><tspan x="0" dy="16.25">Requests to API-Football in one beat: 0 or 1 for step 3, then up to 3 lookups and up to 3 extra fetches in step 6. Each is counted in poll_state.</tspan></text>
+</svg>

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 2080 1098.75" width="2080" height="1098.75" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker><marker id="ahs" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L9,4 L0,8 z" fill="#343a40"/></marker></defs>
+<rect x="-40" y="-40" width="2080" height="1098.75" fill="#ffffff"/>
+<rect x="0" y="60" width="280" height="280" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="430" y="60" width="280" height="280" rx="10" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+<rect x="860" y="60" width="280" height="280" rx="10" fill="#fff3bf" stroke="#f08c00" stroke-width="2"/>
+<rect x="1290" y="60" width="280" height="280" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1720" y="130" width="280" height="140" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="1290" y="440" width="280" height="90" rx="10" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+<rect x="0" y="740" width="240" height="80" rx="10" fill="#fff3bf" stroke="#f08c00" stroke-width="2"/>
+<rect x="760" y="630" width="240" height="80" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+<rect x="760" y="850" width="240" height="80" rx="10" fill="#f1f3f5" stroke="#495057" stroke-width="2"/>
+<rect x="1340" y="740" width="240" height="80" rx="10" fill="#ffe3e3" stroke="#e03131" stroke-width="2"/>
+<polyline points="280,200 430,200" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="710,200 860,200" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1140,200 1290,200" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1570,200 1720,200" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)" marker-start="url(#ahs)"/>
+<polyline points="1370,340 1370,380 1000,380 1000,340" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1490,340 1490,440" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#ah)"/>
+<polyline points="240,750 500,750 500,670 760,670" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="240,810 500,810 500,890 760,890" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="240,780 1340,780" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<polyline points="1460,740 1460,670 1000,670" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" marker-end="url(#ah)"/>
+<rect x="336.56" y="178" width="36.88" height="19" fill="#ffffff"/>
+<text x="355" y="191.7" font-size="12" fill="#495057" text-anchor="middle">read</text>
+<rect x="732.96" y="178" width="104.08000000000001" height="19" fill="#ffffff"/>
+<text x="785" y="191.7" font-size="12" fill="#495057" text-anchor="middle">insert pending</text>
+<rect x="1159.6" y="178" width="110.80000000000001" height="19" fill="#ffffff"/>
+<text x="1215" y="191.7" font-size="12" fill="#495057" text-anchor="middle">pending, failed</text>
+<rect x="1582.88" y="178" width="124.24000000000001" height="19" fill="#ffffff"/>
+<text x="1645" y="191.7" font-size="12" fill="#495057" text-anchor="middle">messages, tickets</text>
+<rect x="1052.32" y="358" width="265.36" height="19" fill="#ffffff"/>
+<text x="1185" y="371.7" font-size="12" fill="#495057" text-anchor="middle">marks each row sent, failed or skipped</text>
+<rect x="1498" y="380.5" width="137.68" height="19" fill="#ffffff"/>
+<text x="1566.84" y="394.2" font-size="12" fill="#495057" text-anchor="middle">DeviceNotRegistered</text>
+<rect x="311.24" y="728" width="117.52000000000001" height="19" fill="#ffffff"/>
+<text x="370" y="741.7" font-size="12" fill="#495057" text-anchor="middle">Expo accepted it</text>
+<rect x="247.39999999999998" y="788" width="245.20000000000002" height="19" fill="#ffffff"/>
+<text x="370" y="801.7" font-size="12" fill="#495057" text-anchor="middle">no recipient, no device, dead token</text>
+<rect x="603.56" y="758" width="372.88000000000005" height="19" fill="#ffffff"/>
+<text x="790" y="771.7" font-size="12" fill="#495057" text-anchor="middle">Expo refused it or could not be reached (attempts + 1)</text>
+<rect x="1130.92" y="648" width="198.16000000000003" height="19" fill="#ffffff"/>
+<text x="1230" y="661.7" font-size="12" fill="#495057" text-anchor="middle">a later run: Expo accepts it</text>
+<text x="16" y="91.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">Owed flags</tspan></text>
+<text x="16" y="117.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">alert_state = 'due' on fixture_events</tspan><tspan x="16" dy="17.5">(a goal, card or substitution)</tspan><tspan x="16" dy="17.5">correction_due on fixture_events</tspan><tspan x="16" dy="17.5">(a goal that VAR cancelled)</tspan><tspan x="16" dy="17.5">kickoff_alert_due on fixtures</tspan><tspan x="16" dy="17.5">full_time_alert_due on fixtures</tspan><tspan x="16" dy="17.5">score_alert_due on fixtures</tspan><tspan x="16" dy="17.5">&#160;</tspan><tspan x="16" dy="17.5">Written in the same statement as the</tspan><tspan x="16" dy="17.5">event or status change, so a crash</tspan><tspan x="16" dy="17.5">cannot lose them (diagram 4, step 4)</tspan></text>
+<text x="446" y="91.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="446" dy="0">queueAlerts</tspan></text>
+<text x="446" y="117.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="446" dy="0">Reads the owed flags, who follows each</tspan><tspan x="446" dy="17.5">match, the fans of each team, and every</tspan><tspan x="446" dy="17.5">user's alert switches, in one batch</tspan><tspan x="446" dy="17.5">&#160;</tspan><tspan x="446" dy="17.5">Recipient: follows the match, or has</tspan><tspan x="446" dy="17.5">either team as a favorite, and has</tspan><tspan x="446" dy="17.5">that kind of alert switched on</tspan><tspan x="446" dy="17.5">&#160;</tspan><tspan x="446" dy="17.5">Writes one pending row per person</tspan><tspan x="446" dy="17.5">and event, and clears the flags in</tspan><tspan x="446" dy="17.5">the same batch</tspan></text>
+<text x="876" y="91.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="876" dy="0">notification_log (outbox)</tspan></text>
+<text x="876" y="117.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="876" dy="0">Unique on (user_id, event_key), so the</tspan><tspan x="876" dy="17.5">same alert is never queued twice</tspan><tspan x="876" dy="17.5">event_key: fixture:42:event:7</tspan><tspan x="876" dy="17.5">status: pending, sent, failed, skipped</tspan><tspan x="876" dy="17.5">payload: the alert's content, saved</tspan><tspan x="876" dy="17.5">with the row so a send needs no lookup</tspan><tspan x="876" dy="17.5">attempts: failed sends so far</tspan><tspan x="876" dy="17.5">delivered_to: tokens that already got it</tspan></text>
+<text x="1306" y="91.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1306" dy="0">sendAlerts</tspan></text>
+<text x="1306" y="117.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1306" dy="0">Takes pending and failed rows with</tspan><tspan x="1306" dy="17.5">fewer than 3 attempts</tspan><tspan x="1306" dy="17.5">&#160;</tspan><tspan x="1306" dy="17.5">Checks again, now: still a recipient,</tspan><tspan x="1306" dy="17.5">switch still on, has a device (ADR 0008)</tspan><tspan x="1306" dy="17.5">&#160;</tspan><tspan x="1306" dy="17.5">Builds the text: 'GOAL! Scorer',</tspan><tspan x="1306" dy="17.5">score and minute</tspan><tspan x="1306" dy="17.5">Sends up to 100 messages per request</tspan><tspan x="1306" dy="17.5">Marks each row from Expo's tickets</tspan></text>
+<text x="1736" y="161.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1736" dy="0">Expo push service</tspan></text>
+<text x="1736" y="187.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1736" dy="0">One ticket per message, in order</tspan><tspan x="1736" dy="17.5">Passes each message on to the phone</tspan></text>
+<text x="1306" y="471.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1306" dy="0">push_tokens</tspan></text>
+<text x="1306" y="497.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1306" dy="0">One row per phone</tspan><tspan x="1306" dy="17.5">Deleted when it is dead</tspan></text>
+<text x="16" y="773.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="16" dy="0">pending</tspan></text>
+<text x="16" y="799.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="16" dy="0">written by queueAlerts</tspan></text>
+<text x="776" y="663.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="776" dy="0">sent</tspan></text>
+<text x="776" y="689.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="776" dy="0">at least one phone got it</tspan></text>
+<text x="776" y="883.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="776" dy="0">skipped</tspan></text>
+<text x="776" y="909.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="776" dy="0">nothing left to send</tspan></text>
+<text x="1356" y="773.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="1356" dy="0">failed</tspan></text>
+<text x="1356" y="799.8" font-size="14" fill="#495057" text-anchor="start"><tspan x="1356" dy="0">Expo refused it or was down</tspan></text>
+<text x="0" y="17.099999999999998" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">The alert pipeline: from an owed flag to a buzz in your pocket</tspan></text>
+<text x="0" y="577.1" font-size="18" fill="#1e1e1e" text-anchor="start"><tspan x="0" dy="0">The life of one notification_log row (its status)</tspan></text>
+<text x="0" y="982.35" font-size="13" fill="#495057" text-anchor="start"><tspan x="0" dy="0">After 3 failed attempts a row stays failed and is never sent again, so retries cannot eat the day's quota.</tspan><tspan x="0" dy="16.25">A retry goes only to the phones that did not get it yet (delivered_to), so nobody gets the same alert twice.</tspan><tspan x="0" dy="16.25">A goal alert still waiting when VAR cancels the goal is marked skipped by queueAlerts: nobody hears about a goal that never counted.</tspan></text>
+</svg>
