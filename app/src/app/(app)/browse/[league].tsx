@@ -62,7 +62,7 @@ export default function LeagueClubs() {
           )}
           {data && data.teams.length === 0 ? (
             <Text className="mt-10 text-center text-[13px] text-muted">
-              No clubs yet. They appear once the daily update has stored this league's table.
+              No clubs yet. They appear once the daily update has stored this league&apos;s table.
             </Text>
           ) : null}
         </ScrollView>
