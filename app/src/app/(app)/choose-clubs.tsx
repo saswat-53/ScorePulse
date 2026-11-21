@@ -6,7 +6,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { useTeams } from '@/api/hooks';
 import { ClubRow } from '@/components/clubs/club-row';
 import { ErrorNotice } from '@/components/ui/error-notice';
-import { GLOW, GLOW_SOFT } from '@/components/ui/glow';
+import { GLOW } from '@/components/ui/glow';
 import { Icon } from '@/components/ui/icon';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { Screen } from '@/components/ui/screen';
@@ -45,8 +45,7 @@ function NotificationPrompt({ onDone }: { onDone: () => void }) {
           onPress={enable}
           disabled={asking}
           accessibilityRole="button"
-          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon active:opacity-70"
-          style={GLOW_SOFT}>
+          className="h-12 flex-1 items-center justify-center rounded-xl bg-neon active:opacity-70">
           <Text className="text-sm font-extrabold text-bg">Enable</Text>
         </Pressable>
       </View>
