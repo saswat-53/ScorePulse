@@ -26,7 +26,7 @@ export function UpcomingList({ fixtures }: { fixtures: Fixture[] }) {
               {f.home.shortName}
             </Text>
           </View>
-          <Text className="w-10 text-center text-[10px] font-bold text-muted">VS</Text>
+          <Text className="w-10 text-center text-[11px] font-bold text-muted">VS</Text>
           <View className="flex-1 flex-row items-center justify-end gap-1.5">
             <Text numberOfLines={1} className="flex-1 text-right text-[12px] font-semibold text-white">
               {f.away.shortName}

@@ -11,7 +11,7 @@ function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
     return (
       <>
         <Text className="text-[17px] font-extrabold text-white">{f.score.home} - {f.score.away}</Text>
-        <Text className="text-[10px] font-semibold tracking-wide text-muted">{showDate ? `FT · ${shortDate(f.kickoffUtc)}` : 'FT'}</Text>
+        <Text className="text-[11px] font-semibold tracking-wide text-muted">{showDate ? `FT · ${shortDate(f.kickoffUtc)}` : 'FT'}</Text>
       </>
     );
   }
@@ -28,7 +28,7 @@ function Centre({ f, showDate }: { f: Fixture; showDate: boolean }) {
   return (
     <>
       <Text className="text-[15px] font-bold text-white">{formatTime(f.kickoffUtc)}</Text>
-      <Text className="text-[10px] font-medium text-muted">{dayLabel(f.kickoffUtc)}</Text>
+      <Text className="text-[11px] font-medium text-muted">{dayLabel(f.kickoffUtc)}</Text>
     </>
   );
 }
@@ -47,7 +47,7 @@ export function FixtureRow({ fixture, highlight = false, showDate = false }: { f
       style={highlight ? GLOW : live ? GLOW_SOFT : undefined}>
       {live ? (
         <View className={`mr-2 rounded-md px-1.5 py-0.5 ${fixture.paused ? 'bg-warn/20' : 'bg-live/20'}`}>
-          <Text className={`text-[9px] font-extrabold ${fixture.paused ? 'text-warn' : 'text-live'}`}>LIVE</Text>
+          <Text className={`text-[10px] font-extrabold ${fixture.paused ? 'text-warn' : 'text-live'}`}>LIVE</Text>
         </View>
       ) : null}
       <View className="flex-1 flex-row items-center gap-2">

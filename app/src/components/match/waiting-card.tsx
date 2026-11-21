@@ -74,7 +74,7 @@ export function WaitingCard({ match }: { match: MatchDetail }) {
         {countdown ? (
           <View className="items-end">
             <Text className="text-[22px] font-extrabold text-neon">{left < 1000 ? '0:00' : clock(left)}</Text>
-            <Text className="text-[10px] uppercase text-muted">next check</Text>
+            <Text className="text-[11px] uppercase text-muted">next check</Text>
           </View>
         ) : null}
       </View>

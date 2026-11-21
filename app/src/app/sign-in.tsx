@@ -142,8 +142,11 @@ export default function SignIn() {
 
         {auth.step === 'choose' ? (
           <>
-            <View className="h-[52px] items-center justify-center rounded-2xl bg-white/40">
-              <Text className="text-[15px] font-bold text-bg">Google sign-in coming soon</Text>
+            <View
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              className="h-[52px] items-center justify-center rounded-2xl bg-surface-2">
+              <Text className="text-[15px] font-bold text-muted">Google sign-in coming soon</Text>
             </View>
             <Pressable
               onPress={() => auth.setStep('email')}

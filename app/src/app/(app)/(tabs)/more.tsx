@@ -104,7 +104,7 @@ export default function More() {
               <Switch
                 value={profile.alerts[a.key]}
                 onValueChange={(v) => setAlert(a.key, v)}
-                trackColor={{ false: '#1B2D4D', true: '#19E3FF' }}
+                trackColor={{ false: '#5A6A83', true: '#19E3FF' }}
                 thumbColor="#FFFFFF"
                 accessibilityLabel={a.title}
               />

@@ -35,9 +35,11 @@ export function LockedTimeline() {
         <View className="h-3 w-4/5 rounded-md bg-muted" />
         <View className="h-3 w-[45%] rounded-md bg-muted" />
       </View>
-      <View className="absolute inset-0 flex-row items-center justify-center gap-2">
-        <Icon name="lock" size={18} color="#B9C6E0" />
-        <Text className="text-[13px] font-semibold text-soft">Timeline unlocks when you follow</Text>
+      <View className="absolute inset-0 items-center justify-center">
+        <View className="flex-row items-center gap-2 rounded-full bg-surface px-3 py-2">
+          <Icon name="lock" size={18} color="#B9C6E0" />
+          <Text className="text-[13px] font-semibold text-soft">Timeline unlocks when you follow</Text>
+        </View>
       </View>
     </View>
   );

@@ -81,7 +81,7 @@ export function Lineups({ match }: { match: MatchDetail }) {
                 {p.number}
               </Text>
             </View>
-            <Text className="text-[10px] font-semibold text-white">{p.name}</Text>
+            <Text className="text-[11px] font-semibold text-white">{p.name}</Text>
           </View>
         ))}
       </View>
